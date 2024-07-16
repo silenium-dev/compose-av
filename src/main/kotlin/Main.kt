@@ -2,24 +2,85 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.awaitApplication
+import dev.silenium.compose.gl.fbo.EGLContext
 import dev.silenium.compose.gl.surface.GLSurfaceView
 import dev.silenium.compose.gl.surface.Stats
 import dev.silenium.compose.gl.surface.rememberGLSurfaceState
 import dev.silenium.va.VA
+import org.lwjgl.egl.EGL15.*
 import org.lwjgl.opengles.GLES30.*
+import org.lwjgl.system.MemoryUtil
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun App() {
+    val windowSize = LocalWindowInfo.current.containerSize
+    Surface(modifier = Modifier.size(0.dp).padding(0.dp).drawWithContent {
+        val currentDrawFbo = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING)
+        val currentReadFbo = glGetInteger(GL_READ_FRAMEBUFFER_BINDING)
+
+        val eglContext = EGLContext.fromCurrent() ?: return@drawWithContent drawContent()
+
+        val texture = glGenTextures()
+        val attr = intArrayOf(EGL_GL_TEXTURE_LEVEL, 0, EGL_IMAGE_PRESERVED, EGL_TRUE, EGL_NONE)
+        val buf = MemoryUtil.memAllocPointer(attr.size)
+        attr.forEachIndexed { idx, it ->
+            buf.put(idx, it.toLong())
+        }
+        val eglImage = eglCreateImage(eglContext.display, eglContext.context, EGL_TEXTURE_2D, texture.toLong(), buf)
+        glBindTexture(GL_TEXTURE_2D, texture)
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA,
+            windowSize.width,
+            windowSize.height,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            null as IntArray?
+        )
+        val fbo = glGenFramebuffers()
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0)
+        val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+        if (status != GL_FRAMEBUFFER_COMPLETE) {
+            println("Failed to create framebuffer: $status")
+            return@drawWithContent drawContent()
+        }
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, currentDrawFbo)
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo)
+        glBlitFramebuffer(
+            0,
+            0,
+            windowSize.width,
+            windowSize.height,
+            0,
+            0,
+            windowSize.width,
+            windowSize.height,
+            GL_COLOR_BUFFER_BIT,
+            GL_LINEAR
+        )
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, currentDrawFbo)
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, currentReadFbo)
+        glDeleteFramebuffers(fbo)
+    }) {}
     MaterialTheme {
         Box(modifier = Modifier.background(Color.Black).fillMaxSize()) {
             var color by remember { mutableStateOf(Color.Red) }
