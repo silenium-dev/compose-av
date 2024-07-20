@@ -18,12 +18,13 @@ import dev.silenium.compose.gl.fbo.EGLContext
 import dev.silenium.compose.gl.surface.GLSurfaceView
 import dev.silenium.compose.gl.surface.Stats
 import dev.silenium.compose.gl.surface.rememberGLSurfaceState
-import dev.silenium.va.VA
+import dev.silenium.multimedia.vaapi.VA
 import org.lwjgl.egl.EGL15.*
 import org.lwjgl.opengles.GLES30.*
 import org.lwjgl.system.MemoryUtil
-import java.awt.image.BufferedImage
+import java.io.File
 import javax.imageio.ImageIO
+
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -112,7 +113,10 @@ fun App() {
 //                    GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 //                    image.getRGB(0, 0, image.width, image.height, null, 0, image.width)
 //                )
-                surface = VA.createTextureFromSurface(texture)
+
+                val image = ImageIO.read(File("image.png"))
+
+//                surface = VA.createTextureFromSurface(texture, vaSurface, vaDisplay)
                 if (surface <= 0) {
                     println("Failed to create surface")
                     return
@@ -221,25 +225,25 @@ fun App() {
                 }
 
                 glFinish()
-                val pixels = IntArray(size.width * size.height)
-                glReadPixels(0, 0, size.width, size.height, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
-
-                BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB).apply {
-                    for (y in 0 until size.height) {
-                        for (x in 0 until size.width) {
-                            val i = y * size.width + x
-                            val pixel = pixels[i]
-                            val a = (pixel shr 24) and 0xff
-                            val b = (pixel shr 16) and 0xff
-                            val g = (pixel shr 8) and 0xff
-                            val r = pixel and 0xff
-                            setRGB(x, y, (a shl 24) or (r shl 16) or (g shl 8) or b)
-                        }
-                    }
-                }.let {
-                    ImageIO.write(it, "png", java.io.File("va_surface.png"))
-                    println("Saved image")
-                }
+//                val pixels = IntArray(size.width * size.height)
+//                glReadPixels(0, 0, size.width, size.height, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
+//
+//                BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB).apply {
+//                    for (y in 0 until size.height) {
+//                        for (x in 0 until size.width) {
+//                            val i = y * size.width + x
+//                            val pixel = pixels[i]
+//                            val a = (pixel shr 24) and 0xff
+//                            val b = (pixel shr 16) and 0xff
+//                            val g = (pixel shr 8) and 0xff
+//                            val r = pixel and 0xff
+//                            setRGB(x, y, (a shl 24) or (r shl 16) or (g shl 8) or b)
+//                        }
+//                    }
+//                }.let {
+//                    ImageIO.write(it, "png", java.io.File("va_surface.png"))
+//                    println("Saved image")
+//                }
             }
             Column(modifier = Modifier.align(Alignment.TopStart).padding(4.dp)) {
                 val display by state.displayStatistics.collectAsState()
@@ -270,7 +274,7 @@ fun App() {
     }
 }
 
-suspend fun main() = awaitApplication {
+suspend fun main(): Unit = awaitApplication {
     Window(onCloseRequest = ::exitApplication) {
         App()
     }

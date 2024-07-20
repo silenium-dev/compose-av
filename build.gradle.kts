@@ -1,9 +1,13 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.gradle.ext.ProjectSettings
+import org.jetbrains.gradle.ext.TaskTriggersConfig
 
 plugins {
-    kotlin("jvm")
-    id("org.jetbrains.compose")
-    id("org.jetbrains.kotlin.plugin.compose")
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.idea.ext)
 }
 
 group = "dev.silenium.compose"
@@ -13,11 +17,10 @@ repositories {
     maven("https://reposilite.silenium.dev/snapshots")
     maven("https://reposilite.silenium.dev/releases")
     mavenCentral()
-    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     google()
 }
 
-val natives by configurations.creating
+val natives: Configuration by configurations.creating
 
 dependencies {
     // Note, if you develop a library, you should use compose.desktop.common.
@@ -25,9 +28,13 @@ dependencies {
     // (in a separate module for demo project and in testMain).
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
-    implementation("dev.silenium.compose:compose-gl:0.2.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     natives(project(":native", configuration = "main"))
+    implementation(libs.compose.gl)
+    implementation(libs.bundles.kotlinx)
+    implementation(libs.bundles.logging)
+
+    testImplementation(libs.bundles.kotest)
+    testImplementation(libs.mockk)
 }
 
 configurations.all {
@@ -46,7 +53,26 @@ compose.desktop {
     }
 }
 
+val templateSrc = layout.projectDirectory.dir("src/main/templates")
+val templateDst = layout.buildDirectory.dir("generated/templates")
+val templateProps = mapOf(
+    "nativeLibName" to "libgl-demo.so",
+)
 tasks {
+    test {
+        useJUnitPlatform()
+    }
+
+    register<Copy>("generateTemplates") {
+        from(templateSrc)
+        into(templateDst)
+        expand(templateProps)
+
+        inputs.dir(templateSrc)
+        inputs.properties(templateProps)
+        outputs.dir(templateDst)
+    }
+
     processResources {
         dependsOn(":native:build")
         from(natives) {
@@ -55,6 +81,22 @@ tasks {
     }
 
     compileKotlin {
-        dependsOn(":native:build")
+        dependsOn(":native:build", "generateTemplates")
+    }
+}
+
+sourceSets.main {
+    kotlin {
+        srcDir(templateDst)
+    }
+}
+
+rootProject.idea.project {
+    this as ExtensionAware
+    configure<ProjectSettings> {
+        this as ExtensionAware
+        configure<TaskTriggersConfig> {
+            afterSync("generateTemplates", "processResources")
+        }
     }
 }

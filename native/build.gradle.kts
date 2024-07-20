@@ -9,7 +9,7 @@ configurations.create("main")
 tasks {
     register<Exec>("generateMakefile") {
         workingDir = layout.buildDirectory.dir("cmake").get().asFile.apply { createDirectory() }
-        commandLine("cmake", "-GNinja", layout.projectDirectory.asFile.absolutePath)
+        commandLine("cmake", "-GNinja", "-DJAVA_HOME=${System.getProperty("java.home")}", layout.projectDirectory.asFile.absolutePath)
 
         inputs.file(layout.projectDirectory.file("CMakeLists.txt"))
         outputs.dir(workingDir)

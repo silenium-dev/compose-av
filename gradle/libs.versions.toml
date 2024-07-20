@@ -1,0 +1,74 @@
+[versions]
+kotlin = "2.0.0"
+
+kotlinx-coroutines = "1.8.1"
+kotlinx-serialization = "1.7.1"
+kotlinx-datetime = "0.6.0"
+
+compose = "1.6.11"
+compose-gl = "0.2.2"
+
+slf4j = "2.0.13"
+logback = "1.5.6"
+
+kotest = "5.9.1"
+mockk = "1.13.11"
+
+idea-ext = "1.1.8"
+
+[libraries]
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-debug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-slf4j = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-slf4j", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-jdk8 = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-jdk8", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-jdk9 = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-jdk9", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-reactive = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-reactive", version.ref = "kotlinx-coroutines" }
+
+kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
+
+compose-gl = { group = "dev.silenium.compose", name = "compose-gl", version.ref = "compose-gl" }
+
+slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
+
+kotest-runner-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
+kotest-property = { group = "io.kotest", name = "kotest-property", version.ref = "kotest" }
+kotest-assertions-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
+kotest-assertions-json = { group = "io.kotest", name = "kotest-assertions-json", version.ref = "kotest" }
+
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+idea-ext = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "idea-ext" }
+
+[bundles]
+kotlinx = [
+    "kotlinx-coroutines-core",
+    "kotlinx-coroutines-debug",
+    "kotlinx-coroutines-slf4j",
+    "kotlinx-coroutines-jdk8",
+    "kotlinx-coroutines-jdk9",
+    "kotlinx-coroutines-reactive",
+    "kotlinx-serialization-core",
+    "kotlinx-serialization-json",
+    "kotlinx-datetime",
+]
+
+logging = [
+    "slf4j-api",
+    "logback-classic",
+]
+
+kotest = [
+    "kotest-runner-junit5",
+    "kotest-property",
+    "kotest-assertions-core",
+    "kotest-assertions-json",
+]
