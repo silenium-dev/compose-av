@@ -24,6 +24,20 @@ class VaapiDecoderTest : FunSpec({
         val frame = decoder.receive().getOrThrow()
         frame.stream shouldBe demuxer.streams.first { it.type == Stream.Type.VIDEO }
         println("VASurface: 0x${frame.rawData[3].toHexString()}")
+        println("Format: ${frame.format}")
+        println("Is HW: ${frame.isHW}")
+        val swFrame = frame.transferToSW().getOrThrow()
+        swFrame.buf.forEach {
+            println("Plane: ${it?.limit()}")
+        }
+        val yPlane = swFrame.buf[0]
+        println("Y Plane: ${yPlane?.limit()}")
+        val uvPlane = swFrame.buf[1]
+        println("UV Plane: ${uvPlane?.limit()}")
+        println("Extent: ${swFrame.width}x${swFrame.height}")
+        println("Format: ${swFrame.format}")
+        println("Is HW: ${swFrame.isHW}")
+        swFrame.close()
         frame.close()
         decoder.close()
         demuxer.close()

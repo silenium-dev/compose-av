@@ -9,6 +9,7 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
+#include <libavutil/hwcontext_vaapi.h>
 
 static std::map<AVPixelFormat, AVPixelFormat> nativeMapping{
     {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NV12},
@@ -69,12 +70,20 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_decode_VaapiDecoderKt_cre
 
     avCodecContext->hw_device_ctx = deviceRef;
     avCodecContext->hw_frames_ctx = framesRef;
-    avCodecContext->get_format = &getFormat;    
+    avCodecContext->get_format = &getFormat;
 
     ret = avcodec_open2(avCodecContext, codec, nullptr);
     if (ret < 0) {
         return avResultFailure(env, "open codec context", ret);
     }
-    return avResultSuccess(env, reinterpret_cast<jlong>(avCodecContext));
+    return resultSuccess(env, reinterpret_cast<jlong>(avCodecContext));
+}
+
+JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_decode_VaapiDecoderKt_getVADisplayN(
+    JNIEnv *env, jobject thiz, const jlong codecContext) {
+    const auto avCodecContext = reinterpret_cast<AVCodecContext *>(codecContext);
+    const auto deviceCtx = reinterpret_cast<AVHWFramesContext *>(avCodecContext->hw_frames_ctx->data)->device_ctx;
+    const auto vaContext = static_cast<AVVAAPIDeviceContext *>(deviceCtx->hwctx);
+    return reinterpret_cast<jlong>(vaContext->display);
 }
 }

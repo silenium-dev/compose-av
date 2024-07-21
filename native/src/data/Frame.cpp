@@ -47,6 +47,17 @@ JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_data_FrameKt_formatN(
     return avFrame->format;
 }
 
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_data_FrameKt_swFormatN(
+    JNIEnv *env,
+    jobject thiz,
+    const jlong frame
+) {
+    const auto avFrame = reinterpret_cast<AVFrame *>(frame);
+    if (avFrame->hw_frames_ctx == nullptr) return -1;
+    const auto hwFramesCtx = reinterpret_cast<AVHWFramesContext *>(avFrame->hw_frames_ctx->data);
+    return hwFramesCtx->sw_format;
+}
+
 JNIEXPORT jboolean JNICALL Java_dev_silenium_multimedia_data_FrameKt_keyFrameN(
     JNIEnv *env,
     jobject thiz,
@@ -83,6 +94,15 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_data_FrameKt_durationN(
     return avFrame->duration;
 }
 
+JNIEXPORT jboolean JNICALL Java_dev_silenium_multimedia_data_FrameKt_isHWN(
+    JNIEnv *env,
+    jobject thiz,
+    const jlong frame
+) {
+    const auto avFrame = reinterpret_cast<AVFrame *>(frame);
+    return avFrame->hw_frames_ctx != nullptr;
+}
+
 JNIEXPORT jobjectArray JNICALL Java_dev_silenium_multimedia_data_FrameKt_dataN(
     JNIEnv *env,
     jobject thiz,
@@ -115,5 +135,40 @@ JNIEXPORT jobjectArray JNICALL Java_dev_silenium_multimedia_data_FrameKt_rawData
         env->SetObjectArrayElement(result, i, boxed);
     }
     return result;
+}
+
+JNIEXPORT jobjectArray JNICALL Java_dev_silenium_multimedia_data_FrameKt_pitchN(
+    JNIEnv *env,
+    jobject thiz,
+    const jlong frame
+) {
+    const auto avFrame = reinterpret_cast<AVFrame *>(frame);
+    const auto result = env->NewObjectArray(8, env->FindClass("java/lang/Integer"), nullptr);
+    for (int i = 0; i < 8; i++) {
+        if (avFrame->data[i] == nullptr) {
+            continue;
+        }
+        const auto boxed = boxedInt(env, avFrame->linesize[i]);
+        env->SetObjectArrayElement(result, i, boxed);
+    }
+    return result;
+}
+
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_data_FrameKt_transferToSWN(
+    JNIEnv *env,
+    jobject thiz,
+    const jlong frame
+) {
+    const auto avFrame = reinterpret_cast<AVFrame *>(frame);
+    if (avFrame->hw_frames_ctx == nullptr) {
+        return nullptr;
+    }
+    auto swFrame = av_frame_alloc();
+    const auto ret = av_hwframe_transfer_data(swFrame, avFrame, 0);
+    if (ret < 0) {
+        av_frame_free(&swFrame);
+        return avResultFailure(env, "transfer frame data", ret);
+    }
+    return resultSuccess(env, reinterpret_cast<jlong>(swFrame));
 }
 }

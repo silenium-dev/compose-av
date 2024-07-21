@@ -9,8 +9,15 @@
 
 jobject boxedLong(JNIEnv *env, long value);
 
+jobject boxedInt(JNIEnv *env, int value);
+
+jobject resultSuccess(JNIEnv *env, long value);
+
 jobject avResultFailure(JNIEnv *env, const char *operation, int returnCode);
 
-jobject avResultSuccess(JNIEnv *env, long value);
+jobject eglResultFailure(JNIEnv *env, const char *operation, int returnCode);
+jobject glResultFailure(JNIEnv *env, const char *operation, int returnCode);
+
+jobject vaResultFailure(JNIEnv *env, const char *operation, int returnCode);
 
 #endif //ERRORS_H

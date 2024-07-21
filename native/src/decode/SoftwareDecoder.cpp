@@ -22,6 +22,6 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_decode_SoftwareDecoderKt_
     if (ret < 0) {
         return avResultFailure(env, "open codec context", ret);
     }
-    return avResultSuccess(env, reinterpret_cast<jlong>(avCodecContext));
+    return resultSuccess(env, reinterpret_cast<jlong>(avCodecContext));
 }
 }

@@ -22,7 +22,7 @@ class SoftwareDecoderTest : FunSpec({
         decoder.submit(demuxer.nextPacket().getOrThrow())
         val frame = decoder.receive().getOrThrow()
         frame.stream shouldBe demuxer.streams.first { it.type == Stream.Type.VIDEO }
-        println(frame.buf.first().limit())
+        println(frame.buf.first()?.limit())
         frame.close()
         decoder.close()
         demuxer.close()

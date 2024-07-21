@@ -6,87 +6,59 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.awaitApplication
-import dev.silenium.compose.gl.fbo.EGLContext
 import dev.silenium.compose.gl.surface.GLSurfaceView
 import dev.silenium.compose.gl.surface.Stats
 import dev.silenium.compose.gl.surface.rememberGLSurfaceState
+import dev.silenium.multimedia.decode.VaapiDecoder
+import dev.silenium.multimedia.demux.FileDemuxer
+import dev.silenium.multimedia.demux.Stream
+import dev.silenium.multimedia.vaapi.Surface
 import dev.silenium.multimedia.vaapi.VA
-import org.lwjgl.egl.EGL15.*
 import org.lwjgl.opengles.GLES30.*
-import org.lwjgl.system.MemoryUtil
-import java.io.File
-import javax.imageio.ImageIO
+import java.nio.file.Files
+import kotlin.io.path.outputStream
 
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 fun App() {
-    val windowSize = LocalWindowInfo.current.containerSize
-    Surface(modifier = Modifier.size(0.dp).padding(0.dp).drawWithContent {
-        val currentDrawFbo = glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING)
-        val currentReadFbo = glGetInteger(GL_READ_FRAMEBUFFER_BINDING)
-
-        val eglContext = EGLContext.fromCurrent() ?: return@drawWithContent drawContent()
-
-        val texture = glGenTextures()
-        val attr = intArrayOf(EGL_GL_TEXTURE_LEVEL, 0, EGL_IMAGE_PRESERVED, EGL_TRUE, EGL_NONE)
-        val buf = MemoryUtil.memAllocPointer(attr.size)
-        attr.forEachIndexed { idx, it ->
-            buf.put(idx, it.toLong())
+    val demuxer = remember {
+        val videoFile = Files.createTempFile("video", ".webm")
+        FileDemuxer::class.java.classLoader.getResourceAsStream("video-short.webm").use {
+            videoFile.outputStream().use(it::copyTo)
         }
-        val eglImage = eglCreateImage(eglContext.display, eglContext.context, EGL_TEXTURE_2D, texture.toLong(), buf)
-        glBindTexture(GL_TEXTURE_2D, texture)
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            windowSize.width,
-            windowSize.height,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            null as IntArray?
-        )
-        val fbo = glGenFramebuffers()
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0)
-        val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
-        if (status != GL_FRAMEBUFFER_COMPLETE) {
-            println("Failed to create framebuffer: $status")
-            return@drawWithContent drawContent()
+        videoFile.toFile().deleteOnExit()
+        FileDemuxer(videoFile)
+    }
+    val decoder = remember {
+        VaapiDecoder(demuxer.streams.first { it.type == Stream.Type.VIDEO }, "/dev/dri/renderD128")
+    }
+    val frame = remember {
+        decoder.submit(demuxer.nextPacket().getOrThrow())
+        decoder.receive().getOrThrow().also {
+            println("VASurface: 0x${it.rawData[3].toHexString()}")
+            println("Format: ${it.format}")
+            println("Is HW: ${it.isHW}")
         }
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            frame.close()
+            decoder.close()
+            demuxer.close()
+        }
+    }
 
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, currentDrawFbo)
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo)
-        glBlitFramebuffer(
-            0,
-            0,
-            windowSize.width,
-            windowSize.height,
-            0,
-            0,
-            windowSize.width,
-            windowSize.height,
-            GL_COLOR_BUFFER_BIT,
-            GL_LINEAR
-        )
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, currentDrawFbo)
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, currentReadFbo)
-        glDeleteFramebuffers(fbo)
-    }) {}
     MaterialTheme {
         Box(modifier = Modifier.background(Color.Black).fillMaxSize()) {
             var color by remember { mutableStateOf(Color.Red) }
-            var texture by remember { mutableStateOf(0) }
-            var surface by remember { mutableStateOf(0L) }
+            var surface: Surface? by remember { mutableStateOf(null) }
             var shaderProgram by remember { mutableStateOf(0) }
             var vao by remember { mutableStateOf(0) }
             var vbo by remember { mutableStateOf(0) }
@@ -102,25 +74,13 @@ fun App() {
             val indices = intArrayOf(0, 1, 3, 1, 2, 3)
 
             suspend fun initGL() {
-                texture = glGenTextures()
-                glBindTexture(GL_TEXTURE_2D, texture)
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 //                val image = Path("va_surface.png").inputStream().use(ImageIO::read)
 //                glTexImage2D(
 //                    GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 //                    image.getRGB(0, 0, image.width, image.height, null, 0, image.width)
 //                )
 
-                val image = ImageIO.read(File("image.png"))
-
-//                surface = VA.createTextureFromSurface(texture, vaSurface, vaDisplay)
-                if (surface <= 0) {
-                    println("Failed to create surface")
-                    return
-                }
+                surface = VA.createTextureFromSurface(frame, decoder).getOrThrow()
 
                 shaderProgram = glCreateProgram()
                 val vertexShader = glCreateShader(GL_VERTEX_SHADER)
@@ -152,7 +112,8 @@ fun App() {
                     uniform sampler2D tex;
                     
                     void main() {
-                        color = vec4(texture(tex, fragUV).rgb, 1.0);
+                    float r = texture(tex, fragUV).r;
+                        color = vec4(r, r, r, 1.0);
                     }
                 """.trimIndent()
                 )
@@ -195,24 +156,23 @@ fun App() {
             }
 
             GLSurfaceView(
-                state = state, modifier = Modifier.align(Alignment.TopStart).fillMaxHeight().aspectRatio(3508f / 1930f),
+                state = state,
+                modifier = Modifier.align(Alignment.TopStart).fillMaxHeight().aspectRatio(3508f / 1930f)
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(color.copy(alpha = 0.2f))
+                    },
                 cleanup = {
                     println("Cleanup")
-                    if (surface > 0) {
-                        VA.destroySurface(surface)
-                        surface = 0
-                    }
-                    if (texture > 0) {
-                        glDeleteTextures(texture)
-                        texture = 0
-                    }
+                    surface?.close()
+                    surface = null
                 }
             ) {
-                if (texture == 0) initGL()
+                if (surface == null) initGL()
                 glClearColor(0f, 0f, 0f, 1f)
                 glClear(GL_COLOR_BUFFER_BIT)
                 glUseProgram(shaderProgram)
-                glBindTexture(GL_TEXTURE_2D, texture)
+                glBindTexture(GL_TEXTURE_2D, surface!!.planeTextures[0])
                 glBindVertexArray(vao)
                 glBindBuffer(GL_ARRAY_BUFFER, vbo)
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)
@@ -245,29 +205,34 @@ fun App() {
 //                    println("Saved image")
 //                }
             }
-            Column(modifier = Modifier.align(Alignment.TopStart).padding(4.dp)) {
-                val display by state.displayStatistics.collectAsState()
-                Text("Display datapoints: ${display.frameTimes.values.size}")
-                Text("Display frame time: ${display.frameTimes.median.inWholeMicroseconds / 1000.0} ms")
-                Text("Display frame time (99th): ${display.frameTimes.percentile(0.99).inWholeMicroseconds / 1000.0} ms")
-                Text("Display FPS: ${display.fps.median}")
-                Text("Display FPS (99th): ${display.fps.percentile(0.99, Stats.Percentile.LOWEST)}")
+            Surface(modifier = Modifier.align(Alignment.TopStart).padding(4.dp)) {
+                Column {
+                    val display by state.displayStatistics.collectAsState()
+                    Text("Display datapoints: ${display.frameTimes.values.size}")
+                    Text("Display frame time: ${display.frameTimes.median.inWholeMicroseconds / 1000.0} ms")
+                    Text("Display frame time (99th): ${display.frameTimes.percentile(0.99).inWholeMicroseconds / 1000.0} ms")
+                    Text("Display FPS: ${display.fps.median}")
+                    Text("Display FPS (99th): ${display.fps.percentile(0.99, Stats.Percentile.LOWEST)}")
 
-                val render by state.renderStatistics.collectAsState()
-                Text("Render datapoints: ${render.frameTimes.values.size}")
-                Text("Render frame time: ${render.frameTimes.median.inWholeMicroseconds / 1000.0} ms")
-                Text("Render frame time (99th): ${render.frameTimes.percentile(0.99).inWholeMicroseconds / 1000.0} ms")
-                Text("Render FPS: ${render.fps.median} ms")
-                Text("Render FPS (99th): ${render.fps.percentile(0.99, Stats.Percentile.LOWEST)}")
+                    val render by state.renderStatistics.collectAsState()
+                    Text("Render datapoints: ${render.frameTimes.values.size}")
+                    Text("Render frame time: ${render.frameTimes.median.inWholeMicroseconds / 1000.0} ms")
+                    Text("Render frame time (99th): ${render.frameTimes.percentile(0.99).inWholeMicroseconds / 1000.0} ms")
+                    Text("Render FPS: ${render.fps.median} ms")
+                    Text("Render FPS (99th): ${render.fps.percentile(0.99, Stats.Percentile.LOWEST)}")
+                }
             }
-            Button(onClick = {
-                color = Color(
-                    red = Math.random().toFloat(),
-                    green = Math.random().toFloat(),
-                    blue = Math.random().toFloat(),
-                    alpha = 1.0f
-                )
-            }) {
+            Button(
+                modifier = Modifier.align(Alignment.TopEnd).padding(4.dp),
+                onClick = {
+                    color = Color(
+                        red = Math.random().toFloat(),
+                        green = Math.random().toFloat(),
+                        blue = Math.random().toFloat(),
+                        alpha = 1.0f
+                    )
+                },
+            ) {
                 Text("Randomize color")
             }
         }
