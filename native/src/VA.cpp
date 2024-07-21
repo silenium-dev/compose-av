@@ -79,9 +79,9 @@ Java_dev_silenium_multimedia_vaapi_VAKt_createTextureFromSurfaceN(JNIEnv *env, j
     const auto vaDisplay = reinterpret_cast<VADisplay>(vaDisplay_);
     const auto vaSurface = static_cast<VASurfaceID>(vaSurface_);
     const auto eglDisplay = reinterpret_cast<EGLDisplay>(eglDisplay_);
-    std::cout << "VASurface: " << vaSurface << std::endl;
-    std::cout << "VADisplay: " << vaDisplay << std::endl;
-    std::cout << "EGLDisplay: " << eglDisplay << std::endl;
+//    std::cout << "VASurface: " << vaSurface << std::endl;
+//    std::cout << "VADisplay: " << vaDisplay << std::endl;
+//    std::cout << "EGLDisplay: " << eglDisplay << std::endl;
 
     const auto eglCreateImageKHR = getFunc<PFNEGLCREATEIMAGEKHRPROC>("eglCreateImageKHR");
     if (!eglCreateImageKHR) {
@@ -120,11 +120,11 @@ Java_dev_silenium_multimedia_vaapi_VAKt_createTextureFromSurfaceN(JNIEnv *env, j
         return vaResultFailure(env, "vaSyncSurface", ret);
     }
 
-    std::cout << "drm.num_objects: " << drm.num_objects << std::endl;
-    for (int i = 0; i < drm.num_objects; ++i) {
-        std::cout << "Exported DRM object " << i << ": fd=" << drm.objects[i].fd << ", extent=" << drm.objects[i].size
-                << std::endl;
-    }
+//    std::cout << "drm.num_objects: " << drm.num_objects << std::endl;
+//    for (int i = 0; i < drm.num_objects; ++i) {
+//        std::cout << "Exported DRM object " << i << ": fd=" << drm.objects[i].fd << ", extent=" << drm.objects[i].size
+//                << std::endl;
+//    }
 
     const auto eglGetError = getFunc<PFNEGLGETERRORPROC>("eglGetError");
 
@@ -134,14 +134,14 @@ Java_dev_silenium_multimedia_vaapi_VAKt_createTextureFromSurfaceN(JNIEnv *env, j
     auto *eglVASurface = new EGLVASurface();
     for (int layer = 0; layer < drm.num_layers; ++layer) {
         const auto [drm_format, num_planes, object_index, offset, pitch] = drm.layers[layer];
-        std::cout << "layer[" << layer << "]: drm_format: " << drmFourccToString(drm_format) << std::endl;
-        std::cout << "layer[" << layer << "]: num_planes: " << num_planes << std::endl;
+//        std::cout << "layer[" << layer << "]: drm_format: " << drmFourccToString(drm_format) << std::endl;
+//        std::cout << "layer[" << layer << "]: num_planes: " << num_planes << std::endl;
         const auto [fd, size, drm_format_modifier] = drm.objects[object_index[0]];
 
-        std::cout << "layer[" << layer << "]: fd: " << fd << std::endl;
-        std::cout << "layer[" << layer << "]: size: " << size << std::endl;
-        std::cout << "layer[" << layer << "]: offset: " << offset[0] << std::endl;
-        std::cout << "layer[" << layer << "]: pitch: " << pitch[0] << std::endl;
+//        std::cout << "layer[" << layer << "]: fd: " << fd << std::endl;
+//        std::cout << "layer[" << layer << "]: size: " << size << std::endl;
+//        std::cout << "layer[" << layer << "]: offset: " << offset[0] << std::endl;
+//        std::cout << "layer[" << layer << "]: pitch: " << pitch[0] << std::endl;
 
         std::pair<int, int> fraction;
         if (planeFractions.contains(format)) {
@@ -149,7 +149,7 @@ Java_dev_silenium_multimedia_vaapi_VAKt_createTextureFromSurfaceN(JNIEnv *env, j
         } else {
             fraction = {1, 1};
         }
-        std::cout << "layer[" << layer << "]: fraction: " << fraction.first << "/" << fraction.second << std::endl;
+//        std::cout << "layer[" << layer << "]: fraction: " << fraction.first << "/" << fraction.second << std::endl;
         EGLint attribs[]{
             EGL_WIDTH, static_cast<EGLint>(drm.width / fraction.first),
             EGL_HEIGHT, static_cast<EGLint>(drm.height / fraction.second),
@@ -163,7 +163,7 @@ Java_dev_silenium_multimedia_vaapi_VAKt_createTextureFromSurfaceN(JNIEnv *env, j
         };
 
         EGLImageKHR eglImage = eglCreateImageKHR(eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr, attribs);
-        std::cout << "eglImage: " << eglImage << std::endl;
+//        std::cout << "eglImage: " << eglImage << std::endl;
         long error = eglGetError();
         if (eglImage == EGL_NO_IMAGE_KHR || error != EGL_SUCCESS) {
             closeDrm(drm);
@@ -178,7 +178,7 @@ Java_dev_silenium_multimedia_vaapi_VAKt_createTextureFromSurfaceN(JNIEnv *env, j
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, eglImage);
-        std::cout << "bound egl image to texture" << std::endl;
+//        std::cout << "bound egl image to texture" << std::endl;
         error = glGetError();
         if (error != GL_NO_ERROR) {
             std::cerr << "Failed to bind egl image to texture: " << error << std::endl;
@@ -196,7 +196,7 @@ Java_dev_silenium_multimedia_vaapi_VAKt_createTextureFromSurfaceN(JNIEnv *env, j
         eglVASurface->eglImages[layer] = eglImage;
         eglVASurface->textures[layer] = texture;
     }
-    std::cout << "eglVASurface: " << eglVASurface << std::endl;
+//    std::cout << "eglVASurface: " << eglVASurface << std::endl;
 
     closeDrm(drm);
     glBindTexture(GL_TEXTURE_2D, prevTexture);

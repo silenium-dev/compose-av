@@ -32,6 +32,7 @@ dependencies {
     implementation(libs.compose.gl)
     implementation(libs.bundles.kotlinx)
     implementation(libs.bundles.logging)
+    implementation(kotlin("reflect"))
 
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)

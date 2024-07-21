@@ -22,11 +22,11 @@ object VA {
         frame: Frame,
         decoder: VaapiDecoder,
         eglDisplay: Long = EGL15.eglGetCurrentDisplay(),
-    ): Result<Surface> {
+    ): Result<Surface> = runCatching {
         val vaDisplay = decoder.vaDisplay
         val vaSurface = frame.rawData[3]
-        println("VA Surface: 0x${vaSurface.toHexString()}")
-        println("VA Display: 0x${vaDisplay.toHexString()}")
+//        println("VA Surface: 0x${vaSurface.toHexString()}")
+//        println("VA Display: 0x${vaDisplay.toHexString()}")
         return createTextureFromSurfaceN(frame.swFormat!!.id, vaSurface, vaDisplay, eglDisplay)
             .map { Surface(it.asNativePointer(::destroySurfaceN)) }
     }
