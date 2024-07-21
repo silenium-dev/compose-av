@@ -5,7 +5,11 @@ import kotlin.time.Duration
 
 interface Demuxer {
     fun nextPacket(): Result<Packet>
-    fun seek(timestamp: Duration): Boolean
+    fun seek(timestamp: Duration)
     fun duration(): Duration?
-    fun position(): Duration?
+
+    /**
+     * @return byte position
+     */
+    fun position(): Long
 }

@@ -23,9 +23,37 @@ JNIEXPORT void JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_releaseN
     jobject thiz,
     jlong context
 ) {
-    auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
+    const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
     avformat_close_input(&fileDemuxerContext->formatContext);
     delete fileDemuxerContext;
+}
+
+JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_positionN(
+    JNIEnv *env,
+    jobject thiz,
+    jlong context
+) {
+    const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
+    return fileDemuxerContext->formatContext->pb->pos;
+}
+
+JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_durationN(
+    JNIEnv *env,
+    jobject thiz,
+    jlong context
+) {
+    const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
+    return fileDemuxerContext->formatContext->duration;
+}
+
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_seekN(
+    JNIEnv *env,
+    jobject thiz,
+    jlong context,
+    jlong positionUs
+) {
+    const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
+    return avformat_seek_file(fileDemuxerContext->formatContext, -1, INT64_MIN, positionUs, INT64_MAX, 0);
 }
 
 JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_nextPacketN(
@@ -36,33 +64,22 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_nextPac
     const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
     AVPacket *packet = av_packet_alloc();
     const auto ret = av_read_frame(fileDemuxerContext->formatContext, packet);
-    if (ret == AVERROR_EOF) {
-        std::cout << "EOF" << std::endl;
-        av_packet_free(&packet);
-        return static_cast<jlong>(Errors::EndOfFile);
-    }
-    if (ret == AVERROR(EAGAIN)) {
-        std::cout << "EAGAIN" << std::endl;
-        av_packet_free(&packet);
-        return static_cast<jlong>(Errors::EAgain);
-    }
     if (ret < 0) {
-        std::cerr << "Failed to read packet: " << av_err2str(ret) << std::endl;
         av_packet_free(&packet);
-        return static_cast<jlong>(Errors::ReadPacketFailed);
+        return ret;
     }
     return reinterpret_cast<jlong>(packet);
 }
 
 JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_initializeNativeContextN(
     JNIEnv *env,
-    jobject thiz
-    // jstring path
+    jobject thiz,
+    jstring url
 ) {
-    // const auto pathChars = env->GetStringUTFChars(path, nullptr);
+    const auto urlChars = env->GetStringUTFChars(url, nullptr);
     AVFormatContext *formatContext{nullptr};
-    auto ret = avformat_open_input(&formatContext, "video.webm", nullptr, nullptr);
-    // env->ReleaseStringUTFChars(path, pathChars);
+    auto ret = avformat_open_input(&formatContext, urlChars, nullptr, nullptr);
+    env->ReleaseStringUTFChars(url, urlChars);
     if (ret < 0) {
         std::cerr << "Failed to open input file: " << av_err2str(ret) << std::endl;
         return ret;
