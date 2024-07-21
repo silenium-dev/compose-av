@@ -19,18 +19,6 @@ class FileDemuxer(url: URL) : Demuxer, NativeCleanable {
         Natives.load(BuildConstants.NativeLibName)
     }
 
-    private enum class Errors(val code: Int) {
-        EndOfFile(-1),
-        EAgain(-2),
-        ReadPacketFailed(-3);
-
-        companion object {
-            fun fromCode(code: Int): Errors {
-                return entries.firstOrNull { it.code == code } ?: error("Unknown error code: $code")
-            }
-        }
-    }
-
     override val nativePointer = initializeNativeContextN(url.toString()).also {
         if (it <= 0L) {
             error("Failed to initialize native context")
