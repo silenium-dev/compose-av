@@ -95,4 +95,32 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_initial
     };
     return reinterpret_cast<jlong>(context);
 }
+
+JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_streamCountN(
+    JNIEnv *env,
+    jobject thiz,
+    jlong context
+) {
+    const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
+    return fileDemuxerContext->formatContext->nb_streams;
+}
+
+JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_streamN(
+    JNIEnv *env,
+    jobject thiz,
+    jlong context,
+    jlong index
+) {
+    const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
+    return reinterpret_cast<jlong>(fileDemuxerContext->formatContext->streams[index]);
+}
+
+JNIEXPORT jboolean JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_isSeekableN(
+    JNIEnv *env,
+    jobject thiz,
+    jlong context
+) {
+    const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
+    return fileDemuxerContext->formatContext->pb->seekable;
+}
 }

@@ -42,8 +42,14 @@ class FileDemuxer(url: URL) : Demuxer, NativeCleanable {
         }
     }
 
-    override fun duration() = durationN(nativePointer.address).takeIf { it > 0 }?.microseconds
-    override fun position() = positionN(nativePointer.address)
+    override val duration by lazy { durationN(nativePointer.address).takeIf { it > 0 }?.microseconds }
+    override val position by lazy { positionN(nativePointer.address) }
+    override val isSeekable by lazy { isSeekableN(nativePointer.address) }
+    override val streams: List<Stream> by lazy {
+        (0 until streamCountN(nativePointer.address))
+            .map { streamN(nativePointer.address, it) }
+            .map(::Stream)
+    }
 }
 
 private external fun initializeNativeContextN(url: String): Long
@@ -52,3 +58,7 @@ private external fun nextPacketN(nativeContext: Long): Long
 private external fun positionN(nativeContext: Long): Long
 private external fun durationN(nativeContext: Long): Long
 private external fun seekN(nativeContext: Long, timestampUs: Long): Int
+private external fun isSeekableN(nativeContext: Long): Boolean
+
+private external fun streamCountN(nativeContext: Long): Long
+private external fun streamN(nativeContext: Long, index: Long): Long
