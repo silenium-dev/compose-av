@@ -132,10 +132,8 @@ fun VideoPlayer(
     }
 
     fun initGL() {
-        println("Initializing GL")
         initShader()
         initBuffers()
-        println("Initialized GL")
     }
 
     fun GLDrawScope.renderGL(surface: Surface) {
@@ -166,29 +164,6 @@ fun VideoPlayer(
         }
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0)
-
-//        glFinish()
-//        val pixels = IntArray(size.width * size.height)
-//        glReadPixels(0, 0, size.width, size.height, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
-//
-//        BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB).apply {
-//            for (y in 0 until size.height) {
-//                for (x in 0 until size.width) {
-//                    val i = y * size.width + x
-//                    val pixel = pixels[i]
-//                    val a = (pixel shr 24) and 0xff
-//                    val b = (pixel shr 16) and 0xff
-//                    val g = (pixel shr 8) and 0xff
-//                    val r = pixel and 0xff
-//                    setRGB(x, y, (a shl 24) or (r shl 16) or (g shl 8) or b)
-//                }
-//            }
-//        }.let { image ->
-//            println("${idx}: Saving image")
-//            textureDir.resolve("va_surface-%03d.png".format(idx++)).outputStream().use {
-//                ImageIO.write(image, "png", it)
-//            }
-//        }
     }
 
     var glInitialized by remember { mutableStateOf(false) }
