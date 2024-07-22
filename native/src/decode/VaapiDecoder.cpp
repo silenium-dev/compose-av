@@ -2,6 +2,8 @@
 // Created by silenium-dev on 7/21/24.
 //
 
+#include <iostream>
+
 #include "../errors.h"
 #include <jni.h>
 #include <map>
@@ -17,12 +19,11 @@ static std::map<AVPixelFormat, AVPixelFormat> nativeMapping{
     {AV_PIX_FMT_YUV420P10LE, AV_PIX_FMT_P010LE},
 };
 
-AVPixelFormat mapToNative(AVPixelFormat format) {
-    if (nativeMapping.find(format) != nativeMapping.end()) {
+AVPixelFormat mapToNative(const AVPixelFormat format) {
+    if (nativeMapping.contains(format)) {
         return nativeMapping[format];
-    } else {
-        return format;
     }
+    return format;
 }
 
 AVPixelFormat getFormat(AVCodecContext *codec_context, const AVPixelFormat *fmts) {
@@ -31,6 +32,7 @@ AVPixelFormat getFormat(AVCodecContext *codec_context, const AVPixelFormat *fmts
             return AV_PIX_FMT_VAAPI;
         }
     }
+    std::cerr << "Failed to get a supported format" << std::endl;
     return AV_PIX_FMT_NONE;
 }
 
@@ -51,6 +53,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_decode_VaapiDecoderKt_cre
     }
     auto framesRef = av_hwframe_ctx_alloc(deviceRef);
     if (!framesRef) {
+        av_buffer_unref(&deviceRef);
         return avResultFailure(env, "allocate hw frame context", ret);
     }
     auto framesCtx = reinterpret_cast<AVHWFramesContext *>(framesRef->data);
@@ -61,19 +64,25 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_decode_VaapiDecoderKt_cre
     framesCtx->initial_pool_size = 20;
     ret = av_hwframe_ctx_init(framesRef);
     if (ret < 0) {
+        av_buffer_unref(&framesRef);
+        av_buffer_unref(&deviceRef);
         return avResultFailure(env, "initialize hw frame context", ret);
     }
 
     const auto codec = avcodec_find_decoder(avStream->codecpar->codec_id);
-    const auto avCodecContext = avcodec_alloc_context3(codec);
+    auto avCodecContext = avcodec_alloc_context3(codec);
     avcodec_parameters_to_context(avCodecContext, avStream->codecpar);
 
     avCodecContext->hw_device_ctx = deviceRef;
     avCodecContext->hw_frames_ctx = framesRef;
     avCodecContext->get_format = &getFormat;
+    avCodecContext->extra_hw_frames = 16;
 
     ret = avcodec_open2(avCodecContext, codec, nullptr);
     if (ret < 0) {
+        av_buffer_unref(&framesRef);
+        av_buffer_unref(&deviceRef);
+        avcodec_free_context(&avCodecContext);
         return avResultFailure(env, "open codec context", ret);
     }
     return resultSuccess(env, reinterpret_cast<jlong>(avCodecContext));

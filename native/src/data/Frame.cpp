@@ -128,9 +128,6 @@ JNIEXPORT jobjectArray JNICALL Java_dev_silenium_multimedia_data_FrameKt_rawData
     const auto avFrame = reinterpret_cast<AVFrame *>(frame);
     const auto result = env->NewObjectArray(8, env->FindClass("java/lang/Long"), nullptr);
     for (int i = 0; i < 8; i++) {
-        if (avFrame->data[i] == nullptr) {
-            continue;
-        }
         const auto boxed = boxedLong(env, reinterpret_cast<jlong>(avFrame->data[i]));
         env->SetObjectArrayElement(result, i, boxed);
     }

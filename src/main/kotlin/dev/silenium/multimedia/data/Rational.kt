@@ -1,8 +1,8 @@
 package dev.silenium.multimedia.data
 
-data class Rational(val num: Long, val den: Long) {
+data class Rational(val num: Int, val den: Int) {
     init {
-        require(den != 0L) { "Denominator must not be zero" }
+        require(den != 0) { "Denominator must not be zero" }
     }
 
     val asDouble: Double get() = num.toDouble() / den
@@ -19,7 +19,6 @@ data class Rational(val num: Long, val den: Long) {
     }
 }
 
-private fun gcd(a: Long, b: Long): Long = if (b == 0L) a else gcd(b, a % b)
+private fun gcd(a: Int, b: Int): Int = if (b == 0) a else gcd(b, a % b)
 
-operator fun Long.times(other: Rational) = Rational(this, 1) * other
-operator fun Int.times(other: Rational) = Rational(this.toLong(), 1) * other
+operator fun Int.times(other: Rational) = Rational(this, 1) * other

@@ -15,10 +15,10 @@ abstract class Decoder(val stream: Stream) : NativeCleanable {
     }
 
     open fun receive(): Result<Frame> {
-        return receiveN(nativePointer.address).asFrameResult(stream)
+        return receiveN(nativePointer.address).mapCatching { it.asFrameResult(stream).getOrThrow() }
     }
 }
 
 private external fun releaseDecoderN(decoder: Long)
 private external fun submitN(decoder: Long, packet: Long): Int
-private external fun receiveN(decoder: Long): Long
+private external fun receiveN(decoder: Long): Result<Long>

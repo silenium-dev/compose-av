@@ -1,15 +1,13 @@
 package dev.silenium.multimedia.vaapi
 
 import dev.silenium.compose.gl.util.Natives
-import dev.silenium.multimedia.data.Frame
-import dev.silenium.multimedia.data.NativeCleanable
-import dev.silenium.multimedia.data.NativePointer
-import dev.silenium.multimedia.data.asNativePointer
+import dev.silenium.multimedia.data.*
 import dev.silenium.multimedia.decode.VaapiDecoder
 import org.lwjgl.egl.EGL15
 
-data class Surface(override val nativePointer: NativePointer) : NativeCleanable {
+data class Surface(val frame: Frame, override val nativePointer: NativePointer) : NativeCleanable {
     val planeTextures: Array<Int> by lazy { planeTexturesN(nativePointer.address) }
+    val planeSwizzles: Array<Swizzles> by lazy { planeSwizzlesN(nativePointer.address) }
 }
 
 object VA {
@@ -17,7 +15,6 @@ object VA {
         Natives.load("libgl-demo.so")
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     fun createTextureFromSurface(
         frame: Frame,
         decoder: VaapiDecoder,
@@ -28,7 +25,7 @@ object VA {
 //        println("VA Surface: 0x${vaSurface.toHexString()}")
 //        println("VA Display: 0x${vaDisplay.toHexString()}")
         return createTextureFromSurfaceN(frame.swFormat!!.id, vaSurface, vaDisplay, eglDisplay)
-            .map { Surface(it.asNativePointer(::destroySurfaceN)) }
+            .map { Surface(frame, it.asNativePointer(::destroySurfaceN)) }
     }
 }
 
@@ -39,5 +36,7 @@ private external fun createTextureFromSurfaceN(
     vaDisplay: Long,
     eglDisplay: Long
 ): Result<Long>
+
 private external fun destroySurfaceN(surface: Long)
 private external fun planeTexturesN(surface: Long): Array<Int>
+private external fun planeSwizzlesN(surface: Long): Array<Swizzles>

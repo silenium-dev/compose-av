@@ -13,9 +13,9 @@ data class Frame(override val nativePointer: NativePointer, val stream: Stream) 
     val format: PixelFormat by lazy { PixelFormat(formatN(nativePointer.address)) }
     val swFormat: PixelFormat? by lazy { swFormatN(nativePointer.address).takeIf { it >= 0 }?.let(::PixelFormat) }
     val keyFrame: Boolean by lazy { keyFrameN(nativePointer.address) }
-    val pts: Duration by lazy { (ptsN(nativePointer.address) * stream.timeBase).asDouble.seconds }
-    val bestEffortTimestamp: Duration by lazy { (bestEffortTimestampN(nativePointer.address) * stream.timeBase).asDouble.seconds }
-    val duration: Duration by lazy { (durationN(nativePointer.address) * stream.timeBase).asDouble.seconds }
+    val pts: Duration by lazy { (ptsN(nativePointer.address) * stream.timeBase.asDouble).seconds }
+    val bestEffortTimestamp: Duration by lazy { (bestEffortTimestampN(nativePointer.address) * stream.timeBase.asDouble).seconds }
+    val duration: Duration by lazy { (durationN(nativePointer.address) * stream.timeBase.asDouble).seconds }
     val buf: Array<ByteBuffer?> by lazy { dataN(nativePointer.address) }
     val rawData: Array<Long> by lazy { rawDataN(nativePointer.address) }
     val pitch: Array<Int> by lazy { pitchN(nativePointer.address) }

@@ -7,6 +7,8 @@
 #include <string>
 #include <iostream>
 
+#include "../errors.h"
+
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
@@ -31,7 +33,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_decode_DecoderKt_submitN(
     return avcodec_send_packet(avCodecContext, avPacket);
 }
 
-    JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_decode_DecoderKt_receiveN(
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_decode_DecoderKt_receiveN(
     JNIEnv *env,
     jobject thiz,
     const jlong codecContext
@@ -41,8 +43,8 @@ JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_decode_DecoderKt_submitN(
     const auto result = avcodec_receive_frame(avCodecContext, frame);
     if (result != 0) {
         av_frame_free(&frame);
-        return result;
+        return avResultFailure(env, "receive frame", result);
     }
-    return reinterpret_cast<jlong>(frame);
+    return resultSuccess(env, reinterpret_cast<jlong>(frame));
 }
 }
