@@ -6,7 +6,7 @@
 #include <cstring>
 #include <iostream>
 
-#include "../util/errors.hpp"
+#include "helper/errors.hpp"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -100,7 +100,7 @@ JNIEXPORT jboolean JNICALL Java_dev_silenium_multimedia_data_FrameKt_keyFrameN(
     const jlong frame
 ) {
     const auto avFrame = reinterpret_cast<AVFrame *>(frame);
-    return avFrame->flags & AV_FRAME_FLAG_KEY > 0;
+    return (avFrame->flags & AV_FRAME_FLAG_KEY) > 0;
 }
 
 JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_data_FrameKt_ptsN(

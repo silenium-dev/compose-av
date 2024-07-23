@@ -4,7 +4,7 @@
 
 #include "VAGLInteropImage.hpp"
 #include "render/GLInteropImage.hpp"
-#include "util/errors.hpp"
+#include "helper/errors.hpp"
 
 #include <jni.h>
 #include <GLES3/gl3.h>

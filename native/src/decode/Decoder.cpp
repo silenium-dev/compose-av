@@ -2,10 +2,10 @@
 // Created by silenium-dev on 7/21/24.
 //
 
-#include "util/rationals.hpp"
+#include "helper/rationals.hpp"
 #include <jni.h>
 
-#include "util/errors.hpp"
+#include "helper/errors.hpp"
 
 extern "C" {
 #include <libavformat/avformat.h>

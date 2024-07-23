@@ -3,7 +3,7 @@
 //
 
 #include "GLInteropImage.hpp"
-#include "util/errors.hpp"
+#include "helper/errors.hpp"
 
 #include <cassert>
 #include <jni.h>
