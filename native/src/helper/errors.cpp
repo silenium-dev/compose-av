@@ -5,6 +5,16 @@
 #include "errors.hpp"
 #include <iostream>
 
+extern "C" {
+#include <libavutil/error.h>
+}
+
+std::string avErrorString(const int error) {
+    char errorString[AV_ERROR_MAX_STRING_SIZE];
+    av_strerror(error, errorString, AV_ERROR_MAX_STRING_SIZE);
+    return {errorString};
+}
+
 jobject boxedLong(JNIEnv *env, const long value) {
     const auto boxedClass = env->FindClass("java/lang/Long");
     const auto constructor = env->GetMethodID(boxedClass, "<init>", "(J)V");

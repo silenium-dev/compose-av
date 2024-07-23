@@ -6,6 +6,9 @@
 #define ERRORS_H
 
 #include <jni.h>
+#include <string>
+
+std::string avErrorString(int error);
 
 jobject boxedLong(JNIEnv *env, long value);
 

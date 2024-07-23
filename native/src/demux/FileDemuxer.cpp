@@ -5,6 +5,8 @@
 #include <iostream>
 #include <jni.h>
 
+#include "helper/errors.hpp"
+
 extern "C" {
 #include <libavformat/avformat.h>
 
@@ -80,12 +82,12 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_initial
     auto ret = avformat_open_input(&formatContext, urlChars, nullptr, nullptr);
     env->ReleaseStringUTFChars(url, urlChars);
     if (ret < 0) {
-        std::cerr << "Failed to open input file: " << av_err2str(ret) << std::endl;
+        std::cerr << "Failed to open input file: " << avErrorString(ret) << std::endl;
         return ret;
     }
     ret = avformat_find_stream_info(formatContext, nullptr);
     if (ret < 0) {
-        std::cerr << "Failed to find stream info: " << av_err2str(ret) << std::endl;
+        std::cerr << "Failed to find stream info: " << avErrorString(ret) << std::endl;
         return ret;
     }
 

@@ -60,7 +60,7 @@ Java_dev_silenium_multimedia_render_GLInteropImageKt_planeSwizzlesN(JNIEnv *env,
                 case Swizzle::USE_ALPHA:
                     return aValue;
             }
-            assert(false);
+            return nullptr;
         };
 
         const auto swizzlesObj = env->NewObject(swizzlesClass, swizzlesConstructor,
