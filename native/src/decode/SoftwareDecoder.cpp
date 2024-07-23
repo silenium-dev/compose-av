@@ -18,8 +18,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_decode_SoftwareDecoderKt_
     const auto codec = avcodec_find_decoder(avStream->codecpar->codec_id);
     const auto avCodecContext = avcodec_alloc_context3(codec);
     avcodec_parameters_to_context(avCodecContext, avStream->codecpar);
-    const auto ret = avcodec_open2(avCodecContext, codec, nullptr);
-    if (ret < 0) {
+    if (const auto ret = avcodec_open2(avCodecContext, codec, nullptr); ret < 0) {
         return avResultFailure(env, "open codec context", ret);
     }
     return resultSuccess(env, reinterpret_cast<jlong>(avCodecContext));

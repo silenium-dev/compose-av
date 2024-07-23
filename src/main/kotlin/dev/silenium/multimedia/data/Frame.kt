@@ -1,6 +1,7 @@
 package dev.silenium.multimedia.data
 
 import dev.silenium.multimedia.demux.Stream
+import dev.silenium.multimedia.util.NativeLoader
 import java.nio.ByteBuffer
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -28,6 +29,12 @@ data class Frame(override val nativePointer: NativePointer, val stream: Stream) 
     val isHW: Boolean by lazy { isHWN(nativePointer.address) }
     fun transferToSW(): Result<Frame> {
         return transferToSWN(nativePointer.address).map { Frame(it, stream) }
+    }
+
+    companion object {
+        init {
+            NativeLoader.ensureLoaded()
+        }
     }
 }
 

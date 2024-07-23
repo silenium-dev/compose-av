@@ -60,9 +60,9 @@ std::map<AVPixelFormat, std::map<int, std::pair<int, int> > > planeFractions{
 
 JNIEXPORT jobject JNICALL
 Java_dev_silenium_multimedia_platform_linux_VAGLRenderInteropKt_mapN(JNIEnv *env, jobject thiz,
-                                                                   const jint pixelFormat_,
-                                                                   const jlong vaSurface_, const jlong vaDisplay_,
-                                                                   const jlong eglDisplay_) {
+                                                                     const jint pixelFormat_,
+                                                                     const jlong vaSurface_, const jlong vaDisplay_,
+                                                                     const jlong eglDisplay_) {
     const auto pixelFormat = static_cast<AVPixelFormat>(pixelFormat_);
     const auto vaDisplay = reinterpret_cast<VADisplay>(vaDisplay_);
     const auto vaSurface = static_cast<VASurfaceID>(vaSurface_);
@@ -140,7 +140,7 @@ Java_dev_silenium_multimedia_platform_linux_VAGLRenderInteropKt_mapN(JNIEnv *env
             fraction = {1, 1};
         }
         //        std::cout << "layer[" << layer << "]: fraction: " << fraction.first << "/" << fraction.second << std::endl;
-        EGLint attribs[]{
+        const EGLint attribs[]{
             EGL_WIDTH, static_cast<EGLint>(drm.width / fraction.first),
             EGL_HEIGHT, static_cast<EGLint>(drm.height / fraction.second),
             EGL_LINUX_DRM_FOURCC_EXT, static_cast<EGLint>(drm_format),

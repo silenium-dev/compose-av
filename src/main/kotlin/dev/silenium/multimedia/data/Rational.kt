@@ -21,4 +21,10 @@ data class Rational(val num: Int, val den: Int) {
 
 private fun gcd(a: Int, b: Int): Int = if (b == 0) a else gcd(b, a % b)
 
+operator fun Long.times(rational: Rational): Double {
+    val num = rational.num.toBigDecimal() * this.toBigDecimal()
+    val den = rational.den.toBigDecimal() * this.toBigDecimal()
+    return (num / den).toDouble()
+}
+
 operator fun Int.times(other: Rational) = Rational(this, 1) * other

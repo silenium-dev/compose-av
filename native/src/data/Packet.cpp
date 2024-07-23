@@ -30,7 +30,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_data_PacketKt_dataN(
     JNIEnv *env,
     jobject thiz,
     const jlong packet,
-    jobject buf
+    const jobject buf
 ) {
     const auto avPacket = reinterpret_cast<AVPacket *>(packet);
     const auto bufPtr = env->GetDirectBufferAddress(buf);

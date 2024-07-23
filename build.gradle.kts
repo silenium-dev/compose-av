@@ -86,6 +86,12 @@ tasks {
     }
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-receivers")
+    }
+}
+
 sourceSets.main {
     kotlin {
         srcDir(templateDst)

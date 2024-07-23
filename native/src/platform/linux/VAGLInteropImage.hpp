@@ -6,13 +6,14 @@
 #define VAINTEROPIMAGE_HPP
 
 #include "render/GLInteropImage.hpp"
-#include "../../util/EGL.hpp"
+#include "util/EGL.hpp"
+#include <EGL/eglext.h>
 
 class VAGLInteropImage final : public GLInteropImage {
 public:
     VAGLInteropImage(EGLDisplay display, const std::vector<EGLImageKHR> &images,
-                   const std::vector<unsigned int> &textures,
-                   const std::vector<Swizzles> &swizzles);
+                     const std::vector<unsigned int> &textures,
+                     const std::vector<Swizzles> &swizzles);
 
     VAGLInteropImage(VAGLInteropImage &&) noexcept = default;
 

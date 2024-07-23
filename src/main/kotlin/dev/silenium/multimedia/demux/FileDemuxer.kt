@@ -1,10 +1,9 @@
 package dev.silenium.multimedia.demux
 
-import dev.silenium.compose.gl.util.Natives
-import dev.silenium.multimedia.BuildConstants
 import dev.silenium.multimedia.data.NativeCleanable
 import dev.silenium.multimedia.data.Packet
 import dev.silenium.multimedia.data.asNativePointer
+import dev.silenium.multimedia.util.NativeLoader
 import dev.silenium.multimedia.util.asAVErrorString
 import java.io.IOException
 import java.net.URL
@@ -14,10 +13,6 @@ import kotlin.time.Duration.Companion.microseconds
 
 class FileDemuxer(url: URL) : Demuxer, NativeCleanable {
     constructor(path: Path) : this(path.toUri().toURL())
-
-    init {
-        Natives.load(BuildConstants.NativeLibName)
-    }
 
     override val nativePointer = initializeNativeContextN(url.toString()).also {
         if (it <= 0L) {
@@ -49,6 +44,12 @@ class FileDemuxer(url: URL) : Demuxer, NativeCleanable {
         (0 until streamCountN(nativePointer.address))
             .map { streamN(nativePointer.address, it) }
             .map(::Stream)
+    }
+
+    companion object {
+        init {
+            NativeLoader.ensureLoaded()
+        }
     }
 }
 

@@ -12,7 +12,7 @@ extern "C" {
 JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_util_ErrorsKt_avErrorStringN(
     JNIEnv *env,
     jobject thiz,
-    jint error
+    const jint error
 ) {
     char errorStr[AV_ERROR_MAX_STRING_SIZE];
     av_make_error_string(errorStr, AV_ERROR_MAX_STRING_SIZE, error);
@@ -22,7 +22,7 @@ JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_util_ErrorsKt_avErrorStri
 JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_util_ErrorsKt_eglErrorStringN(
     JNIEnv *env,
     jobject thiz,
-    jint error
+    const jlong error
 ) {
     return env->NewStringUTF(eglGetErrorString(error));
 }
@@ -30,7 +30,7 @@ JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_util_ErrorsKt_eglErrorStr
 JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_util_ErrorsKt_vaErrorStringN(
     JNIEnv *env,
     jobject thiz,
-    jint error
+    const jint error
 ) {
     return env->NewStringUTF(vaErrorStr(error));
 }

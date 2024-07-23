@@ -150,7 +150,7 @@ JNIEXPORT jobjectArray JNICALL Java_dev_silenium_multimedia_data_FrameKt_dataN(
         if (avFrame->buf[i] == nullptr) {
             continue;
         }
-        const auto buf = env->NewDirectByteBuffer(avFrame->buf[i]->data, avFrame->buf[i]->size);
+        const auto buf = env->NewDirectByteBuffer(avFrame->buf[i]->data, static_cast<int>(avFrame->buf[i]->size));
         env->SetObjectArrayElement(result, i, buf);
     }
     return result;
@@ -197,8 +197,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_data_FrameKt_transferToSW
         return nullptr;
     }
     auto swFrame = av_frame_alloc();
-    const auto ret = av_hwframe_transfer_data(swFrame, avFrame, 0);
-    if (ret < 0) {
+    if (const auto ret = av_hwframe_transfer_data(swFrame, avFrame, 0); ret < 0) {
         av_frame_free(&swFrame);
         return avResultFailure(env, "transfer frame data", ret);
     }

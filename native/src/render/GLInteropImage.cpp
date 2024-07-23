@@ -35,7 +35,7 @@ Java_dev_silenium_multimedia_render_GLInteropImageKt_planeSwizzlesN(JNIEnv *env,
     const auto swizzlesConstructor = env->GetMethodID(swizzlesClass, "<init>",
                                                       "(Ldev/silenium/multimedia/render/Swizzle;Ldev/silenium/multimedia/render/Swizzle;Ldev/silenium/multimedia/render/Swizzle;Ldev/silenium/multimedia/render/Swizzle;)V");
     for (int i = 0; i < planeSwizzles.size(); ++i) {
-        const auto swizzles = planeSwizzles[i];
+        const auto [rSwizzle, gSwizzle, bSwizzle, aSwizzle] = planeSwizzles[i];
         const auto rValue = env->GetStaticObjectField(swizzleEnumClass,
                                                       env->GetStaticFieldID(swizzleEnumClass, "USE_RED",
                                                                             "Ldev/silenium/multimedia/render/Swizzle;"));
@@ -64,10 +64,10 @@ Java_dev_silenium_multimedia_render_GLInteropImageKt_planeSwizzlesN(JNIEnv *env,
         };
 
         const auto swizzlesObj = env->NewObject(swizzlesClass, swizzlesConstructor,
-                                                resolveSwizzle(swizzles.r),
-                                                resolveSwizzle(swizzles.g),
-                                                resolveSwizzle(swizzles.b),
-                                                resolveSwizzle(swizzles.a));
+                                                resolveSwizzle(rSwizzle),
+                                                resolveSwizzle(gSwizzle),
+                                                resolveSwizzle(bSwizzle),
+                                                resolveSwizzle(aSwizzle));
         env->SetObjectArrayElement(swizzlesArray, i, swizzlesObj);
     }
     return swizzlesArray;

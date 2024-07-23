@@ -21,7 +21,7 @@ enum class Errors: int {
 JNIEXPORT void JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_releaseNativeContextN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
     avformat_close_input(&fileDemuxerContext->formatContext);
@@ -31,7 +31,7 @@ JNIEXPORT void JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_releaseN
 JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_positionN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
     return fileDemuxerContext->formatContext->pb->pos;
@@ -40,7 +40,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_positio
 JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_durationN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
     return fileDemuxerContext->formatContext->duration;
@@ -49,8 +49,8 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_duratio
 JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_seekN(
     JNIEnv *env,
     jobject thiz,
-    jlong context,
-    jlong positionUs
+    const jlong context,
+    const jlong positionUs
 ) {
     const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
     return avformat_seek_file(fileDemuxerContext->formatContext, -1, INT64_MIN, positionUs, INT64_MAX, 0);
@@ -59,12 +59,11 @@ JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_seekN(
 JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_nextPacketN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
     AVPacket *packet = av_packet_alloc();
-    const auto ret = av_read_frame(fileDemuxerContext->formatContext, packet);
-    if (ret < 0) {
+    if (const auto ret = av_read_frame(fileDemuxerContext->formatContext, packet); ret < 0) {
         av_packet_free(&packet);
         return ret;
     }
@@ -74,7 +73,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_nextPac
 JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_initializeNativeContextN(
     JNIEnv *env,
     jobject thiz,
-    jstring url
+    const jstring url
 ) {
     const auto urlChars = env->GetStringUTFChars(url, nullptr);
     AVFormatContext *formatContext{nullptr};
@@ -99,7 +98,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_initial
 JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_streamCountN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
     return fileDemuxerContext->formatContext->nb_streams;
@@ -108,8 +107,8 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_streamC
 JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_streamN(
     JNIEnv *env,
     jobject thiz,
-    jlong context,
-    jlong index
+    const jlong context,
+    const jlong index
 ) {
     const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
     return reinterpret_cast<jlong>(fileDemuxerContext->formatContext->streams[index]);
@@ -118,7 +117,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_streamN
 JNIEXPORT jboolean JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_isSeekableN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     const auto fileDemuxerContext = reinterpret_cast<FileDemuxerContext *>(context);
     return fileDemuxerContext->formatContext->pb->seekable;

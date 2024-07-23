@@ -38,8 +38,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_decode_DecoderKt_receiveN
 ) {
     const auto avCodecContext = reinterpret_cast<AVCodecContext *>(codecContext);
     auto frame = av_frame_alloc();
-    const auto result = avcodec_receive_frame(avCodecContext, frame);
-    if (result != 0) {
+    if (const auto result = avcodec_receive_frame(avCodecContext, frame); result != 0) {
         av_frame_free(&frame);
         return avResultFailure(env, "receive frame", result);
     }

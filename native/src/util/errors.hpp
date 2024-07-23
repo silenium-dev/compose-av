@@ -15,7 +15,7 @@ jobject resultSuccess(JNIEnv *env, long value);
 
 jobject avResultFailure(JNIEnv *env, const char *operation, int returnCode);
 
-jobject eglResultFailure(JNIEnv *env, const char *operation, int returnCode);
+jobject eglResultFailure(JNIEnv *env, const char *operation, long returnCode);
 jobject glResultFailure(JNIEnv *env, const char *operation, int returnCode);
 
 jobject vaResultFailure(JNIEnv *env, const char *operation, int returnCode);

@@ -40,7 +40,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_decode_VaapiDecoderKt_cre
     JNIEnv *env,
     jobject thiz,
     const jlong stream,
-    jstring device
+    const jstring device
 ) {
     const auto avStream = reinterpret_cast<AVStream *>(stream);
 
@@ -56,7 +56,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_decode_VaapiDecoderKt_cre
         av_buffer_unref(&deviceRef);
         return avResultFailure(env, "allocate hw frame context", ret);
     }
-    auto framesCtx = reinterpret_cast<AVHWFramesContext *>(framesRef->data);
+    const auto framesCtx = reinterpret_cast<AVHWFramesContext *>(framesRef->data);
     framesCtx->format = AV_PIX_FMT_VAAPI;
     framesCtx->sw_format = mapToNative(static_cast<AVPixelFormat>(avStream->codecpar->format));
     framesCtx->width = avStream->codecpar->width;

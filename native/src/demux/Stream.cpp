@@ -12,44 +12,34 @@ extern "C" {
 JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_demux_StreamKt_indexN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     const auto stream = reinterpret_cast<AVStream *>(context);
     return stream->index;
 }
 
-JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_demux_StreamKt_codecNameN(
-    JNIEnv *env,
-    jobject thiz,
-    jlong context
-) {
-    const auto stream = reinterpret_cast<AVStream *>(context);
-    const auto codec = avcodec_get_name(stream->codecpar->codec_id);
-    return env->NewStringUTF(codec);
-}
-
 JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_demux_StreamKt_codecIdN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     const auto stream = reinterpret_cast<AVStream *>(context);
     return stream->codecpar->codec_id;
 }
 
-JNIEXPORT jdouble JNICALL Java_dev_silenium_multimedia_demux_StreamKt_durationN(
+JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_StreamKt_durationN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     const auto stream = reinterpret_cast<AVStream *>(context);
-    return stream->duration * av_q2d(stream->time_base);
+    return stream->duration;
 }
 
 JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_StreamKt_bitRateN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     const auto stream = reinterpret_cast<AVStream *>(context);
     return stream->codecpar->bit_rate;
@@ -58,7 +48,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_StreamKt_bitRateN(
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_demux_StreamKt_avgFrameRateN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     const auto stream = reinterpret_cast<AVStream *>(context);
     return toJava(env, stream->avg_frame_rate);
@@ -67,7 +57,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_demux_StreamKt_avgFrameRa
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_demux_StreamKt_timeBaseN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     const auto stream = reinterpret_cast<AVStream *>(context);
     return toJava(env, stream->time_base);
@@ -76,7 +66,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_demux_StreamKt_timeBaseN(
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_demux_StreamKt_typeN(
     JNIEnv *env,
     jobject thiz,
-    jlong context
+    const jlong context
 ) {
     constexpr auto typeEnumName = "dev/silenium/multimedia/demux/Stream$Type";
     const auto stream = reinterpret_cast<AVStream *>(context);

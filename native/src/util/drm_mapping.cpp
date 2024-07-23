@@ -10,7 +10,7 @@
 
 #define CASE_STR(value) case value: return #value;
 
-const char *drmFourccToString(uint32_t fourcc) {
+const char *drmFourccToString(const uint32_t fourcc) {
     switch (fourcc) {
         CASE_STR(DRM_FORMAT_BIG_ENDIAN)
         CASE_STR(DRM_FORMAT_INVALID)

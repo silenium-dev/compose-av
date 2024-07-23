@@ -11,7 +11,7 @@ private val ffmpegEnumCache by lazy { mutableMapOf<KClass<out FFmpegEnum>, Map<I
 @Suppress("UNCHECKED_CAST")
 fun <E> fromId(id: Int, klass: KClass<E>): E? where E : Enum<E>, E : FFmpegEnum {
     return ffmpegEnumCache.getOrPut(klass) {
-        klass.java.enumConstants.associateBy { it.id }
+        klass.java.enumConstants.associateBy(FFmpegEnum::id)
     }[id] as E?
 }
 

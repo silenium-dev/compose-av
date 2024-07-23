@@ -6,7 +6,6 @@
 #define GL_DEMO_EGL_H
 
 #include <EGL/egl.h>
-#include <EGL/eglext.h>
 #include <iostream>
 
 const char *eglGetErrorString(long error);

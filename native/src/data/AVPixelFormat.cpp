@@ -11,7 +11,7 @@ extern "C" {
 JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_data_PixelFormatKt_nameN(
     JNIEnv *env,
     jobject thiz,
-    jint format
+    const jint format
 ) {
     return env->NewStringUTF(av_get_pix_fmt_name(static_cast<AVPixelFormat>(format)));
 }

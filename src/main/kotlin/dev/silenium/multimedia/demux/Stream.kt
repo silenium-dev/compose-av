@@ -1,12 +1,6 @@
 package dev.silenium.multimedia.demux
 
-import dev.silenium.multimedia.data.NativeCleanable
-import dev.silenium.multimedia.data.NativePointer
-import dev.silenium.multimedia.data.Rational
-import dev.silenium.multimedia.data.asNativePointer
-import dev.silenium.multimedia.decode.Codec
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
+import dev.silenium.multimedia.data.*
 
 data class Stream(val index: Int, val type: Type, override val nativePointer: NativePointer) : NativeCleanable {
     constructor(pointer: Long) : this(
@@ -29,18 +23,17 @@ data class Stream(val index: Int, val type: Type, override val nativePointer: Na
         UNKNOWN;
     }
 
-    val codec: Codec by lazy { Codec(codecIdN(nativePointer.address), codecNameN(nativePointer.address)) }
+    val codec: AVCodecID by lazy { codecIdN(nativePointer.address).let(::fromId) }
     val timeBase: Rational by lazy { timeBaseN(nativePointer.address) }
-    val duration: Duration by lazy { durationN(nativePointer.address).seconds }
+    val duration: Long by lazy { durationN(nativePointer.address) }
     val bitRate: Long by lazy { bitRateN(nativePointer.address) }
     val avgFrameRate: Rational by lazy { avgFrameRateN(nativePointer.address) }
 }
 
 private external fun indexN(pointer: Long): Int
 private external fun typeN(pointer: Long): Stream.Type
-private external fun codecNameN(pointer: Long): String
 private external fun codecIdN(pointer: Long): Int
 private external fun timeBaseN(pointer: Long): Rational
-private external fun durationN(pointer: Long): Double
+private external fun durationN(pointer: Long): Long
 private external fun bitRateN(pointer: Long): Long
 private external fun avgFrameRateN(pointer: Long): Rational

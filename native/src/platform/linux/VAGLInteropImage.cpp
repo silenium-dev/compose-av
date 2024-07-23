@@ -6,16 +6,16 @@
 
 #include <GLES3/gl3.h>
 
-VAGLInteropImage::VAGLInteropImage(EGLDisplay display,
-                               const std::vector<EGLImageKHR> &images,
-                               const std::vector<unsigned int> &textures,
-                               const std::vector<Swizzles> &swizzles)
+VAGLInteropImage::VAGLInteropImage(const EGLDisplay display,
+                                   const std::vector<EGLImageKHR> &images,
+                                   const std::vector<unsigned int> &textures,
+                                   const std::vector<Swizzles> &swizzles)
     : eglDisplay(display), eglImages(images), textures(textures), swizzles(swizzles) {
 }
 
 VAGLInteropImage::~VAGLInteropImage() {
     const auto eglDestroyImageKHR = getFunc<PFNEGLDESTROYIMAGEKHRPROC>("eglDestroyImageKHR");
-    for (auto &eglImage: eglImages) {
+    for (const auto &eglImage: eglImages) {
         if (eglImage != EGL_NO_IMAGE_KHR) {
             eglDestroyImageKHR(eglDisplay, eglImage);
         }

@@ -1,16 +1,21 @@
 package dev.silenium.multimedia.player
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.silenium.compose.gl.surface.GLDrawScope
 import dev.silenium.compose.gl.surface.GLSurfaceView
-import dev.silenium.compose.gl.surface.Stats
 import dev.silenium.compose.gl.surface.rememberGLSurfaceState
+import dev.silenium.multimedia.data.AVPixelFormat.AV_PIX_FMT_P010BE
+import dev.silenium.multimedia.data.AVPixelFormat.AV_PIX_FMT_P010LE
 import dev.silenium.multimedia.data.Frame
 import dev.silenium.multimedia.decode.VaapiDecoder
 import dev.silenium.multimedia.demux.FileDemuxer
@@ -26,42 +31,34 @@ import org.lwjgl.opengles.GLES30.*
 import java.nio.file.Path
 import kotlin.time.Duration.Companion.milliseconds
 
-@Composable
-fun VideoPlayer(
-    path: Path,
-    showStats: Boolean = false,
-    modifier: Modifier = Modifier,
-) {
-    val frameChannel = remember { Channel<Frame>(4, onBufferOverflow = BufferOverflow.SUSPEND) }
-    val demuxer = remember { FileDemuxer(path) }
-    val decoder =
-        remember { VaapiDecoder(demuxer.streams.first { it.type == Stream.Type.VIDEO }, "/dev/dri/renderD128") }
-    DisposableEffect(path) {
-        val decodeJob = CoroutineScope(Dispatchers.IO).launch {
+class VideoPlayer(path: Path) : AutoCloseable {
+    val demuxer = FileDemuxer(path)
+    private val decoder = VaapiDecoder(demuxer.streams.first { it.type == Stream.Type.VIDEO }, "/dev/dri/renderD128")
+    private val frames = Channel<Frame>(4, onBufferOverflow = BufferOverflow.SUSPEND)
+
+    init {
+        println("Codec: ${decoder.stream.codec.description}")
+    }
+
+    private lateinit var interop: GLRenderInterop
+    private var glInitialized = false
+    private var shaderProgram: Int = 0
+    private var vao: Int = 0
+    private var vbo: Int = 0
+    private var ibo: Int = 0
+
+    private val decodeJob = CoroutineScope(Dispatchers.IO).launch {
+        while (isActive) {
+            val packet = demuxer.nextPacket().getOrNull() ?: break
+            while (decoder.submit(packet).isFailure) delay(10.milliseconds)
             while (isActive) {
-                val packet = demuxer.nextPacket().getOrNull() ?: break
-                while (decoder.submit(packet).isFailure) delay(10.milliseconds)
-                while (isActive) {
-                    val frame = decoder.receive().getOrNull() ?: break
-                    frameChannel.send(frame)
-                }
+                val frame = decoder.receive().getOrNull() ?: break
+                frames.send(frame)
             }
-        }
-        onDispose {
-            decodeJob.cancel()
-            decoder.close()
-            demuxer.close()
         }
     }
 
-    var shaderProgram: Int by remember { mutableStateOf(0) }
-    var vao: Int by remember { mutableStateOf(0) }
-    var vbo: Int by remember { mutableStateOf(0) }
-    var ibo: Int by remember { mutableStateOf(0) }
-    var interop: GLRenderInterop? by remember { mutableStateOf(null) }
-    val state = rememberGLSurfaceState()
-
-    fun initShader() {
+    private fun initShader() {
         shaderProgram = glCreateProgram()
         val vertexShader = glCreateShader(GL_VERTEX_SHADER)
         val fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
@@ -99,7 +96,7 @@ fun VideoPlayer(
         glUniform1i(texVLocation, 2)
     }
 
-    fun initBuffers() {
+    private fun initBuffers() {
         val vertices = floatArrayOf(
             -1f, -1f, 0f, 0f,
             1f, -1f, 1f, 0f,
@@ -133,13 +130,15 @@ fun VideoPlayer(
         }
     }
 
-    fun initGL() {
+    private suspend fun initializeGL() {
+        if (glInitialized) return
         initShader()
         initBuffers()
         interop = VAGLRenderInterop(decoder)
+        glInitialized = true
     }
 
-    fun GLDrawScope.renderGL(surface: GLInteropImage) {
+    private suspend fun renderImage(image: GLInteropImage) {
         glClearColor(0f, 0f, 0f, 1f)
         glClear(GL_COLOR_BUFFER_BIT)
 
@@ -148,20 +147,20 @@ fun VideoPlayer(
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)
 
-        surface.planeSwizzles.map { intArrayOf(it.r.ordinal, it.g.ordinal, it.b.ordinal, it.a.ordinal) }
+        image.planeSwizzles.map { intArrayOf(it.r.ordinal, it.g.ordinal, it.b.ordinal, it.a.ordinal) }
             .forEachIndexed { idx, it ->
                 val swizzleLocation = glGetUniformLocation(shaderProgram, "swizzle_$idx")
                 glUniform4iv(swizzleLocation, it)
             }
 
         val hdrLocation = glGetUniformLocation(shaderProgram, "enableHDR")
-        if (surface.frame.swFormat?.name in setOf("p010le", "p010be")) {
+        if (image.frame.swFormat!! in setOf(AV_PIX_FMT_P010LE, AV_PIX_FMT_P010BE)) {
             glUniform1i(hdrLocation, 1)
         } else {
             glUniform1i(hdrLocation, 0)
         }
 
-        surface.planeTextures.forEachIndexed { idx, it ->
+        image.planeTextures.forEachIndexed { idx, it ->
             glActiveTexture(GL_TEXTURE0 + idx)
             glBindTexture(GL_TEXTURE_2D, it)
         }
@@ -169,38 +168,56 @@ fun VideoPlayer(
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0)
     }
 
-    var glInitialized by remember { mutableStateOf(false) }
+    context(GLDrawScope)
+    suspend fun onRender() {
+        initializeGL()
+        frames.receive().use { frame ->
+            interop.map(frame).getOrElse {
+                println("Failed to map frame: $it")
+                return
+            }.use {
+                renderImage(it)
+            }
+        }
+    }
+
+    override fun close() {
+        runBlocking { decodeJob.cancelAndJoin() }
+        demuxer.close()
+        decoder.close()
+    }
+}
+
+@Composable
+fun rememberVideoPlayer(path: Path) =
+    remember(path) { VideoPlayer(path) }
+        .also {
+            DisposableEffect(path) {
+                onDispose {
+                    it.close()
+                }
+            }
+        }
+
+@Composable
+fun VideoPlayer(
+    path: Path,
+    showStats: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    val player = rememberVideoPlayer(path)
+    val state = rememberGLSurfaceState()
 
     Box(modifier = modifier) {
-        GLSurfaceView(state, modifier = Modifier.fillMaxSize(), presentMode = GLSurfaceView.PresentMode.MAILBOX) {
-            val frame = frameChannel.receive()
-            if (!glInitialized) {
-                initGL()
-                glInitialized = true
-            }
-            val surface = interop!!.map(frame).getOrThrow()
-            renderGL(surface)
-            redrawAfter(frame.duration)
-            surface.close()
-            frame.close()
-        }
+        GLSurfaceView(
+            state,
+            modifier = Modifier.fillMaxSize(),
+            presentMode = GLSurfaceView.PresentMode.MAILBOX,
+            draw = player::onRender,
+        )
         if (showStats) {
             Surface(modifier = Modifier.padding(6.dp).width(360.dp), shape = MaterialTheme.shapes.medium) {
-                Column(modifier = Modifier.padding(6.dp)) {
-                    val display by state.displayStatistics.collectAsState()
-                    Text("Display datapoints: ${display.frameTimes.values.size}")
-                    Text("Display frame time: ${display.frameTimes.median.inWholeMicroseconds / 1000.0} ms")
-                    Text("Display frame time (99th): ${display.frameTimes.percentile(0.99).inWholeMicroseconds / 1000.0} ms")
-                    Text("Display FPS: ${display.fps.median}")
-                    Text("Display FPS (99th): ${display.fps.percentile(0.99, Stats.Percentile.LOWEST)}")
-
-                    val render by state.renderStatistics.collectAsState()
-                    Text("Render datapoints: ${render.frameTimes.values.size}")
-                    Text("Render frame time: ${render.frameTimes.median.inWholeMicroseconds / 1000.0} ms")
-                    Text("Render frame time (99th): ${render.frameTimes.percentile(0.99).inWholeMicroseconds / 1000.0} ms")
-                    Text("Render FPS: ${render.fps.median}")
-                    Text("Render FPS (99th): ${render.fps.percentile(0.99, Stats.Percentile.LOWEST)}")
-                }
+                PlayerStats(player, state)
             }
         }
     }
