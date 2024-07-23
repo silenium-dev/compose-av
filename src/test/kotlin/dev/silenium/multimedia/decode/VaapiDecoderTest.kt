@@ -2,6 +2,7 @@ package dev.silenium.multimedia.decode
 
 import dev.silenium.multimedia.demux.FileDemuxer
 import dev.silenium.multimedia.demux.Stream
+import dev.silenium.multimedia.platform.linux.VaapiDecoder
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import java.nio.file.Files

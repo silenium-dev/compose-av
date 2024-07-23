@@ -11,7 +11,7 @@
 
 extern "C" {
 JNIEXPORT jobjectArray JNICALL
-Java_dev_silenium_multimedia_render_GLInteropImageKt_planeTexturesN(JNIEnv *env, jobject thiz, const jlong surface) {
+Java_dev_silenium_compose_av_render_GLInteropImageKt_planeTexturesN(JNIEnv *env, jobject thiz, const jlong surface) {
     const auto interopImage = reinterpret_cast<GLInteropImage *>(surface);
     const auto textures = interopImage->planeTextures();
     const auto texturesArray = env->NewObjectArray(static_cast<int>(textures.size()),
@@ -24,7 +24,7 @@ Java_dev_silenium_multimedia_render_GLInteropImageKt_planeTexturesN(JNIEnv *env,
 }
 
 JNIEXPORT jobjectArray JNICALL
-Java_dev_silenium_multimedia_render_GLInteropImageKt_planeSwizzlesN(JNIEnv *env, jobject thiz, const jlong surface) {
+Java_dev_silenium_compose_av_render_GLInteropImageKt_planeSwizzlesN(JNIEnv *env, jobject thiz, const jlong surface) {
     const auto interopImage = reinterpret_cast<GLInteropImage *>(surface);
     const auto planeSwizzles = interopImage->planeSwizzles();
     const auto swizzlesArray = env->NewObjectArray(static_cast<int>(planeSwizzles.size()),
@@ -74,7 +74,7 @@ Java_dev_silenium_multimedia_render_GLInteropImageKt_planeSwizzlesN(JNIEnv *env,
 }
 
 JNIEXPORT void JNICALL
-Java_dev_silenium_multimedia_render_GLInteropImageKt_destroyN(
+Java_dev_silenium_compose_av_render_GLInteropImageKt_destroyN(
     JNIEnv *env, jobject thiz, const jlong surface
 ) {
     if (surface == 0L) return;

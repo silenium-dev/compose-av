@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
-project(gl-demo LANGUAGES CXX)
+if (NOT DEFINED PROJECT_NAME)
+    set(PROJECT_NAME "compose-av")
+endif ()
+
+project(${PROJECT_NAME} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -22,7 +26,7 @@ set(SOURCES
         src/render/Swizzles.hpp
         src/util/Errors.cpp
 )
-add_library(gl-demo SHARED ${SOURCES})
+add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 if (LINUX)
     if (NOT DEFINED JAVA_HOME)
@@ -41,13 +45,13 @@ if (LINUX)
             src/platform/linux/VaapiDecoder.cpp
     )
 
-    target_compile_options(gl-demo PRIVATE -fPIC)
-    target_compile_definitions(gl-demo PRIVATE -D_LINUX)
+    target_compile_options(${PROJECT_NAME} PRIVATE -fPIC)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE -D_LINUX)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GL REQUIRED IMPORTED_TARGET gl egl libva libva-drm libdrm)
     pkg_check_modules(ffmpeg REQUIRED IMPORTED_TARGET libavcodec libavformat libavutil libswscale)
-    target_link_libraries(gl-demo PRIVATE PkgConfig::GL PkgConfig::ffmpeg)
-    target_include_directories(gl-demo PRIVATE "${JAVA_HOME}/include/linux")
+    target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::GL PkgConfig::ffmpeg)
+    target_include_directories(${PROJECT_NAME} PRIVATE "${JAVA_HOME}/include/linux")
 elseif (WIN32)
     if (NOT DEFINED JAVA_HOME)
         message(FATAL_ERROR "JAVA_HOME must be defined")
@@ -56,14 +60,14 @@ elseif (WIN32)
         message(FATAL_ERROR "FFMPEG_PREFIX must be defined")
     endif ()
 
-    target_include_directories(gl-demo PRIVATE "${FFMPEG_PREFIX}\\include")
-    target_link_libraries(gl-demo PRIVATE "${FFMPEG_PREFIX}\\lib\\avcodec.lib" "${FFMPEG_PREFIX}\\lib\\avformat.lib" "${FFMPEG_PREFIX}\\lib\\avutil.lib" "${FFMPEG_PREFIX}\\lib\\swscale.lib")
+    target_include_directories(${PROJECT_NAME} PRIVATE "${FFMPEG_PREFIX}\\include")
+    target_link_libraries(${PROJECT_NAME} PRIVATE "${FFMPEG_PREFIX}\\lib\\avcodec.lib" "${FFMPEG_PREFIX}\\lib\\avformat.lib" "${FFMPEG_PREFIX}\\lib\\avutil.lib" "${FFMPEG_PREFIX}\\lib\\swscale.lib")
 
-    target_compile_definitions(gl-demo PRIVATE -D_WIN32)
-    target_link_libraries(gl-demo PRIVATE opengl32 dxgi d3d11 d3dcompiler)
-    target_include_directories(gl-demo PRIVATE "${JAVA_HOME}/include/win32")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE -D_WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE opengl32 dxgi d3d11 d3dcompiler)
+    target_include_directories(${PROJECT_NAME} PRIVATE "${JAVA_HOME}/include/win32")
 endif ()
 
-target_include_directories(gl-demo PRIVATE "src")
+target_include_directories(${PROJECT_NAME} PRIVATE "src")
 message(STATUS "JAVA_HOME: ${JAVA_HOME}")
-target_include_directories(gl-demo PRIVATE "${JAVA_HOME}/include")
+target_include_directories(${PROJECT_NAME} PRIVATE "${JAVA_HOME}/include")

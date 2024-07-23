@@ -39,7 +39,7 @@ void closeDrm(const VADRMPRIMESurfaceDescriptor &drm) {
 }
 
 JNIEXPORT jlong JNICALL
-Java_dev_silenium_multimedia_platform_linux_VAGLRenderInteropKt_getVADisplayN(
+Java_dev_silenium_compose_av_platform_linux_VAGLRenderInteropKt_getVADisplayN(
     JNIEnv *env, jobject thiz, const jlong frame) {
     const auto avFrame = reinterpret_cast<AVFrame *>(frame);
     const auto deviceCtx = reinterpret_cast<AVHWFramesContext *>(avFrame->hw_frames_ctx->data)->device_ctx;
@@ -59,7 +59,7 @@ std::map<AVPixelFormat, std::map<int, std::pair<int, int> > > planeFractions{
 };
 
 JNIEXPORT jobject JNICALL
-Java_dev_silenium_multimedia_platform_linux_VAGLRenderInteropKt_mapN(JNIEnv *env, jobject thiz,
+Java_dev_silenium_compose_av_platform_linux_VAGLRenderInteropKt_mapN(JNIEnv *env, jobject thiz,
                                                                      const jint pixelFormat_,
                                                                      const jlong vaSurface_, const jlong vaDisplay_,
                                                                      const jlong eglDisplay_) {

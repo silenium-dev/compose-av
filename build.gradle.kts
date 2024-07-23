@@ -8,10 +8,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose)
     alias(libs.plugins.idea.ext)
+    `maven-publish`
 }
-
-group = "dev.silenium.compose"
-version = "1.0-SNAPSHOT"
 
 repositories {
     maven("https://reposilite.silenium.dev/snapshots")
@@ -33,6 +31,7 @@ dependencies {
     implementation(libs.bundles.kotlinx)
     implementation(libs.bundles.logging)
     implementation(kotlin("reflect"))
+    implementation(project(":os-utils"))
 
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)
@@ -57,7 +56,7 @@ compose.desktop {
 val templateSrc = layout.projectDirectory.dir("src/main/templates")
 val templateDst = layout.buildDirectory.dir("generated/templates")
 val templateProps = mapOf(
-    "nativeLibName" to "libgl-demo.so",
+    "nativeLibName" to "gl-demo.dll",
 )
 tasks {
     test {
@@ -98,12 +97,40 @@ sourceSets.main {
     }
 }
 
+allprojects {
+    apply<MavenPublishPlugin>()
+    apply<BasePlugin>()
+
+    group = "dev.silenium.compose"
+    version = findProperty("deploy.version") as String? ?: "0.0.0-SNAPSHOT"
+
+    publishing {
+        repositories {
+            maven(System.getenv("REPOSILITE_URL") ?: "https://reposilite.silenium.dev/private") {
+                name = "reposilite"
+                credentials {
+                    username = System.getenv("REPOSILITE_USERNAME") ?: project.findProperty("reposiliteUser") as String? ?: ""
+                    password = System.getenv("REPOSILITE_PASSWORD") ?: project.findProperty("reposilitePassword") as String? ?: ""
+                }
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("main") {
+            from(components["java"])
+        }
+    }
+}
+
 rootProject.idea.project {
     this as ExtensionAware
     configure<ProjectSettings> {
         this as ExtensionAware
         configure<TaskTriggersConfig> {
-            afterSync("generateTemplates", "processResources")
+            afterSync("generateTemplates")
         }
     }
 }

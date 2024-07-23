@@ -542,7 +542,7 @@ static std::map<std::string, AVCodecID> codecNameMap{
     {"AV_CODEC_ID_ANULL", AV_CODEC_ID_ANULL},
 };
 
-JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_data_AVCodecIDKt_toIdN(
+JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_AVCodecIDKt_toIdN(
     JNIEnv *env,
     jobject thiz,
     const jstring name
@@ -556,7 +556,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_data_AVCodecIDKt_toIdN(
     return result;
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_data_AVCodecIDKt_mediaTypeN(
+JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_AVCodecIDKt_mediaTypeN(
     JNIEnv *env,
     jobject thiz,
     const jint id
@@ -564,7 +564,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_data_AVCodecIDKt_mediaTypeN(
     return avcodec_get_type(static_cast<AVCodecID>(id));
 }
 
-JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_data_AVCodecIDKt_descriptionN(
+JNIEXPORT jstring JNICALL Java_dev_silenium_compose_av_data_AVCodecIDKt_descriptionN(
     JNIEnv *env,
     jobject thiz,
     const jint id

@@ -20,7 +20,7 @@ enum class Errors: int {
     ReadPacketFailed = -3,
 };
 
-JNIEXPORT void JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_releaseNativeContextN(
+JNIEXPORT void JNICALL Java_dev_silenium_compose_av_demux_FileDemuxerKt_releaseNativeContextN(
     JNIEnv *env,
     jobject thiz,
     const jlong context
@@ -30,7 +30,7 @@ JNIEXPORT void JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_releaseN
     delete fileDemuxerContext;
 }
 
-JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_positionN(
+JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_demux_FileDemuxerKt_positionN(
     JNIEnv *env,
     jobject thiz,
     const jlong context
@@ -39,7 +39,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_positio
     return fileDemuxerContext->formatContext->pb->pos;
 }
 
-JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_durationN(
+JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_demux_FileDemuxerKt_durationN(
     JNIEnv *env,
     jobject thiz,
     const jlong context
@@ -48,7 +48,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_duratio
     return fileDemuxerContext->formatContext->duration;
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_seekN(
+JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_demux_FileDemuxerKt_seekN(
     JNIEnv *env,
     jobject thiz,
     const jlong context,
@@ -58,7 +58,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_seekN(
     return avformat_seek_file(fileDemuxerContext->formatContext, -1, INT64_MIN, positionUs, INT64_MAX, 0);
 }
 
-JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_nextPacketN(
+JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_demux_FileDemuxerKt_nextPacketN(
     JNIEnv *env,
     jobject thiz,
     const jlong context
@@ -72,7 +72,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_nextPac
     return reinterpret_cast<jlong>(packet);
 }
 
-JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_initializeNativeContextN(
+JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_demux_FileDemuxerKt_initializeNativeContextN(
     JNIEnv *env,
     jobject thiz,
     const jstring url
@@ -97,7 +97,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_initial
     return reinterpret_cast<jlong>(context);
 }
 
-JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_streamCountN(
+JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_demux_FileDemuxerKt_streamCountN(
     JNIEnv *env,
     jobject thiz,
     const jlong context
@@ -106,7 +106,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_streamC
     return fileDemuxerContext->formatContext->nb_streams;
 }
 
-JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_streamN(
+JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_demux_FileDemuxerKt_streamN(
     JNIEnv *env,
     jobject thiz,
     const jlong context,
@@ -116,7 +116,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_streamN
     return reinterpret_cast<jlong>(fileDemuxerContext->formatContext->streams[index]);
 }
 
-JNIEXPORT jboolean JNICALL Java_dev_silenium_multimedia_demux_FileDemuxerKt_isSeekableN(
+JNIEXPORT jboolean JNICALL Java_dev_silenium_compose_av_demux_FileDemuxerKt_isSeekableN(
     JNIEnv *env,
     jobject thiz,
     const jlong context

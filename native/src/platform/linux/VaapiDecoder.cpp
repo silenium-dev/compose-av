@@ -36,7 +36,7 @@ AVPixelFormat getFormat(AVCodecContext *codec_context, const AVPixelFormat *fmts
     return AV_PIX_FMT_NONE;
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_decode_VaapiDecoderKt_createDecoderN(
+JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDecoderKt_createDecoderN(
     JNIEnv *env,
     jobject thiz,
     const jlong stream,
@@ -88,7 +88,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_decode_VaapiDecoderKt_cre
     return resultSuccess(env, reinterpret_cast<jlong>(avCodecContext));
 }
 
-JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_decode_VaapiDecoderKt_getVADisplayN(
+JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDecoderKt_getVADisplayN(
     JNIEnv *env, jobject thiz, const jlong codecContext) {
     const auto avCodecContext = reinterpret_cast<AVCodecContext *>(codecContext);
     const auto deviceCtx = reinterpret_cast<AVHWFramesContext *>(avCodecContext->hw_frames_ctx->data)->device_ctx;

@@ -10,7 +10,6 @@ import dev.silenium.multimedia.player.VideoPlayer
 import java.nio.file.Files
 import kotlin.io.path.outputStream
 
-
 @Composable
 fun App() {
     MaterialTheme {
