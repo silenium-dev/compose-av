@@ -2,8 +2,9 @@
 // Created by silenium-dev on 7/15/24.
 //
 
-#include "EGL.h"
-#include "errors.h"
+#include "VAGLInteropImage.hpp"
+#include "render/GLInteropImage.hpp"
+#include "util/errors.hpp"
 
 #include <jni.h>
 #include <GLES3/gl3.h>
@@ -14,43 +15,16 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <drm_fourcc.h>
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
-#undef STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <algorithm>
-#include <array>
 #include <map>
 #include <vector>
-#include <libavutil/hwcontext.h>
-#include <stb/stb_image_write.h>
-
-#include "drm_mapping.h"
-#undef STB_IMAGE_WRITE_IMPLEMENTATION
 
 typedef void (EGLAPIENTRYP PFNEGLIMAGETARGETTEXTURE2DOESPROC)(EGLenum target, void *image);
 
 extern "C" {
-enum class Swizzle {
-    USE_RED = 0,
-    USE_GREEN = 1,
-    USE_BLUE = 2,
-    USE_ALPHA = 3,
-};
-
-struct ColorChannels {
-    Swizzle r = Swizzle::USE_RED;
-    Swizzle g = Swizzle::USE_GREEN;
-    Swizzle b = Swizzle::USE_BLUE;
-    Swizzle a = Swizzle::USE_ALPHA;
-};
-
-struct EGLVASurface {
-    std::array<EGLImageKHR, 4> eglImages{EGL_NO_IMAGE_KHR};
-    std::array<GLuint, 4> textures{};
-    std::array<ColorChannels, 4> swizzles{};
-};
+#include <libavutil/hwcontext.h>
+#include <libavutil/hwcontext_vaapi.h>
+#include <libavutil/frame.h>
 
 void checkVAError(const int ret, const std::string &operation = "libva call") {
     if (ret != VA_STATUS_SUCCESS) {
@@ -58,17 +32,15 @@ void checkVAError(const int ret, const std::string &operation = "libva call") {
     }
 }
 
-void closeDrm(VADRMPRIMESurfaceDescriptor drm) {
+void closeDrm(const VADRMPRIMESurfaceDescriptor &drm) {
     for (int i = 0; i < drm.num_objects; ++i) {
         close(drm.objects[i].fd);
     }
 }
 
-#include <libavutil/hwcontext_vaapi.h>
-#include <libavutil/frame.h>
-
 JNIEXPORT jlong JNICALL
-Java_dev_silenium_multimedia_vaapi_VAKt_getVADisplayN(JNIEnv *env, jobject thiz, const jlong frame) {
+Java_dev_silenium_multimedia_platform_linux_VAGLRenderInteropKt_getVADisplayN(
+    JNIEnv *env, jobject thiz, const jlong frame) {
     const auto avFrame = reinterpret_cast<AVFrame *>(frame);
     const auto deviceCtx = reinterpret_cast<AVHWFramesContext *>(avFrame->hw_frames_ctx->data)->device_ctx;
     const auto vaContext = static_cast<AVVAAPIDeviceContext *>(deviceCtx->hwctx);
@@ -87,10 +59,10 @@ std::map<AVPixelFormat, std::map<int, std::pair<int, int> > > planeFractions{
 };
 
 JNIEXPORT jobject JNICALL
-Java_dev_silenium_multimedia_vaapi_VAKt_createTextureFromSurfaceN(JNIEnv *env, jobject thiz,
-                                                                  const jint pixelFormat_,
-                                                                  const jlong vaSurface_, const jlong vaDisplay_,
-                                                                  const jlong eglDisplay_) {
+Java_dev_silenium_multimedia_platform_linux_VAGLRenderInteropKt_mapN(JNIEnv *env, jobject thiz,
+                                                                   const jint pixelFormat_,
+                                                                   const jlong vaSurface_, const jlong vaDisplay_,
+                                                                   const jlong eglDisplay_) {
     const auto pixelFormat = static_cast<AVPixelFormat>(pixelFormat_);
     const auto vaDisplay = reinterpret_cast<VADisplay>(vaDisplay_);
     const auto vaSurface = static_cast<VASurfaceID>(vaSurface_);
@@ -147,7 +119,9 @@ Java_dev_silenium_multimedia_vaapi_VAKt_createTextureFromSurfaceN(JNIEnv *env, j
     GLint prevTexture;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTexture);
 
-    auto *eglVASurface = new EGLVASurface();
+    std::vector<EGLImageKHR> eglImages{};
+    std::vector<GLuint> textures{};
+    std::vector<Swizzles> swizzles{};
     for (int layer = 0; layer < drm.num_layers; ++layer) {
         const auto [drm_format, num_planes, object_index, offset, pitch] = drm.layers[layer];
         //        std::cout << "layer[" << layer << "]: drm_format: " << drmFourccToString(drm_format) << std::endl;
@@ -208,7 +182,7 @@ Java_dev_silenium_multimedia_vaapi_VAKt_createTextureFromSurfaceN(JNIEnv *env, j
             closeDrm(drm);
             return eglResultFailure(env, "glEGLImageTargetTexture2DOES", error);
         }
-        ColorChannels channels{};
+        Swizzles channels{};
         switch (pixelFormat) {
             case AV_PIX_FMT_P010LE:
                 switch (drm_format) {
@@ -223,109 +197,17 @@ Java_dev_silenium_multimedia_vaapi_VAKt_createTextureFromSurfaceN(JNIEnv *env, j
                 break;
         }
 
-        eglVASurface->eglImages[layer] = eglImage;
-        eglVASurface->textures[layer] = texture;
-        eglVASurface->swizzles[layer] = channels;
+        eglImages.emplace_back(eglImage);
+        textures.emplace_back(texture);
+        swizzles.emplace_back(channels);
     }
     //    std::cout << "eglVASurface: " << eglVASurface << std::endl;
 
     closeDrm(drm);
     glBindTexture(GL_TEXTURE_2D, prevTexture);
 
-    return resultSuccess(env, reinterpret_cast<jlong>(eglVASurface));
-}
+    const auto interopImage = new VAGLInteropImage(eglDisplay, eglImages, textures, swizzles);
 
-JNIEXPORT jobjectArray JNICALL
-Java_dev_silenium_multimedia_vaapi_VAKt_planeTexturesN(JNIEnv *env, jobject thiz, jlong surface) {
-    const auto eglVASurface = reinterpret_cast<EGLVASurface *>(surface);
-    int planes = 0;
-    std::vector<jint> textures{};
-    for (const auto &image: eglVASurface->eglImages) {
-        if (image != EGL_NO_IMAGE_KHR) {
-            textures.push_back(eglVASurface->textures[planes++]);
-        }
-    }
-    const auto texturesArray = env->NewObjectArray(planes, env->FindClass("java/lang/Integer"), boxedInt(env, 0));
-    for (int i = 0; i < planes; ++i) {
-        env->SetObjectArrayElement(texturesArray, i, boxedInt(env, textures[i]));
-    }
-    return texturesArray;
-}
-
-JNIEXPORT jobjectArray JNICALL
-Java_dev_silenium_multimedia_vaapi_VAKt_planeSwizzlesN(JNIEnv *env, jobject thiz, jlong surface) {
-    const auto eglVASurface = reinterpret_cast<EGLVASurface *>(surface);
-    const auto planes = std::ranges::count_if(
-        eglVASurface->eglImages,
-        [](const EGLImageKHR &image) {
-            return image != EGL_NO_IMAGE_KHR;
-        }
-    );
-    const auto swizzlesArray = env->NewObjectArray(static_cast<int>(planes),
-                                                   env->FindClass("dev/silenium/multimedia/data/Swizzles"),
-                                                   nullptr);
-    const auto swizzleEnumClass = env->FindClass("dev/silenium/multimedia/data/Swizzle");
-    const auto swizzlesClass = env->FindClass("dev/silenium/multimedia/data/Swizzles");
-    const auto swizzlesConstructor = env->GetMethodID(swizzlesClass, "<init>",
-                                                      "(Ldev/silenium/multimedia/data/Swizzle;Ldev/silenium/multimedia/data/Swizzle;Ldev/silenium/multimedia/data/Swizzle;Ldev/silenium/multimedia/data/Swizzle;)V");
-    for (int i = 0; i < planes; ++i) {
-        const auto swizzles = eglVASurface->swizzles[i];
-        const auto r = env->GetStaticObjectField(swizzleEnumClass,
-                                                 env->GetStaticFieldID(swizzleEnumClass, "USE_RED",
-                                                                       "Ldev/silenium/multimedia/data/Swizzle;"));
-        const auto g = env->GetStaticObjectField(swizzleEnumClass,
-                                                 env->GetStaticFieldID(swizzleEnumClass, "USE_GREEN",
-                                                                       "Ldev/silenium/multimedia/data/Swizzle;"));
-        const auto b = env->GetStaticObjectField(swizzleEnumClass,
-                                                 env->GetStaticFieldID(swizzleEnumClass, "USE_BLUE",
-                                                                       "Ldev/silenium/multimedia/data/Swizzle;"));
-        const auto a = env->GetStaticObjectField(swizzleEnumClass,
-                                                 env->GetStaticFieldID(swizzleEnumClass, "USE_ALPHA",
-                                                                       "Ldev/silenium/multimedia/data/Swizzle;"));
-
-        const auto resolveSwizzle = [&](const Swizzle &channel) -> jobject {
-            switch (channel) {
-                case Swizzle::USE_RED:
-                    return r;
-                case Swizzle::USE_GREEN:
-                    return g;
-                case Swizzle::USE_BLUE:
-                    return b;
-                case Swizzle::USE_ALPHA:
-                    return a;
-            }
-            assert(false);
-        };
-
-        const auto swizzlesObj = env->NewObject(swizzlesClass, swizzlesConstructor,
-                                                resolveSwizzle(swizzles.r),
-                                                resolveSwizzle(swizzles.g),
-                                                resolveSwizzle(swizzles.b),
-                                                resolveSwizzle(swizzles.a));
-        env->SetObjectArrayElement(swizzlesArray, i, swizzlesObj);
-    }
-    return swizzlesArray;
-}
-
-JNIEXPORT void JNICALL
-Java_dev_silenium_multimedia_vaapi_VAKt_destroySurfaceN(JNIEnv *env, jobject thiz, jlong surface) {
-    if (surface == 0L) return;
-    const auto eglVASurface = reinterpret_cast<EGLVASurface *>(surface);
-    const auto eglDestroyImageKHR = getFunc<PFNEGLDESTROYIMAGEKHRPROC>("eglDestroyImageKHR");
-    if (!eglDestroyImageKHR) {
-        std::cerr << "Failed to get eglDestroyImageKHR" << std::endl;
-        return;
-    }
-    for (auto &eglImage: eglVASurface->eglImages) {
-        if (eglImage != EGL_NO_IMAGE_KHR) {
-            eglDestroyImageKHR(eglGetCurrentDisplay(), eglImage);
-        }
-    }
-    for (auto &texture: eglVASurface->textures) {
-        if (texture != 0) {
-            glDeleteTextures(1, &texture);
-        }
-    }
-    delete eglVASurface;
+    return resultSuccess(env, reinterpret_cast<jlong>(interopImage));
 }
 }

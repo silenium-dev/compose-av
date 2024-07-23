@@ -2,7 +2,7 @@
 // Created by silenium-dev on 7/21/24.
 //
 
-#include "../errors.h"
+#include "../util/errors.hpp"
 #include <jni.h>
 
 extern "C" {

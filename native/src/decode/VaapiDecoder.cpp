@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#include "../errors.h"
+#include "../util/errors.hpp"
 #include <jni.h>
 #include <map>
 

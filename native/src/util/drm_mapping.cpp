@@ -2,8 +2,11 @@
 // Created by silenium-dev on 7/21/24.
 //
 
+#include "drm_mapping.hpp"
+
 #include <cstdint>
 #include <drm_fourcc.h>
+
 
 #define CASE_STR(value) case value: return #value;
 

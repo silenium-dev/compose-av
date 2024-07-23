@@ -6,7 +6,7 @@
 #include <cstring>
 #include <iostream>
 
-#include "../errors.h"
+#include "../util/errors.hpp"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -45,6 +45,42 @@ JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_data_FrameKt_formatN(
 ) {
     const auto avFrame = reinterpret_cast<AVFrame *>(frame);
     return avFrame->format;
+}
+
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_data_FrameKt_colorSpaceN(
+    JNIEnv *env,
+    jobject thiz,
+    const jlong frame
+) {
+    const auto avFrame = reinterpret_cast<AVFrame *>(frame);
+    return avFrame->colorspace;
+}
+
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_data_FrameKt_colorRangeN(
+    JNIEnv *env,
+    jobject thiz,
+    const jlong frame
+) {
+    const auto avFrame = reinterpret_cast<AVFrame *>(frame);
+    return avFrame->color_range;
+}
+
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_data_FrameKt_colorPrimariesN(
+    JNIEnv *env,
+    jobject thiz,
+    const jlong frame
+) {
+    const auto avFrame = reinterpret_cast<AVFrame *>(frame);
+    return avFrame->color_primaries;
+}
+
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_data_FrameKt_colorTrcN(
+    JNIEnv *env,
+    jobject thiz,
+    const jlong frame
+) {
+    const auto avFrame = reinterpret_cast<AVFrame *>(frame);
+    return avFrame->color_trc;
 }
 
 JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_data_FrameKt_swFormatN(

@@ -4,6 +4,7 @@
 
 #ifndef DRM_MAPPING_H
 #define DRM_MAPPING_H
+
 #include <cstdint>
 
 const char *drmFourccToString(uint32_t fourcc);

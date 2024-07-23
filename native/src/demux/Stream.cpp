@@ -2,7 +2,7 @@
 // Created by silenium-dev on 7/21/24.
 //
 
-#include "../rationals.h"
+#include "../util/rationals.hpp"
 #include <jni.h>
 #include <string>
 #include <iostream>

@@ -15,9 +15,10 @@ import dev.silenium.multimedia.data.Frame
 import dev.silenium.multimedia.decode.VaapiDecoder
 import dev.silenium.multimedia.demux.FileDemuxer
 import dev.silenium.multimedia.demux.Stream
+import dev.silenium.multimedia.platform.linux.VAGLRenderInterop
+import dev.silenium.multimedia.render.GLInteropImage
+import dev.silenium.multimedia.render.GLRenderInterop
 import dev.silenium.multimedia.util.Resources.loadTextFromClasspath
-import dev.silenium.multimedia.vaapi.Surface
-import dev.silenium.multimedia.vaapi.VA
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -57,6 +58,7 @@ fun VideoPlayer(
     var vao: Int by remember { mutableStateOf(0) }
     var vbo: Int by remember { mutableStateOf(0) }
     var ibo: Int by remember { mutableStateOf(0) }
+    var interop: GLRenderInterop? by remember { mutableStateOf(null) }
     val state = rememberGLSurfaceState()
 
     fun initShader() {
@@ -134,9 +136,10 @@ fun VideoPlayer(
     fun initGL() {
         initShader()
         initBuffers()
+        interop = VAGLRenderInterop(decoder)
     }
 
-    fun GLDrawScope.renderGL(surface: Surface) {
+    fun GLDrawScope.renderGL(surface: GLInteropImage) {
         glClearColor(0f, 0f, 0f, 1f)
         glClear(GL_COLOR_BUFFER_BIT)
 
@@ -175,7 +178,7 @@ fun VideoPlayer(
                 initGL()
                 glInitialized = true
             }
-            val surface = VA.createTextureFromSurface(frame, decoder).getOrThrow()
+            val surface = interop!!.map(frame).getOrThrow()
             renderGL(surface)
             redrawAfter(frame.duration)
             surface.close()

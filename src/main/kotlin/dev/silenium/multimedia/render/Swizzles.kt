@@ -1,4 +1,4 @@
-package dev.silenium.multimedia.data
+package dev.silenium.multimedia.render
 
 enum class Swizzle {
     USE_RED,

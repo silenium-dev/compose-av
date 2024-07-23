@@ -2,7 +2,7 @@
 // Created by silenium-dev on 7/21/24.
 //
 
-#include "rationals.h"
+#include "rationals.hpp"
 
 constexpr auto RationalClass = "dev/silenium/multimedia/data/Rational";
 

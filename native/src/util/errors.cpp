@@ -2,7 +2,7 @@
 // Created by silenium-dev on 7/21/24.
 //
 
-#include "errors.h"
+#include "errors.hpp"
 #include <iostream>
 
 jobject boxedLong(JNIEnv *env, long value) {
