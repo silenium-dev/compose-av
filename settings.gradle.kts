@@ -1,2 +1,2 @@
-rootProject.name = "va-egl-compose"
+rootProject.name = "compose-av"
 include(":native")
