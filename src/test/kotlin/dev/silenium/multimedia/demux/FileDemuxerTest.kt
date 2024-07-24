@@ -1,5 +1,6 @@
 package dev.silenium.compose.av.demux
 
+import dev.silenium.compose.av.data.AVMediaType
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -29,7 +30,10 @@ class FileDemuxerTest : FunSpec({
         shouldNotThrowAny {
             demuxer.seek(4.seconds)
         }
-        demuxer.streams.map(Stream::type) shouldContainExactlyInAnyOrder listOf(Stream.Type.VIDEO, Stream.Type.AUDIO)
+        demuxer.streams.map(Stream::type) shouldContainExactlyInAnyOrder listOf(
+            AVMediaType.AVMEDIA_TYPE_VIDEO,
+            AVMediaType.AVMEDIA_TYPE_AUDIO
+        )
         demuxer.isSeekable shouldBe true
         val packet = demuxer.nextPacket().shouldBeSuccess()
         packet.size shouldBeGreaterThan 0

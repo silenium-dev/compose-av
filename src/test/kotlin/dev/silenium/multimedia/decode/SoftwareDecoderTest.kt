@@ -1,7 +1,7 @@
 package dev.silenium.compose.av.decode
 
+import dev.silenium.compose.av.data.AVMediaType
 import dev.silenium.compose.av.demux.FileDemuxer
-import dev.silenium.compose.av.demux.Stream
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import java.nio.file.Files
@@ -18,10 +18,10 @@ class SoftwareDecoderTest : FunSpec({
     }
     test("test SoftwareDecoder") {
         val demuxer = FileDemuxer(videoFile)
-        val decoder = SoftwareDecoder(demuxer.streams.first { it.type == Stream.Type.VIDEO })
+        val decoder = SoftwareDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO })
         decoder.submit(demuxer.nextPacket().getOrThrow())
         val frame = decoder.receive().getOrThrow()
-        frame.stream shouldBe demuxer.streams.first { it.type == Stream.Type.VIDEO }
+        frame.stream shouldBe demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }
         println(frame.buf.first()?.limit())
         frame.close()
         decoder.close()

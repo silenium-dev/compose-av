@@ -1,7 +1,7 @@
 package dev.silenium.compose.av.decode
 
+import dev.silenium.compose.av.data.AVMediaType
 import dev.silenium.compose.av.demux.FileDemuxer
-import dev.silenium.compose.av.demux.Stream
 import dev.silenium.compose.av.platform.linux.VaapiDecoder
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -20,10 +20,11 @@ class VaapiDecoderTest : FunSpec({
     }
     test("test VaapiDecoder") {
         val demuxer = FileDemuxer(videoFile)
-        val decoder = VaapiDecoder(demuxer.streams.first { it.type == Stream.Type.VIDEO }, "/dev/dri/renderD128")
+        val decoder =
+            VaapiDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }, "/dev/dri/renderD128")
         decoder.submit(demuxer.nextPacket().getOrThrow())
         val frame = decoder.receive().getOrThrow()
-        frame.stream shouldBe demuxer.streams.first { it.type == Stream.Type.VIDEO }
+        frame.stream shouldBe demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }
         println("VASurface: 0x${frame.rawData[3].toHexString()}")
         println("Format: ${frame.format}")
         println("Is HW: ${frame.isHW}")
