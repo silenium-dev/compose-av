@@ -1,4 +1,5 @@
 import dev.silenium.compose.av.OSUtils
+import dev.silenium.compose.av.OSUtilsImpl
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.jetbrains.kotlin.incremental.createDirectory
 
@@ -56,6 +57,9 @@ val compileNative = tasks.register<Exec>("compileNative") {
 val jar = tasks.register<Jar>("jar") {
     group = "build"
     dependsOn(compileNative)
+    // Required for configuration cache
+    val osUtils = OSUtilsImpl(providers.systemProperty("os.name").get(), providers.systemProperty("os.arch").get())
+    val artifactSuffix = osUtils.libIdentifier()
 
     from(compileNative.get().outputs.files) {
         into("natives")
