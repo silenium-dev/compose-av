@@ -5,6 +5,9 @@ build/
 !**/src/test/**/build/
 .kotlin
 *.log
+*.webm
+*.mkv
+*.mp4
 nv12.png
 output.png
 rgb.png

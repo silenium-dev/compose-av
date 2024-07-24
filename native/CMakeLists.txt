@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.21)
 if (NOT DEFINED PROJECT_NAME)
     set(PROJECT_NAME "compose-av")
 endif ()
+if (NOT DEFINED FFMPEG_PLATFORM)
+    message(FATAL_ERROR "FFMPEG_PLATFORM must be defined")
+endif ()
 
 project(${PROJECT_NAME} LANGUAGES CXX)
 
@@ -62,6 +65,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     pkg_check_modules(ffmpeg REQUIRED IMPORTED_TARGET libavcodec libavformat libavutil libswscale)
     target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::GL PkgConfig::ffmpeg)
     target_include_directories(${PROJECT_NAME} PRIVATE "${JAVA_HOME}/include/linux")
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND patchelf --set-rpath \$ORIGIN,\$ORIGIN/${FFMPEG_PLATFORM} $<TARGET_FILE:${PROJECT_NAME}>
+    )
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_include_directories(${PROJECT_NAME} PRIVATE "${FFMPEG_PREFIX}\\include")
     target_link_libraries(${PROJECT_NAME} PRIVATE "${FFMPEG_PREFIX}\\lib\\avcodec.lib" "${FFMPEG_PREFIX}\\lib\\avformat.lib" "${FFMPEG_PREFIX}\\lib\\avutil.lib" "${FFMPEG_PREFIX}\\lib\\swscale.lib")

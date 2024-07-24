@@ -19,6 +19,7 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     val additionalFlags = mutableListOf(
         "-DJAVA_HOME=${System.getProperty("java.home")}",
         "-DPROJECT_NAME=${rootProject.name}",
+        "-DFFMPEG_PLATFORM=linux-x86_64", // TODO: Detect platform
     )
     if (OSUtils.isWindows()) {
         additionalFlags += "-DFFMPEG_PREFIX=\"${findProperty("ffmpeg.prefix") ?: error("ffmpeg.prefix is not set")}\""
@@ -85,7 +86,8 @@ artifacts {
 publishing {
     publications {
         create<MavenPublication>("natives${artifactSuffix.split("-").joinToString("") { it.capitalized() }}") {
-//            from()
+            artifact(jar)
+            artifactId = "${rootProject.name}-natives-$artifactSuffix"
         }
     }
 }
