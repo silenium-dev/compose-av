@@ -19,3 +19,4 @@ runs:
         rm ffmpeg.zip
         sudo bash -c "echo '/usr/local/lib' >> /etc/ld.so.conf.d/ffmpeg.conf"
         echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig" >> $GITHUB_ENV
+        find /usr/local/lib/pkgconfig -type f -exec sudo sed -i 's|../|/usr/local/|g' {} \;
