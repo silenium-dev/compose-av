@@ -45,22 +45,9 @@ void main(){
     }
 
     if (enableHDR > 0){
-        rgba.rgb = toHDR(rgba.rgb, 1.0);
+        rgba.rgb = toHDR(rgba.rgb, 3.0);// TODO: properly respect HDR metadata
     }
 
     rgba.a = 1.0;
     color = rgba;
-    //    float rOut = 0.0;
-    //    float gOut = 0.0;
-    //    if (swizzle_u.r == 1) {
-    //        rOut = 1.0f;
-    //    } else {
-    //        rOut = 0.0f;
-    //    }
-    //    if (swizzle_u.g == 1) {
-    //        gOut = 1.0f;
-    //    } else {
-    //        gOut = 0.0f;
-    //    }
-    //    color = vec4(rOut, gOut, 0.0, 1.0);
 }
