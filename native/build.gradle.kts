@@ -23,7 +23,7 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     if (OSUtils.isWindows()) {
         additionalFlags += "-DFFMPEG_PREFIX=\"${findProperty("ffmpeg.prefix") ?: error("ffmpeg.prefix is not set")}\""
     } else if (OSUtils.isLinux()) {
-        additionalFlags += "-GNinja"
+//        additionalFlags += "-GNinja"
     }
     commandLine(
         cmakeExe,
@@ -47,7 +47,7 @@ val compileNative = tasks.register<Exec>("compileNative") {
         inputs.files(layout.buildDirectory.files("cmake/*.vcxproj.filters"))
         outputs.files(layout.buildDirectory.file("cmake/Debug/${rootProject.name}.dll"))
     } else if (OSUtils.isLinux()) {
-        inputs.file(layout.buildDirectory.file("cmake/build.ninja"))
+        inputs.file(layout.buildDirectory.file("cmake/CMakeCache.txt"))
         outputs.files(layout.buildDirectory.file("cmake/lib${rootProject.name}.so"))
     }
     inputs.dir(layout.projectDirectory.dir("src"))
