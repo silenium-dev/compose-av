@@ -7,7 +7,7 @@ on:
 env:
   REPOSILITE_USERNAME: ${{ secrets.REPOSILITE_USERNAME }}
   REPOSILITE_PASSWORD: ${{ secrets.REPOSILITE_PASSWORD }}
-  REPOSILITE_URL: "https://reposilite.silenium.dev/private"
+  REPOSILITE_URL: "https://reposilite.silenium.dev/snapshots"
 permissions:
   contents: write
 jobs:
