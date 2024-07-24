@@ -8,9 +8,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import dev.silenium.compose.av.demux.Stream
 import dev.silenium.compose.gl.surface.GLSurfaceState
 import dev.silenium.compose.gl.surface.Stats
-import dev.silenium.multimedia.demux.Stream
 
 @Composable
 fun PlayerStats(player: VideoPlayer, state: GLSurfaceState) {

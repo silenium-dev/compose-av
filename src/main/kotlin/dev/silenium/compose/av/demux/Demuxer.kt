@@ -1,6 +1,7 @@
 package dev.silenium.compose.av.demux
 
-import dev.silenium.multimedia.data.Packet
+import dev.silenium.compose.av.data.Packet
+import dev.silenium.compose.av.data.times
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 

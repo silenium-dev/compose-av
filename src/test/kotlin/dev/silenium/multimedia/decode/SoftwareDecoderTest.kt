@@ -1,7 +1,7 @@
-package dev.silenium.multimedia.decode
+package dev.silenium.compose.av.decode
 
-import dev.silenium.multimedia.demux.FileDemuxer
-import dev.silenium.multimedia.demux.Stream
+import dev.silenium.compose.av.demux.FileDemuxer
+import dev.silenium.compose.av.demux.Stream
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import java.nio.file.Files

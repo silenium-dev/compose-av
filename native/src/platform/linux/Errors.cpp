@@ -2,7 +2,7 @@
 // Created by silenium-dev on 2024-07-23.
 //
 
-#include "EGL.hpp"
+#include "helper/EGL.hpp"
 #include <va/va.h>
 #include <jni.h>
 

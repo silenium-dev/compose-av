@@ -1,8 +1,8 @@
 package dev.silenium.compose.av.data
 
-import dev.silenium.multimedia.util.NativeLoader
+import dev.silenium.compose.av.util.NativeLoader
 
-enum class AVCodecID : dev.silenium.compose.av.data.FFmpegEnum {
+enum class AVCodecID : FFmpegEnum {
     AV_CODEC_ID_NONE,
 
     /* video codecs */
@@ -571,9 +571,9 @@ enum class AVCodecID : dev.silenium.compose.av.data.FFmpegEnum {
      */
     AV_CODEC_ID_ANULL;
 
-    override val id: Int by lazy { dev.silenium.compose.av.data.toIdN(this.name) }
-    val description: String by lazy { dev.silenium.compose.av.data.descriptionN(id) }
-    val mediaType: dev.silenium.compose.av.data.AVMediaType by lazy { dev.silenium.compose.av.data.mediaTypeN(
+    override val id: Int by lazy { toIdN(this.name) }
+    val description: String by lazy { descriptionN(id) }
+    val mediaType: AVMediaType by lazy { mediaTypeN(
         id
     ).let(::fromId) }
 

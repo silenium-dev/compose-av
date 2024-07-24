@@ -68,7 +68,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_demux_StreamKt_typeN(
     jobject thiz,
     const jlong context
 ) {
-    constexpr auto typeEnumName = "dev/silenium/multimedia/demux/Stream$Type";
+    constexpr auto typeEnumName = "dev/silenium/compose/av/demux/Stream$Type";
     const auto stream = reinterpret_cast<AVStream *>(context);
     const auto type = stream->codecpar->codec_type;
     const auto typeEnum = env->FindClass(typeEnumName);

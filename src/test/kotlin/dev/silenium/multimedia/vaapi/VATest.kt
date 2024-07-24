@@ -1,4 +1,4 @@
-package dev.silenium.multimedia.vaapi
+package dev.silenium.compose.av.vaapi
 
 import io.kotest.core.spec.style.FunSpec
 

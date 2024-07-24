@@ -1,9 +1,9 @@
 package dev.silenium.compose.av.render
 
-import dev.silenium.multimedia.data.Frame
-import dev.silenium.multimedia.data.NativeCleanable
-import dev.silenium.multimedia.data.NativePointer
-import dev.silenium.multimedia.data.asNativePointer
+import dev.silenium.compose.av.data.Frame
+import dev.silenium.compose.av.data.NativeCleanable
+import dev.silenium.compose.av.data.NativePointer
+import dev.silenium.compose.av.data.asNativePointer
 
 data class GLInteropImage(val frame: Frame, override val nativePointer: NativePointer) : NativeCleanable {
     constructor(frame: Frame, pointer: Long) : this(frame, pointer.asNativePointer(::destroyN))

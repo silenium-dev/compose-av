@@ -5,8 +5,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.awaitApplication
-import dev.silenium.multimedia.demux.FileDemuxer
-import dev.silenium.multimedia.player.VideoPlayer
+import dev.silenium.compose.av.demux.FileDemuxer
+import dev.silenium.compose.av.player.VideoPlayer
 import java.nio.file.Files
 import kotlin.io.path.outputStream
 

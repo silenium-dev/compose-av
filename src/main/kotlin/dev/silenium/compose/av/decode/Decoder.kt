@@ -1,11 +1,11 @@
 package dev.silenium.compose.av.decode
 
-import dev.silenium.multimedia.data.Frame
-import dev.silenium.multimedia.data.NativeCleanable
-import dev.silenium.multimedia.data.Packet
-import dev.silenium.multimedia.demux.Stream
-import dev.silenium.multimedia.util.asFrameResult
-import dev.silenium.multimedia.util.asUnitResult
+import dev.silenium.compose.av.data.Frame
+import dev.silenium.compose.av.data.NativeCleanable
+import dev.silenium.compose.av.data.Packet
+import dev.silenium.compose.av.demux.Stream
+import dev.silenium.compose.av.util.asFrameResult
+import dev.silenium.compose.av.util.asUnitResult
 
 abstract class Decoder(val stream: Stream) : NativeCleanable {
     open fun releaseDecoder(pointer: Long) = releaseDecoderN(pointer)

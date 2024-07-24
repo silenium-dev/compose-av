@@ -1,8 +1,8 @@
 package dev.silenium.compose.av.decode
 
-import dev.silenium.multimedia.data.NativePointer
-import dev.silenium.multimedia.data.asNativePointer
-import dev.silenium.multimedia.demux.Stream
+import dev.silenium.compose.av.data.NativePointer
+import dev.silenium.compose.av.data.asNativePointer
+import dev.silenium.compose.av.demux.Stream
 
 class SoftwareDecoder(stream: Stream) : Decoder(stream) {
     override val nativePointer: NativePointer =

@@ -1,4 +1,4 @@
-package dev.silenium.multimedia.demux
+package dev.silenium.compose.av.demux
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FunSpec

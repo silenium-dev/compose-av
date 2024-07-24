@@ -1,10 +1,10 @@
 package dev.silenium.compose.av.demux
 
-import dev.silenium.multimedia.data.NativeCleanable
-import dev.silenium.multimedia.data.Packet
-import dev.silenium.multimedia.data.asNativePointer
-import dev.silenium.multimedia.util.NativeLoader
-import dev.silenium.multimedia.util.asAVErrorString
+import dev.silenium.compose.av.data.NativeCleanable
+import dev.silenium.compose.av.data.Packet
+import dev.silenium.compose.av.data.asNativePointer
+import dev.silenium.compose.av.util.NativeLoader
+import dev.silenium.compose.av.util.asAVErrorString
 import java.io.IOException
 import java.net.URL
 import java.nio.file.Path

@@ -6,7 +6,7 @@
 #define VAINTEROPIMAGE_HPP
 
 #include "render/GLInteropImage.hpp"
-#include "util/EGL.hpp"
+#include "helper/EGL.hpp"
 #include <EGL/eglext.h>
 
 class VAGLInteropImage final : public GLInteropImage {

@@ -1,10 +1,10 @@
 package dev.silenium.compose.av.platform.linux
 
-import dev.silenium.compose.gl.util.Natives
-import dev.silenium.multimedia.data.AVPixelFormat
-import dev.silenium.multimedia.data.Frame
-import dev.silenium.multimedia.render.GLInteropImage
-import dev.silenium.multimedia.render.GLRenderInterop
+import dev.silenium.compose.av.data.AVPixelFormat
+import dev.silenium.compose.av.data.Frame
+import dev.silenium.compose.av.render.GLInteropImage
+import dev.silenium.compose.av.render.GLRenderInterop
+import dev.silenium.compose.av.util.NativeLoader
 import org.lwjgl.egl.EGL15
 
 class VAGLRenderInterop(
@@ -12,7 +12,7 @@ class VAGLRenderInterop(
     private val eglDisplay: Long = EGL15.eglGetCurrentDisplay(),
 ) : GLRenderInterop {
     init {
-        Natives.load("libgl-demo.so")
+        NativeLoader.ensureLoaded()
     }
 
     override fun map(frame: Frame): Result<GLInteropImage> = runCatching {

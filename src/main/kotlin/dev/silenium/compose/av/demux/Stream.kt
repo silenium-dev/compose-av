@@ -1,6 +1,6 @@
 package dev.silenium.compose.av.demux
 
-import dev.silenium.multimedia.data.*
+import dev.silenium.compose.av.data.*
 
 data class Stream(val index: Int, val type: Type, override val nativePointer: NativePointer) : NativeCleanable {
     constructor(pointer: Long) : this(
@@ -23,7 +23,7 @@ data class Stream(val index: Int, val type: Type, override val nativePointer: Na
         UNKNOWN;
     }
 
-    val codec: dev.silenium.compose.av.data.AVCodecID by lazy { codecIdN(nativePointer.address).let(::fromId) }
+    val codec: AVCodecID by lazy { codecIdN(nativePointer.address).let(::fromId) }
     val timeBase: Rational by lazy { timeBaseN(nativePointer.address) }
     val duration: Long by lazy { durationN(nativePointer.address) }
     val bitRate: Long by lazy { bitRateN(nativePointer.address) }

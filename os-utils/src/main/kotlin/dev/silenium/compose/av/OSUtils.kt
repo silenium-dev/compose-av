@@ -1,7 +1,5 @@
 package dev.silenium.compose.av
 
-import dev.silenium.multimedia.BuildConstants
-
 object OSUtils {
     private val os = System.getProperty("os.name").lowercase()
     private val arch = System.getProperty("os.arch").lowercase()
@@ -29,11 +27,11 @@ object OSUtils {
     }
 
     fun libFileName(): String {
-        val extension = when {
-            isWindows() -> "dll"
-            isLinux() -> "so"
+        val template = when {
+            isWindows() -> "%s.dll"
+            isLinux() -> "lib%s.so"
             else -> throw UnsupportedOperationException("Unsupported OS: $os")
         }
-        return "${BuildConstants.LibBaseName}-${libIdentifier()}.${extension}"
+        return template.format("${BuildConstants.LibBaseName}-${libIdentifier()}")
     }
 }

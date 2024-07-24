@@ -26,25 +26,35 @@ set(SOURCES
         src/render/Swizzles.hpp
         src/util/Errors.cpp
 )
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
-if (LINUX)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     if (NOT DEFINED JAVA_HOME)
         set(JAVA_HOME "/usr/lib/jvm/java-21-openjdk")
     endif ()
 
     list(APPEND SOURCES
-            src/platform/linux/drm_mapping.cpp
-            src/platform/linux/drm_mapping.hpp
-            src/platform/linux/EGL.cpp
-            src/platform/linux/EGL.hpp
+            src/platform/linux/helper/drm_mapping.cpp
+            src/platform/linux/helper/drm_mapping.hpp
+            src/platform/linux/helper/EGL.cpp
+            src/platform/linux/helper/EGL.hpp
             src/platform/linux/Errors.cpp
             src/platform/linux/VAGLInteropImage.cpp
             src/platform/linux/VAGLInteropImage.hpp
             src/platform/linux/VAGLRenderInterop.cpp
             src/platform/linux/VaapiDecoder.cpp
     )
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    if (NOT DEFINED JAVA_HOME)
+        message(FATAL_ERROR "JAVA_HOME must be defined")
+    endif ()
+    if (NOT DEFINED FFMPEG_PREFIX)
+        message(FATAL_ERROR "FFMPEG_PREFIX must be defined")
+    endif ()
+endif ()
 
+add_library(${PROJECT_NAME} SHARED ${SOURCES})
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_options(${PROJECT_NAME} PRIVATE -fPIC)
     target_compile_definitions(${PROJECT_NAME} PRIVATE -D_LINUX)
     find_package(PkgConfig REQUIRED)
@@ -52,14 +62,7 @@ if (LINUX)
     pkg_check_modules(ffmpeg REQUIRED IMPORTED_TARGET libavcodec libavformat libavutil libswscale)
     target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::GL PkgConfig::ffmpeg)
     target_include_directories(${PROJECT_NAME} PRIVATE "${JAVA_HOME}/include/linux")
-elseif (WIN32)
-    if (NOT DEFINED JAVA_HOME)
-        message(FATAL_ERROR "JAVA_HOME must be defined")
-    endif ()
-    if (NOT DEFINED FFMPEG_PREFIX)
-        message(FATAL_ERROR "FFMPEG_PREFIX must be defined")
-    endif ()
-
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_include_directories(${PROJECT_NAME} PRIVATE "${FFMPEG_PREFIX}\\include")
     target_link_libraries(${PROJECT_NAME} PRIVATE "${FFMPEG_PREFIX}\\lib\\avcodec.lib" "${FFMPEG_PREFIX}\\lib\\avformat.lib" "${FFMPEG_PREFIX}\\lib\\avutil.lib" "${FFMPEG_PREFIX}\\lib\\swscale.lib")
 

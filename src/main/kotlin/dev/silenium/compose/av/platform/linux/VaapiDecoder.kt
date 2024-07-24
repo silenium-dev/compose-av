@@ -1,10 +1,10 @@
 package dev.silenium.compose.av.platform.linux
 
-import dev.silenium.multimedia.data.NativePointer
-import dev.silenium.multimedia.data.asNativePointer
-import dev.silenium.multimedia.decode.Decoder
-import dev.silenium.multimedia.demux.Stream
-import dev.silenium.multimedia.util.NativeLoader
+import dev.silenium.compose.av.data.NativePointer
+import dev.silenium.compose.av.data.asNativePointer
+import dev.silenium.compose.av.decode.Decoder
+import dev.silenium.compose.av.demux.Stream
+import dev.silenium.compose.av.util.NativeLoader
 
 class VaapiDecoder(stream: Stream, val vaDevice: String) : Decoder(stream) {
     override val nativePointer: NativePointer =

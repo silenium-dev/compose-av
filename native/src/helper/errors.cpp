@@ -34,9 +34,10 @@ jobject resultSuccess(JNIEnv *env, const long value) {
 
 jobject avResultFailure(JNIEnv *env, const char *operation, const int returnCode) {
     const auto resultClass = env->FindClass("kotlin/Result$Failure");
-    const auto errorClass = env->FindClass("dev/silenium/multimedia/util/AVException");
+    const auto errorClass = env->FindClass("dev/silenium/compose/av/util/AVException");
     const auto errorConstructor = env->GetMethodID(errorClass, "<init>", "(Ljava/lang/String;I)V");
-    const auto error = env->NewObject(errorClass, errorConstructor, env->NewStringUTF(operation), returnCode);
+    const auto operationChars = env->NewStringUTF(operation);
+    const auto error = env->NewObject(errorClass, errorConstructor, operationChars, returnCode);
     const auto resultConstructor = env->GetMethodID(resultClass, "<init>", "(Ljava/lang/Throwable;)V");
     const auto errorResult = env->NewObject(resultClass, resultConstructor, error);
     return errorResult;
@@ -44,7 +45,7 @@ jobject avResultFailure(JNIEnv *env, const char *operation, const int returnCode
 
 jobject eglResultFailure(JNIEnv *env, const char *operation, const int returnCode) {
     const auto resultClass = env->FindClass("kotlin/Result$Failure");
-    const auto errorClass = env->FindClass("dev/silenium/multimedia/util/EGLException");
+    const auto errorClass = env->FindClass("dev/silenium/compose/av/util/EGLException");
     const auto errorConstructor = env->GetMethodID(errorClass, "<init>", "(Ljava/lang/String;I)V");
     const auto error = env->NewObject(errorClass, errorConstructor, env->NewStringUTF(operation), returnCode);
     const auto resultConstructor = env->GetMethodID(resultClass, "<init>", "(Ljava/lang/Throwable;)V");
@@ -54,7 +55,7 @@ jobject eglResultFailure(JNIEnv *env, const char *operation, const int returnCod
 
 jobject glResultFailure(JNIEnv *env, const char *operation, const int returnCode) {
     const auto resultClass = env->FindClass("kotlin/Result$Failure");
-    const auto errorClass = env->FindClass("dev/silenium/multimedia/util/GLException");
+    const auto errorClass = env->FindClass("dev/silenium/compose/av/util/GLException");
     const auto errorConstructor = env->GetMethodID(errorClass, "<init>", "(Ljava/lang/String;I)V");
     const auto error = env->NewObject(errorClass, errorConstructor, env->NewStringUTF(operation), returnCode);
     const auto resultConstructor = env->GetMethodID(resultClass, "<init>", "(Ljava/lang/Throwable;)V");
@@ -64,7 +65,7 @@ jobject glResultFailure(JNIEnv *env, const char *operation, const int returnCode
 
 jobject vaResultFailure(JNIEnv *env, const char *operation, const int returnCode) {
     const auto resultClass = env->FindClass("kotlin/Result$Failure");
-    const auto errorClass = env->FindClass("dev/silenium/multimedia/util/VAException");
+    const auto errorClass = env->FindClass("dev/silenium/compose/av/util/VAException");
     const auto errorConstructor = env->GetMethodID(errorClass, "<init>", "(Ljava/lang/String;I)V");
     const auto error = env->NewObject(errorClass, errorConstructor, env->NewStringUTF(operation), returnCode);
     const auto resultConstructor = env->GetMethodID(resultClass, "<init>", "(Ljava/lang/Throwable;)V");

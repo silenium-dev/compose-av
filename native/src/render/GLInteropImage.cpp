@@ -28,26 +28,26 @@ Java_dev_silenium_compose_av_render_GLInteropImageKt_planeSwizzlesN(JNIEnv *env,
     const auto interopImage = reinterpret_cast<GLInteropImage *>(surface);
     const auto planeSwizzles = interopImage->planeSwizzles();
     const auto swizzlesArray = env->NewObjectArray(static_cast<int>(planeSwizzles.size()),
-                                                   env->FindClass("dev/silenium/multimedia/render/Swizzles"),
+                                                   env->FindClass("dev/silenium/compose/av/render/Swizzles"),
                                                    nullptr);
-    const auto swizzleEnumClass = env->FindClass("dev/silenium/multimedia/render/Swizzle");
-    const auto swizzlesClass = env->FindClass("dev/silenium/multimedia/render/Swizzles");
+    const auto swizzleEnumClass = env->FindClass("dev/silenium/compose/av/render/Swizzle");
+    const auto swizzlesClass = env->FindClass("dev/silenium/compose/av/render/Swizzles");
     const auto swizzlesConstructor = env->GetMethodID(swizzlesClass, "<init>",
-                                                      "(Ldev/silenium/multimedia/render/Swizzle;Ldev/silenium/multimedia/render/Swizzle;Ldev/silenium/multimedia/render/Swizzle;Ldev/silenium/multimedia/render/Swizzle;)V");
+                                                      "(Ldev/silenium/compose/av/render/Swizzle;Ldev/silenium/compose/av/render/Swizzle;Ldev/silenium/compose/av/render/Swizzle;Ldev/silenium/compose/av/render/Swizzle;)V");
     for (int i = 0; i < planeSwizzles.size(); ++i) {
         const auto [rSwizzle, gSwizzle, bSwizzle, aSwizzle] = planeSwizzles[i];
         const auto rValue = env->GetStaticObjectField(swizzleEnumClass,
                                                       env->GetStaticFieldID(swizzleEnumClass, "USE_RED",
-                                                                            "Ldev/silenium/multimedia/render/Swizzle;"));
+                                                                            "Ldev/silenium/compose/av/render/Swizzle;"));
         const auto gValue = env->GetStaticObjectField(swizzleEnumClass,
                                                       env->GetStaticFieldID(swizzleEnumClass, "USE_GREEN",
-                                                                            "Ldev/silenium/multimedia/render/Swizzle;"));
+                                                                            "Ldev/silenium/compose/av/render/Swizzle;"));
         const auto bValue = env->GetStaticObjectField(swizzleEnumClass,
                                                       env->GetStaticFieldID(swizzleEnumClass, "USE_BLUE",
-                                                                            "Ldev/silenium/multimedia/render/Swizzle;"));
+                                                                            "Ldev/silenium/compose/av/render/Swizzle;"));
         const auto aValue = env->GetStaticObjectField(swizzleEnumClass,
                                                       env->GetStaticFieldID(swizzleEnumClass, "USE_ALPHA",
-                                                                            "Ldev/silenium/multimedia/render/Swizzle;"));
+                                                                            "Ldev/silenium/compose/av/render/Swizzle;"));
 
         const auto resolveSwizzle = [&](const Swizzle &channel) -> jobject {
             switch (channel) {

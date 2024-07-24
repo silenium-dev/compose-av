@@ -1,7 +1,7 @@
 package dev.silenium.compose.av.data
 
-import dev.silenium.multimedia.demux.Stream
-import dev.silenium.multimedia.util.NativeLoader
+import dev.silenium.compose.av.demux.Stream
+import dev.silenium.compose.av.util.NativeLoader
 import java.nio.ByteBuffer
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
