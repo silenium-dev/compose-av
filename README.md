@@ -1,6 +1,7 @@
 # compose-av
 
 A kotlin library for av processing
+**Disclaimer**: This library is in very early stage of development, so it might not work as expected.
 
 ## Features
 
@@ -21,6 +22,22 @@ A kotlin library for av processing
 
 - [ ] Compose video player (🚧)
 - [ ] Compose audio player
+
+## Platforms
+
+- [ ] Linux VAAPI (🚧)
+- [ ] Linux V4L2 M2M
+- [ ] Linux AMF
+- [ ] Linux NVDEC/NVENC
+- [ ] Linux QSV
+- [ ] Windows DXVA2
+- [ ] Windows D3D11
+- [ ] Windows QSV
+- [ ] Windows NVDEC/NVENC
+- [ ] Windows AMF
+- [ ] Android MediaCodec
+
+*Note: macOS support won't be implemented, because of lack of development hardware.*
 
 ## Usage
 
