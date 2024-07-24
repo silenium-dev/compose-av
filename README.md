@@ -37,7 +37,7 @@ A kotlin library for av processing
 - [ ] Windows AMF
 - [ ] Android MediaCodec
 
-*Note: macOS support won't be implemented, because of lack of development hardware.*
+*Note: macOS/iOS support won't be implemented because of lack of development hardware.*
 
 ## Usage
 
