@@ -4,6 +4,7 @@ package dev.silenium.compose.av.data
  * Color Transfer Characteristic.
  * These values match the ones defined by ISO/IEC 23091-2_2019 subclause 8.2.
  */
+@Suppress("unused")
 enum class AVColorTransferCharacteristic(override val id: Int) : FFmpegEnum {
     AVCOL_TRC_RESERVED0(0),
 

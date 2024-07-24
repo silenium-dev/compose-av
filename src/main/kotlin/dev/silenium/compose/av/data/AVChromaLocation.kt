@@ -15,7 +15,8 @@ package dev.silenium.compose.av.data
  *                |             |1 2           1-6 are possible chroma positions
  *2nd luma line > |X   X ...    |5 6 X ...     0 is undefined/unknown position
  */
-enum class AVChromaLocation(override val id: Int) : dev.silenium.compose.av.data.FFmpegEnum {
+@Suppress("unused")
+enum class AVChromaLocation(override val id: Int) : FFmpegEnum {
     AVCHROMA_LOC_UNSPECIFIED(0),
 
     /**

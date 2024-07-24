@@ -5,6 +5,7 @@ package dev.silenium.compose.av.data
  * Chromaticity coordinates of the source primaries.
  * These values match the ones defined by ISO/IEC 23091-2_2019 subclause 8.1 and ITU-T H.273.
  */
+@Suppress("unused")
 enum class AVColorPrimaries(override val id: Int) : FFmpegEnum {
     AVCOL_PRI_RESERVED0(0),
 

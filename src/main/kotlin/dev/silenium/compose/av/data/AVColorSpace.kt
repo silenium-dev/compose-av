@@ -4,6 +4,7 @@ package dev.silenium.compose.av.data
  * YUV colorspace type.
  * These values match the ones defined by ISO/IEC 23091-2_2019 subclause 8.3.
  */
+@Suppress("unused")
 enum class AVColorSpace(override val id: Int) : FFmpegEnum {
     /**
      * order of coefficients is actually GBR, also IEC 61966-2-1 (sRGB), YZX and ST 428-1

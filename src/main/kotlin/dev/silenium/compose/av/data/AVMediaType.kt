@@ -1,5 +1,6 @@
 package dev.silenium.compose.av.data
 
+@Suppress("unused")
 enum class AVMediaType(override val id: Int) : FFmpegEnum {
     /**
      * Usually treated as AVMEDIA_TYPE_DATA
@@ -19,4 +20,4 @@ enum class AVMediaType(override val id: Int) : FFmpegEnum {
      */
     AVMEDIA_TYPE_ATTACHMENT(4),
     AVMEDIA_TYPE_NB(5);
-};
+}

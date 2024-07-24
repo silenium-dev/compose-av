@@ -1,5 +1,6 @@
 package dev.silenium.compose.av.data
 
+@Suppress("unused")
 enum class AVPixelFormat(override val id: Int) : FFmpegEnum {
     AV_PIX_FMT_NONE(-1),
     AV_PIX_FMT_YUV420P(0),

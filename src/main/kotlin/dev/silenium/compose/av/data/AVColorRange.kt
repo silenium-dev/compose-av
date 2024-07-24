@@ -19,6 +19,7 @@ package dev.silenium.compose.av.data
  *   - For additional definitions such as rounding and clipping to valid n
  *     bit unsigned integer range, please refer to BT.2100 (Table 9).
  */
+@Suppress("unused")
 enum class AVColorRange(override val id: Int) : FFmpegEnum {
     AVCOL_RANGE_UNSPECIFIED(0),
 

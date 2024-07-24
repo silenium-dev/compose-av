@@ -2,6 +2,7 @@ package dev.silenium.compose.av.data
 
 import dev.silenium.compose.av.util.NativeLoader
 
+@Suppress("unused")
 enum class AVCodecID : FFmpegEnum {
     AV_CODEC_ID_NONE,
 
