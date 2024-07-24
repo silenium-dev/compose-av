@@ -16,9 +16,6 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
-kotlin {
-    jvmToolchain(21)
-}
 
 val templateSrc = layout.projectDirectory.dir("src/main/templates")
 val templateDst = layout.buildDirectory.dir("generated/templates")
