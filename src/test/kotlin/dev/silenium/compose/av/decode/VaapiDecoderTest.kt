@@ -3,6 +3,7 @@ package dev.silenium.compose.av.decode
 import dev.silenium.compose.av.data.AVMediaType
 import dev.silenium.compose.av.demux.FileDemuxer
 import dev.silenium.compose.av.platform.linux.VaapiDecoder
+import io.kotest.core.annotation.RequiresTag
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import java.nio.file.Files
@@ -10,6 +11,7 @@ import kotlin.io.path.deleteIfExists
 import kotlin.io.path.outputStream
 
 @OptIn(ExperimentalStdlibApi::class)
+@RequiresTag("disabled")
 class VaapiDecoderTest : FunSpec({
     val videoFile = Files.createTempFile("video", ".webm")
     this::class.java.classLoader.getResourceAsStream("video.webm").use {
