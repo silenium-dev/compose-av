@@ -1,3 +1,5 @@
+package dev.silenium.compose.av
+
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
