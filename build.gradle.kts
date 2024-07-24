@@ -26,8 +26,11 @@ dependencies {
     // (in a separate module for demo project and in testMain).
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
-    natives(project(":native", configuration = "main"))
+    implementation(project(":native", configuration = "main"))
     implementation(libs.compose.gl)
+    implementation(libs.ffmpeg.natives) {
+        isChanging = true
+    }
     implementation(libs.bundles.kotlinx)
     implementation(libs.bundles.logging)
     implementation(kotlin("reflect"))
@@ -71,13 +74,6 @@ tasks {
         inputs.dir(templateSrc)
         inputs.properties(templateProps)
         outputs.dir(templateDst)
-    }
-
-    processResources {
-        dependsOn(":native:build")
-        from(natives) {
-            into("natives")
-        }
     }
 
     compileKotlin {
