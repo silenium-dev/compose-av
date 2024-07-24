@@ -11,11 +11,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import dev.silenium.compose.av.data.AVMediaType
 import dev.silenium.compose.av.data.AVPixelFormat.AV_PIX_FMT_P010BE
 import dev.silenium.compose.av.data.AVPixelFormat.AV_PIX_FMT_P010LE
 import dev.silenium.compose.av.data.Frame
 import dev.silenium.compose.av.demux.FileDemuxer
-import dev.silenium.compose.av.demux.Stream
 import dev.silenium.compose.av.platform.linux.VAGLRenderInterop
 import dev.silenium.compose.av.platform.linux.VaapiDecoder
 import dev.silenium.compose.av.render.GLInteropImage
@@ -33,7 +33,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class VideoPlayer(path: Path) : AutoCloseable {
     val demuxer = FileDemuxer(path)
-    private val decoder = VaapiDecoder(demuxer.streams.first { it.type == Stream.Type.VIDEO }, "/dev/dri/renderD128")
+    private val decoder =
+        VaapiDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }, "/dev/dri/renderD128")
     private val frames = Channel<Frame>(4, onBufferOverflow = BufferOverflow.SUSPEND)
 
     init {

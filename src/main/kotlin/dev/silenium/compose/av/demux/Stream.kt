@@ -2,26 +2,16 @@ package dev.silenium.compose.av.demux
 
 import dev.silenium.compose.av.data.*
 
-data class Stream(val index: Int, val type: Type, override val nativePointer: NativePointer) : NativeCleanable {
+data class Stream(val index: Int, val type: AVMediaType, override val nativePointer: NativePointer) : NativeCleanable {
     constructor(pointer: Long) : this(
         pointer.asNativePointer { /* no cleanup, AVStream is owned by AVFormatContext */ },
     )
 
     constructor(nativePointer: NativePointer) : this(
         indexN(nativePointer.address),
-        typeN(nativePointer.address),
+        typeN(nativePointer.address).let(::fromId),
         nativePointer,
     )
-
-    enum class Type {
-        AUDIO,
-        VIDEO,
-        SUBTITLE,
-        ATTACHMENT,
-        DATA,
-        NB,
-        UNKNOWN;
-    }
 
     val codec: AVCodecID by lazy { codecIdN(nativePointer.address).let(::fromId) }
     val timeBase: Rational by lazy { timeBaseN(nativePointer.address) }
@@ -31,7 +21,7 @@ data class Stream(val index: Int, val type: Type, override val nativePointer: Na
 }
 
 private external fun indexN(pointer: Long): Int
-private external fun typeN(pointer: Long): Stream.Type
+private external fun typeN(pointer: Long): Int
 private external fun codecIdN(pointer: Long): Int
 private external fun timeBaseN(pointer: Long): Rational
 private external fun durationN(pointer: Long): Long

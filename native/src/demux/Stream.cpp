@@ -63,40 +63,13 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_demux_StreamKt_timeBaseN(
     return toJava(env, stream->time_base);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_demux_StreamKt_typeN(
+JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_demux_StreamKt_typeN(
     JNIEnv *env,
     jobject thiz,
     const jlong context
 ) {
     constexpr auto typeEnumName = "dev/silenium/compose/av/demux/Stream$Type";
     const auto stream = reinterpret_cast<AVStream *>(context);
-    const auto type = stream->codecpar->codec_type;
-    const auto typeEnum = env->FindClass(typeEnumName);
-    std::string name;
-    switch (type) {
-        case AVMEDIA_TYPE_UNKNOWN:
-            name = "UNKNOWN";
-            break;
-        case AVMEDIA_TYPE_VIDEO:
-            name = "VIDEO";
-            break;
-        case AVMEDIA_TYPE_AUDIO:
-            name = "AUDIO";
-            break;
-        case AVMEDIA_TYPE_DATA:
-            name = "DATA";
-            break;
-        case AVMEDIA_TYPE_SUBTITLE:
-            name = "SUBTITLE";
-            break;
-        case AVMEDIA_TYPE_ATTACHMENT:
-            name = "ATTACHMENT";
-            break;
-        case AVMEDIA_TYPE_NB:
-            name = "NB";
-            break;
-    }
-    const auto field = env->GetStaticFieldID(typeEnum, name.c_str(), (std::string("L") + typeEnumName + ";").c_str());
-    return env->GetStaticObjectField(typeEnum, field);
+    return stream->codecpar->codec_type;
 }
 }
