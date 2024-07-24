@@ -47,3 +47,7 @@ sourceSets.main {
         srcDir(templateDst)
     }
 }
+
+kotlin {
+    jvmToolchain(11)
+}
