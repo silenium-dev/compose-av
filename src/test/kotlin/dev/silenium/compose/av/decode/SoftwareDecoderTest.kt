@@ -10,7 +10,7 @@ import kotlin.io.path.outputStream
 
 class SoftwareDecoderTest : FunSpec({
     val videoFile = Files.createTempFile("video", ".webm")
-    this::class.java.classLoader.getResourceAsStream("video.webm").use {
+    this::class.java.classLoader.getResourceAsStream("1080p.webm").use {
         videoFile.outputStream().use(it::copyTo)
     }
     afterSpec {

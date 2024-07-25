@@ -17,7 +17,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class FileDemuxerTest : FunSpec({
     val videoFile = Files.createTempFile("video", ".webm")
-    this::class.java.classLoader.getResourceAsStream("video.webm").use {
+    this::class.java.classLoader.getResourceAsStream("1080p.webm").use {
         videoFile.outputStream().use(it::copyTo)
     }
     afterSpec {
@@ -32,7 +32,6 @@ class FileDemuxerTest : FunSpec({
         }
         demuxer.streams.map(Stream::type) shouldContainExactlyInAnyOrder listOf(
             AVMediaType.AVMEDIA_TYPE_VIDEO,
-            AVMediaType.AVMEDIA_TYPE_AUDIO
         )
         demuxer.isSeekable shouldBe true
         val packet = demuxer.nextPacket().shouldBeSuccess()
