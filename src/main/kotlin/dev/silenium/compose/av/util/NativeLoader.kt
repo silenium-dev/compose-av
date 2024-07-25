@@ -10,10 +10,6 @@ object NativeLoader {
     fun ensureLoaded() {
         if (!loaded) {
             Natives.load(OSUtils.libFileName())
-            Natives.load("linux-x86_64/libavutil.so")
-            Natives.load("linux-x86_64/libavcodec.so")
-            Natives.load("linux-x86_64/libavformat.so")
-            Natives.load("linux-x86_64/libswscale.so")
             loaded = true
         }
     }

@@ -12,11 +12,12 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/hwcontext_vaapi.h>
+}
 
 static std::map<AVPixelFormat, AVPixelFormat> nativeMapping{
-    {AV_PIX_FMT_YUV420P, AV_PIX_FMT_NV12},
-    {AV_PIX_FMT_YUV420P10BE, AV_PIX_FMT_P010BE},
-    {AV_PIX_FMT_YUV420P10LE, AV_PIX_FMT_P010LE},
+        {AV_PIX_FMT_YUV420P,     AV_PIX_FMT_NV12},
+        {AV_PIX_FMT_YUV420P10BE, AV_PIX_FMT_P010BE},
+        {AV_PIX_FMT_YUV420P10LE, AV_PIX_FMT_P010LE},
 };
 
 AVPixelFormat mapToNative(const AVPixelFormat format) {
@@ -36,11 +37,12 @@ AVPixelFormat getFormat(AVCodecContext *codec_context, const AVPixelFormat *fmts
     return AV_PIX_FMT_NONE;
 }
 
+extern "C" {
 JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDecoderKt_createDecoderN(
-    JNIEnv *env,
-    jobject thiz,
-    const jlong stream,
-    const jstring device
+        JNIEnv *env,
+        jobject thiz,
+        const jlong stream,
+        const jstring device
 ) {
     const auto avStream = reinterpret_cast<AVStream *>(stream);
 
@@ -48,11 +50,17 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDecod
     auto ret = av_hwdevice_ctx_create(&deviceRef,
                                       AV_HWDEVICE_TYPE_VAAPI, env->GetStringUTFChars(device, nullptr),
                                       nullptr, 0);
+//    std::cout << "Device: " << deviceRef << std::endl;
     if (ret < 0) {
+//        printf("Failed to create hw device context: %s\n", av_err2str(ret));
+        fflush(stdout);
         return avResultFailure(env, "create hw device context", ret);
     }
     auto framesRef = av_hwframe_ctx_alloc(deviceRef);
+//    std::cout << "Frames: " << framesRef << std::endl;
     if (!framesRef) {
+//        printf("Failed to allocate hw frame context\n");
+//        fflush(stdout);
         av_buffer_unref(&deviceRef);
         return avResultFailure(env, "allocate hw frame context", ret);
     }
@@ -64,13 +72,17 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDecod
     framesCtx->initial_pool_size = 20;
     ret = av_hwframe_ctx_init(framesRef);
     if (ret < 0) {
+//        printf("Failed to initialize hw frame context\n");
+//        fflush(stdout);
         av_buffer_unref(&framesRef);
         av_buffer_unref(&deviceRef);
         return avResultFailure(env, "initialize hw frame context", ret);
     }
 
     const auto codec = avcodec_find_decoder(avStream->codecpar->codec_id);
+//    std::cout << "Codec: " << codec << std::endl;
     auto avCodecContext = avcodec_alloc_context3(codec);
+//    std::cout << "Codec context: " << avCodecContext << std::endl;
     avcodec_parameters_to_context(avCodecContext, avStream->codecpar);
 
     avCodecContext->hw_device_ctx = deviceRef;
@@ -80,6 +92,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDecod
 
     ret = avcodec_open2(avCodecContext, codec, nullptr);
     if (ret < 0) {
+//        printf("Failed to open codec context\n");
+//        fflush(stdout);
         av_buffer_unref(&framesRef);
         av_buffer_unref(&deviceRef);
         avcodec_free_context(&avCodecContext);
@@ -89,7 +103,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDecod
 }
 
 JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDecoderKt_getVADisplayN(
-    JNIEnv *env, jobject thiz, const jlong codecContext) {
+        JNIEnv *env, jobject thiz, const jlong codecContext) {
     const auto avCodecContext = reinterpret_cast<AVCodecContext *>(codecContext);
     const auto deviceCtx = reinterpret_cast<AVHWFramesContext *>(avCodecContext->hw_frames_ctx->data)->device_ctx;
     const auto vaContext = static_cast<AVVAAPIDeviceContext *>(deviceCtx->hwctx);
