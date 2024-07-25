@@ -14,9 +14,3 @@ runs:
       run: |
         sudo apt-get update -y
         sudo apt-get install -y libva-dev libdrm-dev libegl-dev libgl-dev libgles-dev
-        curl -L -o ffmpeg.zip https://reposilite.silenium.dev/releases/dev/silenium/libs/ffmpeg-natives-${{ inputs.ffmpeg-platform }}/${{ inputs.ffmpeg-version }}/ffmpeg-natives-${{ inputs.ffmpeg-platform }}-${{ inputs.ffmpeg-version }}.zip
-        sudo unzip ffmpeg.zip -d /usr/local
-        rm ffmpeg.zip
-        sudo bash -c "echo '/usr/local/lib' >> /etc/ld.so.conf.d/ffmpeg.conf"
-        echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig" >> $GITHUB_ENV
-        find /usr/local/lib/pkgconfig -type f -exec sudo sed -i 's|\.\.|/usr/local/|g' {} \;
