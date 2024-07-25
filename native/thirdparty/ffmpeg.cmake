@@ -10,11 +10,15 @@ file(ARCHIVE_EXTRACT INPUT "${CMAKE_BINARY_DIR}/ffmpeg.zip" DESTINATION "${FFMPE
 set(FFMPEG_INCLUDE_DIR "${FFMPEG_PREFIX}/include")
 set(FFMPEG_LIB_DIR "${FFMPEG_PREFIX}/lib")
 set(FFMPEG_LIBRARIES
-        "${FFMPEG_LIB_DIR}/libavcodec.so"
-        "${FFMPEG_LIB_DIR}/libavdevice.so"
-        "${FFMPEG_LIB_DIR}/libavfilter.so"
-        "${FFMPEG_LIB_DIR}/libavformat.so"
-        "${FFMPEG_LIB_DIR}/libavutil.so"
-        "${FFMPEG_LIB_DIR}/libswresample.so"
-        "${FFMPEG_LIB_DIR}/libswscale.so"
+        "${FFMPEG_LIB_DIR}/libavcodec.a"
+        "${FFMPEG_LIB_DIR}/libavdevice.a"
+        "${FFMPEG_LIB_DIR}/libavfilter.a"
+        "${FFMPEG_LIB_DIR}/libavformat.a"
+        "${FFMPEG_LIB_DIR}/libavutil.a"
+        "${FFMPEG_LIB_DIR}/libswresample.a"
+        "${FFMPEG_LIB_DIR}/libswscale.a"
 )
+add_library(ffmpeg STATIC IMPORTED)
+set_target_properties(ffmpeg PROPERTIES IMPORTED_LOCATION ${FFMPEG_LIBRARIES})
+target_include_directories(ffmpeg INTERFACE "${FFMPEG_INCLUDE_DIR}")
+target_link_options(ffmpeg INTERFACE "-Wl,-Bsymbolic")
