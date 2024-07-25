@@ -40,11 +40,8 @@ set(SOURCES
         src/helper/rationals.hpp
         src/render/GLInteropImage.cpp
         src/render/GLInteropImage.hpp
-        src/render/SoftwareGLRenderInterop.cpp
         src/render/Swizzles.hpp
         src/util/Errors.cpp
-        src/render/SoftwareGLInteropImage.cpp
-        src/render/SoftwareGLInteropImage.hpp
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
