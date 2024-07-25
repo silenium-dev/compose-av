@@ -12,7 +12,6 @@
 #include <EGL/eglext.h>
 #include <va/va.h>
 #include <va/va_drmcommon.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <drm_fourcc.h>
 #include <algorithm>
@@ -25,11 +24,6 @@ extern "C" {
 #include <libavutil/hwcontext.h>
 #include <libavutil/hwcontext_vaapi.h>
 #include <libavutil/frame.h>
-
-void checkVAError(const int ret, const std::string &operation = "libva call") {
-    if (ret != VA_STATUS_SUCCESS) {
-        throw std::runtime_error{vaErrorStr(ret)};
-    }
 }
 
 void closeDrm(const VADRMPRIMESurfaceDescriptor &drm) {
@@ -38,9 +32,10 @@ void closeDrm(const VADRMPRIMESurfaceDescriptor &drm) {
     }
 }
 
+extern "C" {
 JNIEXPORT jlong JNICALL
 Java_dev_silenium_compose_av_platform_linux_VAGLRenderInteropKt_getVADisplayN(
-    JNIEnv *env, jobject thiz, const jlong frame) {
+        JNIEnv *env, jobject thiz, const jlong frame) {
     const auto avFrame = reinterpret_cast<AVFrame *>(frame);
     const auto deviceCtx = reinterpret_cast<AVHWFramesContext *>(avFrame->hw_frames_ctx->data)->device_ctx;
     const auto vaContext = static_cast<AVVAAPIDeviceContext *>(deviceCtx->hwctx);
@@ -48,14 +43,14 @@ Java_dev_silenium_compose_av_platform_linux_VAGLRenderInteropKt_getVADisplayN(
 }
 
 std::map<AVPixelFormat, std::map<int, std::pair<int, int> > > planeFractions{
-    {AV_PIX_FMT_NV12, {{0, {1, 1}}, {1, {2, 2}}}},
-    {AV_PIX_FMT_P010LE, {{0, {1, 1}}, {1, {2, 2}}}},
-    {AV_PIX_FMT_P010BE, {{0, {1, 1}}, {1, {2, 2}}}},
-    {AV_PIX_FMT_YUV420P, {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
-    {AV_PIX_FMT_YUV420P10LE, {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
-    {AV_PIX_FMT_YUV420P10BE, {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
-    {AV_PIX_FMT_YUV422P, {{0, {1, 1}}, {1, {2, 1}}, {2, {2, 1}}}},
-    {AV_PIX_FMT_YUV444P, {{0, {1, 1}}, {1, {1, 1}}, {2, {1, 1}}}},
+        {AV_PIX_FMT_NV12,        {{0, {1, 1}}, {1, {2, 2}}}},
+        {AV_PIX_FMT_P010LE,      {{0, {1, 1}}, {1, {2, 2}}}},
+        {AV_PIX_FMT_P010BE,      {{0, {1, 1}}, {1, {2, 2}}}},
+        {AV_PIX_FMT_YUV420P,     {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
+        {AV_PIX_FMT_YUV420P10LE, {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
+        {AV_PIX_FMT_YUV420P10BE, {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
+        {AV_PIX_FMT_YUV422P,     {{0, {1, 1}}, {1, {2, 1}}, {2, {2, 1}}}},
+        {AV_PIX_FMT_YUV444P,     {{0, {1, 1}}, {1, {1, 1}}, {2, {1, 1}}}},
 };
 
 JNIEXPORT jobject JNICALL
@@ -84,7 +79,7 @@ Java_dev_silenium_compose_av_platform_linux_VAGLRenderInteropKt_mapN(JNIEnv *env
     }
 
     const auto glEGLImageTargetTexture2DOES = getFunc<
-        PFNEGLIMAGETARGETTEXTURE2DOESPROC>("glEGLImageTargetTexture2DOES");
+            PFNEGLIMAGETARGETTEXTURE2DOESPROC>("glEGLImageTargetTexture2DOES");
     if (!glEGLImageTargetTexture2DOES) {
         std::cerr << "Failed to get glEGLImageTargetTexture2DOES" << std::endl;
         return eglResultFailure(env, "get glEGLImageTargetTexture2DOES", -1);
@@ -92,11 +87,11 @@ Java_dev_silenium_compose_av_platform_linux_VAGLRenderInteropKt_mapN(JNIEnv *env
 
     VADRMPRIMESurfaceDescriptor drm{};
     auto ret = vaExportSurfaceHandle(
-        vaDisplay,
-        vaSurface,
-        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
-        VA_EXPORT_SURFACE_READ_WRITE | VA_EXPORT_SURFACE_SEPARATE_LAYERS,
-        &drm);
+            vaDisplay,
+            vaSurface,
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
+            VA_EXPORT_SURFACE_READ_WRITE | VA_EXPORT_SURFACE_SEPARATE_LAYERS,
+            &drm);
     if (ret != VA_STATUS_SUCCESS) {
         std::cerr << "Failed to export surface handle: " << vaErrorStr(ret) << std::endl;
         return vaResultFailure(env, "vaExportSurfaceHandle", ret);
@@ -141,15 +136,15 @@ Java_dev_silenium_compose_av_platform_linux_VAGLRenderInteropKt_mapN(JNIEnv *env
         }
         //        std::cout << "layer[" << layer << "]: fraction: " << fraction.first << "/" << fraction.second << std::endl;
         const EGLint attribs[]{
-            EGL_WIDTH, static_cast<EGLint>(drm.width / fraction.first),
-            EGL_HEIGHT, static_cast<EGLint>(drm.height / fraction.second),
-            EGL_LINUX_DRM_FOURCC_EXT, static_cast<EGLint>(drm_format),
-            EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT, static_cast<EGLint>(drm_format_modifier >> 32),
-            EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT, static_cast<EGLint>(drm_format_modifier & 0xffffffff),
-            EGL_DMA_BUF_PLANE0_FD_EXT, fd,
-            EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint>(offset[0]),
-            EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint>(pitch[0]),
-            EGL_NONE
+                EGL_WIDTH, static_cast<EGLint>(drm.width / fraction.first),
+                EGL_HEIGHT, static_cast<EGLint>(drm.height / fraction.second),
+                EGL_LINUX_DRM_FOURCC_EXT, static_cast<EGLint>(drm_format),
+                EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT, static_cast<EGLint>(drm_format_modifier >> 32),
+                EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT, static_cast<EGLint>(drm_format_modifier & 0xffffffff),
+                EGL_DMA_BUF_PLANE0_FD_EXT, fd,
+                EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint>(offset[0]),
+                EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint>(pitch[0]),
+                EGL_NONE
         };
 
         EGLImageKHR eglImage = eglCreateImageKHR(eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr, attribs);

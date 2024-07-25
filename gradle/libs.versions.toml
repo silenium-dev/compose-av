@@ -30,7 +30,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 compose-gl = { group = "dev.silenium.compose", name = "compose-gl", version.ref = "compose-gl" }
-ffmpeg-natives = { group = "dev.silenium.libs", name = "ffmpeg-natives-linux-x86_64", version = "0.0.0-SNAPSHOT" }
+ffmpeg-natives = { group = "dev.silenium.libs", name = "ffmpeg-natives-linux-x86_64", version = "7.0+0.1.3" }
 
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }

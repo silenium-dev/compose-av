@@ -3,7 +3,6 @@
 //
 
 #include "errors.hpp"
-#include <iostream>
 
 extern "C" {
 #include <libavutil/error.h>
@@ -43,7 +42,7 @@ jobject avResultFailure(JNIEnv *env, const char *operation, const int returnCode
     return errorResult;
 }
 
-jobject eglResultFailure(JNIEnv *env, const char *operation, const int returnCode) {
+jobject eglResultFailure(JNIEnv *env, const char *operation, const long returnCode) {
     const auto resultClass = env->FindClass("kotlin/Result$Failure");
     const auto errorClass = env->FindClass("dev/silenium/compose/av/util/EGLException");
     const auto errorConstructor = env->GetMethodID(errorClass, "<init>", "(Ljava/lang/String;I)V");

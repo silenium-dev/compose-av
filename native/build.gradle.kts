@@ -20,6 +20,7 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
         "-DJAVA_HOME=${System.getProperty("java.home")}",
         "-DPROJECT_NAME=${rootProject.name}",
         "-DFFMPEG_PLATFORM=linux-x86_64", // TODO: Detect platform
+        "-DFFMPEG_VERSION=${libs.ffmpeg.natives.get().version}"
     )
     if (OSUtils.isWindows()) {
         additionalFlags += "-DFFMPEG_PREFIX=\"${findProperty("ffmpeg.prefix") ?: error("ffmpeg.prefix is not set")}\""

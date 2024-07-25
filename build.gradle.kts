@@ -28,9 +28,7 @@ dependencies {
     implementation(compose.desktop.currentOs)
     implementation(project(":native", configuration = "main"))
     implementation(libs.compose.gl)
-    implementation(libs.ffmpeg.natives) {
-        isChanging = true
-    }
+    implementation(libs.ffmpeg.natives)
     implementation(libs.bundles.kotlinx)
     implementation(libs.bundles.logging)
     implementation(kotlin("reflect"))
