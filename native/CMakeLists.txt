@@ -36,7 +36,6 @@ set(SOURCES
         src/demux/Stream.cpp
         src/helper/errors.cpp
         src/helper/errors.hpp
-        src/helper/formats.hpp
         src/helper/rationals.cpp
         src/helper/rationals.hpp
         src/render/GLInteropImage.cpp
