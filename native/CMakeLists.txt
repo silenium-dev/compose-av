@@ -18,7 +18,7 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(USE_SYSTEM_FFMPEG OFF)
+option(USE_SYSTEM_FFMPEG "Link dynamically against system ffmpeg instead of using static prebuilt libraries" OFF)
 
 include(ExternalProject)
 if (NOT USE_SYSTEM_FFMPEG)
@@ -36,12 +36,16 @@ set(SOURCES
         src/demux/Stream.cpp
         src/helper/errors.cpp
         src/helper/errors.hpp
+        src/helper/formats.hpp
         src/helper/rationals.cpp
         src/helper/rationals.hpp
         src/render/GLInteropImage.cpp
         src/render/GLInteropImage.hpp
+        src/render/SoftwareGLRenderInterop.cpp
         src/render/Swizzles.hpp
         src/util/Errors.cpp
+        src/render/SoftwareGLInteropImage.cpp
+        src/render/SoftwareGLInteropImage.hpp
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -75,8 +79,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE "src")
 message(STATUS "JAVA_HOME: ${JAVA_HOME}")
 target_include_directories(${PROJECT_NAME} PUBLIC "${JAVA_HOME}/include")
 if (NOT USE_SYSTEM_FFMPEG)
-    target_link_libraries(${PROJECT_NAME} PUBLIC ${FFMPEG_LIBRARIES})
-    target_include_directories(${PROJECT_NAME} PUBLIC ${FFMPEG_INCLUDE_DIR})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ffmpeg)
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
