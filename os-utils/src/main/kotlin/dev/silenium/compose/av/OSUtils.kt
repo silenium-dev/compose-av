@@ -1,5 +1,7 @@
 package dev.silenium.compose.av
 
+import org.apache.commons.lang3.ArchUtils
+
 object OSUtils : OSUtilsImpl(System.getProperty("os.name"), System.getProperty("os.arch"))
 
 open class OSUtilsImpl(os: String, arch: String) {
@@ -9,22 +11,20 @@ open class OSUtilsImpl(os: String, arch: String) {
     fun isWindows(): Boolean = os.contains("win")
     fun isLinux(): Boolean = os.contains("nix") || os.contains("nux")
 
-    fun libIdentifier(): String { // TODO: Improve
+    fun osArchIdentifier(): String { // TODO: Improve
         val name = when {
             os.contains("win") -> "windows"
             os.contains("nix") || os.contains("nux") -> "linux"
             else -> throw UnsupportedOperationException("Unsupported OS: $os")
         }
-        val bits = if (arch.contains("64")) "64" else "32"
+        val cpu = ArchUtils.getProcessor(arch)
         val cpuArch = when {
-            arch.contains("arm") -> "arm${bits}"
-            arch.contains("x86") || arch.contains("amd") -> when (bits) {
-                "64" -> "x64"
-                "32" -> "x86"
-                else -> throw UnsupportedOperationException("Unsupported bits: $bits")
-            }
+            cpu.isAarch64 -> "aarch64"
+            cpu.isX86 && cpu.is32Bit -> "x86"
+            cpu.isX86 && cpu.is64Bit -> "x86_64"
+            arch.contains("arm") -> arch // TODO: Adapt arm from ffmpeg-natives
 
-            else -> throw UnsupportedOperationException("Unsupported architecture: $arch")
+            else -> throw UnsupportedOperationException("Unsupported architecture: ${cpu.arch}")
         }
         return "${name}-${cpuArch}"
     }
@@ -35,6 +35,6 @@ open class OSUtilsImpl(os: String, arch: String) {
             isLinux() -> "lib%s.so"
             else -> throw UnsupportedOperationException("Unsupported OS: $os")
         }
-        return template.format("${BuildConstants.LibBaseName}-${libIdentifier()}")
+        return "${osArchIdentifier()}/${template.format(BuildConstants.LibBaseName)}"
     }
 }
