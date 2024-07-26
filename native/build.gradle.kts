@@ -19,7 +19,7 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     val additionalFlags = mutableListOf(
         "-DJAVA_HOME=${System.getProperty("java.home")}",
         "-DPROJECT_NAME=${rootProject.name}",
-        "-DFFMPEG_PLATFORM=linux-x86_64", // TODO: Detect platform
+        "-DFFMPEG_PLATFORM=${libs.ffmpeg.natives.get().name.removePrefix("ffmpeg-natives-")}", // TODO: Detect platform
         "-DFFMPEG_VERSION=${libs.ffmpeg.natives.get().version}"
     )
     if (OSUtils.isWindows()) {
