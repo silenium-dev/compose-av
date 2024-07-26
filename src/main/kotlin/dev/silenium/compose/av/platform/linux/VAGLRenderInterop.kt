@@ -8,9 +8,9 @@ import dev.silenium.compose.av.util.NativeLoader
 import org.lwjgl.egl.EGL15
 
 class VAGLRenderInterop(
-    private val decoder: VaapiDecoder,
+    override val decoder: VaapiDecoder,
     private val eglDisplay: Long = EGL15.eglGetCurrentDisplay(),
-) : GLRenderInterop {
+) : GLRenderInterop<VaapiDecoder> {
     init {
         NativeLoader.ensureLoaded()
     }

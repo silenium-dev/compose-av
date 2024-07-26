@@ -4,10 +4,16 @@ import dev.silenium.compose.av.data.Frame
 import dev.silenium.compose.av.data.NativeCleanable
 import dev.silenium.compose.av.data.Packet
 import dev.silenium.compose.av.demux.Stream
+import dev.silenium.compose.av.render.GLRenderInterop
 import dev.silenium.compose.av.util.asFrameResult
 import dev.silenium.compose.av.util.asUnitResult
 
-abstract class Decoder(val stream: Stream) : NativeCleanable {
+abstract class Decoder<T : Decoder<T>>(val stream: Stream) : NativeCleanable {
+    /**
+     * Must be called with an OpenGL context bound.
+     */
+    abstract fun createGLRenderInterop(): GLRenderInterop<T>
+
     open fun releaseDecoder(pointer: Long) = releaseDecoderN(pointer)
 
     open fun submit(packet: Packet): Result<Unit> {

@@ -4,6 +4,7 @@ import org.apache.commons.lang3.ArchUtils
 
 object OSUtils : OSUtilsImpl(System.getProperty("os.name"), System.getProperty("os.arch"))
 
+// TODO: Move all natives building and loading into natives module to avoid gradle subproject and included build mess
 open class OSUtilsImpl(os: String, arch: String) {
     private val os = os.lowercase()
     private val arch = arch.lowercase()

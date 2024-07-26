@@ -12,11 +12,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.silenium.compose.av.data.AVMediaType
-import dev.silenium.compose.av.data.AVPixelFormat.AV_PIX_FMT_P010BE
-import dev.silenium.compose.av.data.AVPixelFormat.AV_PIX_FMT_P010LE
+import dev.silenium.compose.av.data.AVPixelFormat.*
 import dev.silenium.compose.av.data.Frame
 import dev.silenium.compose.av.demux.FileDemuxer
-import dev.silenium.compose.av.platform.linux.VAGLRenderInterop
 import dev.silenium.compose.av.platform.linux.VaapiDecoder
 import dev.silenium.compose.av.render.GLInteropImage
 import dev.silenium.compose.av.render.GLRenderInterop
@@ -35,13 +33,15 @@ class VideoPlayer(path: Path) : AutoCloseable {
     val demuxer = FileDemuxer(path)
     private val decoder =
         VaapiDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }, "/dev/dri/renderD128")
+
+    //    private val decoder = SoftwareDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO })
     private val frames = Channel<Frame>(4, onBufferOverflow = BufferOverflow.SUSPEND)
 
     init {
         println("Codec: ${decoder.stream.codec.description}")
     }
 
-    private lateinit var interop: GLRenderInterop
+    private lateinit var interop: GLRenderInterop<*>
     private var glInitialized = false
     private var shaderProgram: Int = 0
     private var vao: Int = 0
@@ -135,7 +135,7 @@ class VideoPlayer(path: Path) : AutoCloseable {
         if (glInitialized) return
         initShader()
         initBuffers()
-        interop = VAGLRenderInterop(decoder)
+        interop = decoder.createGLRenderInterop()
         glInitialized = true
     }
 
@@ -155,7 +155,13 @@ class VideoPlayer(path: Path) : AutoCloseable {
             }
 
         val hdrLocation = glGetUniformLocation(shaderProgram, "enableHDR")
-        if (image.frame.swFormat!! in setOf(AV_PIX_FMT_P010LE, AV_PIX_FMT_P010BE)) {
+        if ((image.frame.swFormat ?: image.frame.format) in setOf(
+                AV_PIX_FMT_P010LE,
+                AV_PIX_FMT_P010BE,
+                AV_PIX_FMT_YUV420P10LE,
+                AV_PIX_FMT_YUV420P10BE
+            )
+        ) {
             glUniform1i(hdrLocation, 1)
         } else {
             glUniform1i(hdrLocation, 0)
