@@ -177,21 +177,8 @@ Java_dev_silenium_compose_av_platform_linux_VAGLRenderInteropKt_mapN(JNIEnv *env
             closeDrm(drm);
             return eglResultFailure(env, "glEGLImageTargetTexture2DOES", error);
         }
-        Swizzles channels{};
-        switch (pixelFormat) {
-            case AV_PIX_FMT_P010LE:
-                switch (drm_format) {
-                    case DRM_FORMAT_GR1616:
-                        channels.r = Swizzle::USE_GREEN;
-                        channels.g = Swizzle::USE_RED;
-                        break;
-                    default:
-                        break;
-                }
-            default:
-                break;
-        }
 
+        Swizzles channels{};
         eglImages.emplace_back(eglImage);
         textures.emplace_back(texture);
         swizzles.emplace_back(channels);
