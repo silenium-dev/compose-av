@@ -17,7 +17,7 @@ fun App() {
     MaterialTheme {
         val file = remember {
             val videoFile = Files.createTempFile("video", ".webm")
-            FileDemuxer::class.java.classLoader.getResourceAsStream("video.webm").use {
+            FileDemuxer::class.java.classLoader.getResourceAsStream("1080p.webm").use {
                 videoFile.outputStream().use(it::copyTo)
             }
             videoFile.apply { toFile().deleteOnExit() }

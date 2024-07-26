@@ -45,7 +45,7 @@ void main(){
     }
 
     if (enableHDR > 0){
-        rgba.rgb = toHDR(rgba.rgb, 3.0);// TODO: properly respect HDR metadata
+        rgba.rgb = toHDR(rgba.rgb, 2.0);// TODO: properly respect HDR metadata
     }
 
     rgba.a = 1.0;
