@@ -10,15 +10,61 @@ file(ARCHIVE_EXTRACT INPUT "${CMAKE_BINARY_DIR}/ffmpeg.zip" DESTINATION "${FFMPE
 set(FFMPEG_INCLUDE_DIR "${FFMPEG_PREFIX}/include")
 set(FFMPEG_LIB_DIR "${FFMPEG_PREFIX}/lib")
 set(FFMPEG_LIBRARIES
-        "${FFMPEG_LIB_DIR}/libavcodec.a"
-        "${FFMPEG_LIB_DIR}/libavdevice.a"
-        "${FFMPEG_LIB_DIR}/libavfilter.a"
-        "${FFMPEG_LIB_DIR}/libavformat.a"
-        "${FFMPEG_LIB_DIR}/libavutil.a"
-        "${FFMPEG_LIB_DIR}/libswresample.a"
-        "${FFMPEG_LIB_DIR}/libswscale.a"
-)
+        aom
+        crypto
+        freetype
+        mp3lame
+        opencore-amrnb
+        opencore-amrwb
+        openh264
+        opus
+        sharpyuv
+        speex
+        srt
+        ssl
+        SvtAv1Dec
+        SvtAv1Enc
+        vo-amrwbenc
+        vpx
+        webp
+        webpdemux
+        webpmux
+        x264
+        x265
+        xml2
+        z
+        zimg
+        avcodec
+        avdevice
+        avfilter
+        avformat
+        avutil
+        postproc
+        swresample
+        swscale)
 add_library(ffmpeg STATIC IMPORTED)
-set_target_properties(ffmpeg PROPERTIES IMPORTED_LOCATION ${FFMPEG_LIBRARIES})
+
+set(FFMPEG_MRI "${CMAKE_CURRENT_BINARY_DIR}/ffmpeg.mri")
+file(WRITE "${FFMPEG_MRI}" "CREATE libffmpeg.a\n")
+message(STATUS "Checking for ffmpeg libraries")
+foreach (FFMPEG_LIBRARY ${FFMPEG_LIBRARIES})
+    set(LIB_PATH "${FFMPEG_LIB_DIR}/lib${FFMPEG_LIBRARY}.a")
+    if (NOT EXISTS ${LIB_PATH})
+        message(STATUS "  ${FFMPEG_LIBRARY} not found")
+        continue()
+    endif ()
+    message(STATUS "  Found ${FFMPEG_LIBRARY}")
+    file(APPEND "${FFMPEG_MRI}" "ADDLIB ${LIB_PATH}\n")
+endforeach ()
+file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/ffmpeg.mri" "SAVE\nEND\n")
+
+add_custom_target(ffmpeg_custom
+        COMMAND ar -M < "${CMAKE_CURRENT_BINARY_DIR}/ffmpeg.mri"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/libffmpeg.a
+)
+add_dependencies(ffmpeg ffmpeg_custom)
+set_target_properties(ffmpeg PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/libffmpeg.a")
+
 target_include_directories(ffmpeg INTERFACE "${FFMPEG_INCLUDE_DIR}")
 target_link_options(ffmpeg INTERFACE "-Wl,-Bsymbolic")
