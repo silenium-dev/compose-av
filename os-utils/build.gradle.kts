@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
+    implementation(libs.commons.lang)
 }
 
 tasks.test {
@@ -20,7 +20,7 @@ tasks.test {
 val templateSrc = layout.projectDirectory.dir("src/main/templates")
 val templateDst = layout.buildDirectory.dir("generated/templates")
 val templateProps = mapOf(
-    "libBaseName" to rootProject.name,
+    "libBaseName" to "compose-av",
 )
 tasks {
     test {
