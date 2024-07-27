@@ -3,5 +3,3 @@ plugins {
 }
 rootProject.name = "compose-av"
 include(":native")
-include(":os-utils")
-includeBuild("os-utils-plugin")

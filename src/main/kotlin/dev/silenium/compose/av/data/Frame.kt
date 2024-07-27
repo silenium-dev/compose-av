@@ -1,7 +1,7 @@
 package dev.silenium.compose.av.data
 
 import dev.silenium.compose.av.demux.Stream
-import dev.silenium.compose.av.util.NativeLoader
+import dev.silenium.compose.av.util.Natives
 import java.nio.ByteBuffer
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -33,7 +33,7 @@ data class Frame(override val nativePointer: NativePointer, val stream: Stream) 
 
     companion object {
         init {
-            NativeLoader.ensureLoaded()
+            Natives.ensureLoaded()
         }
     }
 }

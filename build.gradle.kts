@@ -11,13 +11,6 @@ plugins {
     `maven-publish`
 }
 
-repositories {
-    maven("https://reposilite.silenium.dev/snapshots")
-    maven("https://reposilite.silenium.dev/releases")
-    mavenCentral()
-    google()
-}
-
 val natives: Configuration by configurations.creating
 
 dependencies {
@@ -26,13 +19,12 @@ dependencies {
     // (in a separate module for demo project and in testMain).
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
-    implementation(project(":native", configuration = "main"))
+    implementation(project(":native"))
     implementation(libs.compose.gl)
-    implementation(libs.ffmpeg.natives)
+    implementation(libs.jni.utils)
     implementation(libs.bundles.kotlinx)
     implementation(libs.bundles.logging)
     implementation(kotlin("reflect"))
-    implementation(project(":os-utils"))
 
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)
@@ -56,7 +48,9 @@ compose.desktop {
 
 val templateSrc = layout.projectDirectory.dir("src/main/templates")
 val templateDst = layout.buildDirectory.dir("generated/templates")
-val templateProps = mapOf<String, String>()
+val templateProps = mapOf(
+    "LIBRARY_NAME" to rootProject.name,
+)
 tasks {
     test {
         useJUnitPlatform()
@@ -96,6 +90,13 @@ allprojects {
 
     group = "dev.silenium.compose"
     version = findProperty("deploy.version") as String? ?: "0.0.0-SNAPSHOT"
+
+    repositories {
+        maven("https://reposilite.silenium.dev/snapshots")
+        maven("https://reposilite.silenium.dev/releases")
+        mavenCentral()
+        google()
+    }
 
     publishing {
         repositories {

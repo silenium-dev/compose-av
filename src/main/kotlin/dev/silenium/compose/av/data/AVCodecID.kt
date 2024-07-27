@@ -1,6 +1,6 @@
 package dev.silenium.compose.av.data
 
-import dev.silenium.compose.av.util.NativeLoader
+import dev.silenium.compose.av.util.Natives
 
 @Suppress("unused")
 enum class AVCodecID : FFmpegEnum {
@@ -580,7 +580,7 @@ enum class AVCodecID : FFmpegEnum {
 
     companion object {
         init {
-            NativeLoader.ensureLoaded()
+            Natives.ensureLoaded()
         }
     }
 }

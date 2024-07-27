@@ -12,6 +12,11 @@ if (NOT DEFINED FFMPEG_VERSION)
 else ()
     message(STATUS "FFMPEG_VERSION: ${FFMPEG_VERSION}")
 endif ()
+if (NOT DEFINED JAVA_HOME)
+    message(FATAL_ERROR "JAVA_HOME must be defined")
+else ()
+    message(STATUS "JAVA_HOME: ${JAVA_HOME}")
+endif ()
 
 project(${PROJECT_NAME} LANGUAGES CXX)
 
@@ -26,51 +31,45 @@ if (NOT USE_SYSTEM_FFMPEG)
 endif ()
 
 set(SOURCES
-        src/data/AVCodecID.cpp
-        src/data/AVPixelFormat.cpp
-        src/data/Frame.cpp
-        src/data/Packet.cpp
-        src/decode/Decoder.cpp
-        src/decode/SoftwareDecoder.cpp
-        src/demux/FileDemuxer.cpp
-        src/demux/Stream.cpp
-        src/helper/errors.cpp
-        src/helper/errors.hpp
-        src/helper/rationals.cpp
-        src/helper/rationals.hpp
-        src/render/GLInteropImage.cpp
-        src/render/GLInteropImage.hpp
-        src/render/Swizzles.hpp
-        src/util/Errors.cpp
+        src/cpp/data/AVCodecID.cpp
+        src/cpp/data/AVPixelFormat.cpp
+        src/cpp/data/Frame.cpp
+        src/cpp/data/Packet.cpp
+        src/cpp/decode/Decoder.cpp
+        src/cpp/decode/SoftwareDecoder.cpp
+        src/cpp/demux/FileDemuxer.cpp
+        src/cpp/demux/Stream.cpp
+        src/cpp/helper/errors.cpp
+        src/cpp/helper/errors.hpp
+        src/cpp/helper/rationals.cpp
+        src/cpp/helper/rationals.hpp
+        src/cpp/render/GLInteropImage.cpp
+        src/cpp/render/GLInteropImage.hpp
+        src/cpp/render/Swizzles.hpp
+        src/cpp/util/Errors.cpp
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     if (NOT DEFINED JAVA_HOME)
-        set(JAVA_HOME "/usr/lib/jvm/java-21-openjdk")
+        set(JAVA_HOME "/usr/lib/jvm/java-11-openjdk")
     endif ()
 
     list(APPEND SOURCES
-            src/platform/linux/helper/drm_mapping.cpp
-            src/platform/linux/helper/drm_mapping.hpp
-            src/platform/linux/helper/EGL.cpp
-            src/platform/linux/helper/EGL.hpp
-            src/platform/linux/Errors.cpp
-            src/platform/linux/VAGLInteropImage.cpp
-            src/platform/linux/VAGLInteropImage.hpp
-            src/platform/linux/VAGLRenderInterop.cpp
-            src/platform/linux/VaapiDecoder.cpp
+            src/cpp/platform/linux/helper/drm_mapping.cpp
+            src/cpp/platform/linux/helper/drm_mapping.hpp
+            src/cpp/platform/linux/helper/EGL.cpp
+            src/cpp/platform/linux/helper/EGL.hpp
+            src/cpp/platform/linux/Errors.cpp
+            src/cpp/platform/linux/VAGLInteropImage.cpp
+            src/cpp/platform/linux/VAGLInteropImage.hpp
+            src/cpp/platform/linux/VAGLRenderInterop.cpp
+            src/cpp/platform/linux/VaapiDecoder.cpp
     )
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    if (NOT DEFINED JAVA_HOME)
-        message(FATAL_ERROR "JAVA_HOME must be defined")
-    endif ()
-    if (NOT DEFINED FFMPEG_PREFIX)
-        message(FATAL_ERROR "FFMPEG_PREFIX must be defined")
-    endif ()
 endif ()
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE "src")
+target_include_directories(${PROJECT_NAME} PRIVATE "src/cpp/")
 
 message(STATUS "JAVA_HOME: ${JAVA_HOME}")
 target_include_directories(${PROJECT_NAME} PUBLIC "${JAVA_HOME}/include")

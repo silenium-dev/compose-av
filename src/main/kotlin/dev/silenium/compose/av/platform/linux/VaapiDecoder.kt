@@ -4,7 +4,7 @@ import dev.silenium.compose.av.data.NativePointer
 import dev.silenium.compose.av.data.asNativePointer
 import dev.silenium.compose.av.decode.Decoder
 import dev.silenium.compose.av.demux.Stream
-import dev.silenium.compose.av.util.NativeLoader
+import dev.silenium.compose.av.util.Natives
 
 class VaapiDecoder(stream: Stream, vaDevice: String) : Decoder<VaapiDecoder>(stream) {
     override val nativePointer: NativePointer =
@@ -17,7 +17,7 @@ class VaapiDecoder(stream: Stream, vaDevice: String) : Decoder<VaapiDecoder>(str
 
     companion object {
         init {
-            NativeLoader.ensureLoaded()
+            Natives.ensureLoaded()
         }
     }
 }

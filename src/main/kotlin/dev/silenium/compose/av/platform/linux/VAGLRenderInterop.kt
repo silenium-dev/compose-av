@@ -4,7 +4,7 @@ import dev.silenium.compose.av.data.AVPixelFormat
 import dev.silenium.compose.av.data.Frame
 import dev.silenium.compose.av.render.GLInteropImage
 import dev.silenium.compose.av.render.GLRenderInterop
-import dev.silenium.compose.av.util.NativeLoader
+import dev.silenium.compose.av.util.Natives
 import org.lwjgl.egl.EGL15
 
 class VAGLRenderInterop(
@@ -12,7 +12,7 @@ class VAGLRenderInterop(
     private val eglDisplay: Long = EGL15.eglGetCurrentDisplay(),
 ) : GLRenderInterop<VaapiDecoder> {
     init {
-        NativeLoader.ensureLoaded()
+        Natives.ensureLoaded()
     }
 
     override fun map(frame: Frame): Result<GLInteropImage> = runCatching {

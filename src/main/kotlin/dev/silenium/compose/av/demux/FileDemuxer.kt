@@ -3,7 +3,7 @@ package dev.silenium.compose.av.demux
 import dev.silenium.compose.av.data.NativeCleanable
 import dev.silenium.compose.av.data.Packet
 import dev.silenium.compose.av.data.asNativePointer
-import dev.silenium.compose.av.util.NativeLoader
+import dev.silenium.compose.av.util.Natives
 import dev.silenium.compose.av.util.asAVErrorString
 import java.io.IOException
 import java.net.URL
@@ -48,7 +48,7 @@ class FileDemuxer(url: URL) : Demuxer, NativeCleanable {
 
     companion object {
         init {
-            NativeLoader.ensureLoaded()
+            Natives.ensureLoaded()
         }
     }
 }

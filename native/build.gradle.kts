@@ -1,24 +1,33 @@
-import dev.silenium.compose.av.BuildConstants
-import dev.silenium.compose.av.OSUtils
-import dev.silenium.compose.av.OSUtilsImpl
-import org.gradle.internal.extensions.stdlib.capitalized
+import dev.silenium.libs.jni.NativeLoader
+import dev.silenium.libs.jni.NativePlatform
+import dev.silenium.libs.jni.Platform
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.incremental.createDirectory
 
+buildscript {
+    repositories {
+        maven("https://reposilite.silenium.dev/releases") {
+            name = "silenium-releases"
+        }
+    }
+    dependencies {
+        classpath(libs.jni.utils)
+    }
+}
+
 plugins {
-    id("dev.silenium.compose.av.os-utils")
+    alias(libs.plugins.kotlin)
     `maven-publish`
-    base
 }
 
-configurations.create("main")
+val libName = rootProject.name
+val deployNative = (findProperty("deploy.native") as String?)?.toBoolean() ?: true
 
-val platform = OSUtils.osArchIdentifier()
-val libName = BuildConstants.LibBaseName
-val useFfmpegGpl = findProperty("ffmpeg.gpl")?.toString()?.toBoolean() ?: true
-val platformExtension = when {
-    useFfmpegGpl -> "-gpl"
-    else -> ""
-}
+val withGPL: Boolean = findProperty("ffmpeg.gpl").toString().toBoolean()
+val platformExtension = "-gpl".takeIf { withGPL }.orEmpty()
+val platformString = findProperty("ffmpeg.platform")?.toString()
+val platform = platformString?.let { Platform(it, platformExtension) } ?: NativePlatform.platform(platformExtension)
 
 val cmakeExe = findProperty("cmake.executable") as? String ?: "cmake"
 val generateMakefile = tasks.register<Exec>("generateMakefile") {
@@ -26,14 +35,10 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     val additionalFlags = mutableListOf(
         "-DJAVA_HOME=${System.getProperty("java.home")}",
         "-DPROJECT_NAME=${libName}",
-        "-DFFMPEG_PLATFORM=${platform}${platformExtension}", // TODO: Detect platform
+        "-DFFMPEG_PLATFORM=${platform}",
+        "-DFFMPEG_PLATFORM_EXTENSION=${platform.extension}",
         "-DFFMPEG_VERSION=${libs.ffmpeg.natives.get().version}"
     )
-    if (OSUtils.isWindows()) {
-        additionalFlags += "-DFFMPEG_PREFIX=\"${findProperty("ffmpeg.prefix") ?: error("ffmpeg.prefix is not set")}\""
-    } else if (OSUtils.isLinux()) {
-//        additionalFlags += "-GNinja"
-    }
     commandLine(
         cmakeExe,
         *additionalFlags.toTypedArray(),
@@ -51,53 +56,48 @@ val compileNative = tasks.register<Exec>("compileNative") {
     dependsOn(generateMakefile)
 
     standardOutput = System.out
-    if (OSUtils.isWindows()) {
-        inputs.files(layout.buildDirectory.files("cmake/*.sln"))
-        inputs.files(layout.buildDirectory.files("cmake/*.vcxproj"))
-        inputs.files(layout.buildDirectory.files("cmake/*.vcxproj.filters"))
-        outputs.files(layout.buildDirectory.file("cmake/Debug/${libName}.dll"))
-    } else if (OSUtils.isLinux()) {
-        inputs.file(layout.buildDirectory.file("cmake/CMakeCache.txt"))
-        outputs.files(layout.buildDirectory.file("cmake/lib${libName}.so"))
+    val fileNameTemplate = NativeLoader.fileNameTemplate(platform)
+    when (platform.os) {
+        Platform.OS.WINDOWS -> {
+            outputs.files(layout.buildDirectory.file("cmake/Debug/${fileNameTemplate.format(libName)}"))
+        }
+
+        Platform.OS.LINUX, Platform.OS.DARWIN -> {
+            outputs.files(layout.buildDirectory.file("cmake/${fileNameTemplate.format(libName)}"))
+        }
     }
+    inputs.file(layout.buildDirectory.file("cmake/CMakeCache.txt"))
     inputs.dir(layout.projectDirectory.dir("src"))
     inputs.file(layout.projectDirectory.file("CMakeLists.txt"))
 }
 
-val jar = tasks.register<Jar>("jar") {
-    group = "build"
+tasks.processResources {
     dependsOn(compileNative)
     // Required for configuration cache
-    val osUtils = OSUtilsImpl(providers.systemProperty("os.name").get(), providers.systemProperty("os.arch").get())
+    val platform = platformString?.let { Platform(it, platformExtension) } ?: NativePlatform.platform(platformExtension)
 
     from(compileNative.get().outputs.files) {
-        into("natives")
         rename {
-            osUtils.libFileName()
+            NativeLoader.libPath(libName, platform = platform)
         }
     }
-    archiveBaseName.set("${libName}-natives-${platform}${platformExtension}")
 }
 
-tasks.build {
-    dependsOn(compileNative, jar)
-}
-
-artifacts {
-    add("main", jar) {
-        name = "${libName}-natives-${platform}${platformExtension}"
+kotlin {
+    jvmToolchain(8)
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_1_8
+        languageVersion = KotlinVersion.KOTLIN_1_7
     }
 }
 
 publishing {
     publications {
         create<MavenPublication>(
-            "natives${
-                (platform + platformExtension).split("-").joinToString("") { it.capitalized() }
-            }"
+            "natives${platform.capitalized}"
         ) {
-            artifact(jar)
-            artifactId = "${libName}-natives-${platform}${platformExtension}"
+            from(components["java"])
+            artifactId = "$libName-natives-$platform"
         }
     }
 }
