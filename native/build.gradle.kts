@@ -37,7 +37,7 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
         "-DPROJECT_NAME=${libName}",
         "-DFFMPEG_PLATFORM=${platform}",
         "-DFFMPEG_PLATFORM_EXTENSION=${platform.extension}",
-        "-DFFMPEG_VERSION=${libs.ffmpeg.natives.get().version}"
+        "-DFFMPEG_VERSION=${libs.ffmpeg.natives.get().version}",
     )
     commandLine(
         cmakeExe,
@@ -46,8 +46,16 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     )
 
     inputs.file(layout.projectDirectory.file("CMakeLists.txt"))
+    inputs.properties(
+        "JAVA_HOME" to System.getProperty("java.home"),
+        "PROJECT_NAME" to libName,
+        "FFMPEG_PLATFORM" to platform,
+        "FFMPEG_PLATFORM_EXTENSION" to platform.extension,
+        "FFMPEG_VERSION" to libs.ffmpeg.natives.get().version,
+    )
     outputs.dir(workingDir)
     standardOutput = System.out
+    outputs.cacheIf { true }
 }
 
 val compileNative = tasks.register<Exec>("compileNative") {
@@ -69,6 +77,7 @@ val compileNative = tasks.register<Exec>("compileNative") {
     inputs.file(layout.buildDirectory.file("cmake/CMakeCache.txt"))
     inputs.dir(layout.projectDirectory.dir("src"))
     inputs.file(layout.projectDirectory.file("CMakeLists.txt"))
+    outputs.cacheIf { true }
 }
 
 tasks.processResources {
