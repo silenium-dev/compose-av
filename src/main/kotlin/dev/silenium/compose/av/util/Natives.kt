@@ -10,9 +10,7 @@ object Natives {
     @Synchronized
     fun ensureLoaded() {
         if (!loaded) {
-            NativeLoader.loadLibraryFromClasspath(BuildConstants.LIBRARY_NAME).onFailure {
-                throw IllegalStateException("Failed to load native library: ${it.message}", it)
-            }
+            NativeLoader.loadLibraryFromClasspath(BuildConstants.LIBRARY_NAME).getOrThrow()
             loaded = true
         }
     }
