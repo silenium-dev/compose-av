@@ -11,7 +11,8 @@ plugins {
     `maven-publish`
 }
 
-val natives: Configuration by configurations.creating
+val deployNative = (findProperty("deploy.native") as String?)?.toBoolean() ?: true
+val deployKotlin = (findProperty("deploy.kotlin") as String?)?.toBoolean() ?: true
 
 dependencies {
     // Note, if you develop a library, you should use compose.desktop.common.
@@ -19,11 +20,13 @@ dependencies {
     // (in a separate module for demo project and in testMain).
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
-    implementation(project(":native"))
     implementation(libs.compose.gl)
     implementation(libs.jni.utils)
     implementation(libs.bundles.kotlinx)
     implementation(libs.bundles.logging)
+    if (deployNative) {
+        implementation(project(":native"))
+    }
     implementation(kotlin("reflect"))
 
     testImplementation(libs.bundles.kotest)

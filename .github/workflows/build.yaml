@@ -16,11 +16,12 @@ permissions:
   contents: write
 jobs:
   linux-x86_64:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: silenium-dev/ffmpeg-static/.github/actions/deploy-ubuntu@main
         with:
+          tests: true
           gradle-cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
       - uses: actions/upload-artifact@v4
         name: 'Upload reports'
@@ -30,11 +31,12 @@ jobs:
           path: ./build/reports
           retention-days: 5
   kotlin:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: silenium-dev/ffmpeg-static/.github/actions/deploy-kotlin@main
         with:
+          tests: false
           gradle-cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
   dependency-submission:
     runs-on: ubuntu-latest
