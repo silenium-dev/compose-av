@@ -35,7 +35,7 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     val additionalFlags = mutableListOf(
         "-DJAVA_HOME=${System.getProperty("java.home")}",
         "-DPROJECT_NAME=${libName}",
-        "-DFFMPEG_PLATFORM=${platform}",
+        "-DFFMPEG_PLATFORM=${platform.osArch}",
         "-DFFMPEG_PLATFORM_EXTENSION=${platform.extension}",
         "-DFFMPEG_VERSION=${libs.ffmpeg.natives.get().version}",
     )
@@ -49,7 +49,7 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     inputs.properties(
         "JAVA_HOME" to System.getProperty("java.home"),
         "PROJECT_NAME" to libName,
-        "FFMPEG_PLATFORM" to platform,
+        "FFMPEG_PLATFORM" to platform.osArch,
         "FFMPEG_PLATFORM_EXTENSION" to platform.extension,
         "FFMPEG_VERSION" to libs.ffmpeg.natives.get().version,
     )
@@ -82,6 +82,7 @@ val compileNative = tasks.register<Exec>("compileNative") {
 tasks.processResources {
     dependsOn(compileNative)
     // Required for configuration cache
+    val libName = rootProject.name
     val platformString = findProperty("ffmpeg.platform")?.toString()
     val withGPL: Boolean = findProperty("ffmpeg.gpl").toString().toBoolean()
     val platformExtension = "-gpl".takeIf { withGPL }.orEmpty()
