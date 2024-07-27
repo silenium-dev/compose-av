@@ -55,7 +55,6 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     )
     outputs.dir(workingDir)
     standardOutput = System.out
-    outputs.cacheIf { true }
 }
 
 val compileNative = tasks.register<Exec>("compileNative") {
