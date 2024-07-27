@@ -12,6 +12,8 @@ env:
   REPOSILITE_USERNAME: ${{ secrets.REPOSILITE_USERNAME }}
   REPOSILITE_PASSWORD: ${{ secrets.REPOSILITE_PASSWORD }}
   REPOSILITE_URL: ${{ github.event_name == 'release' && 'https://reposilite.silenium.dev/releases' || 'https://reposilite.silenium.dev/snapshots' }}
+  CI_DEPLOY_PLATFORM: ${{ github.job }}
+  CI_DEPLOY_MODULE: ffmpeg
 permissions:
   contents: write
 jobs:
