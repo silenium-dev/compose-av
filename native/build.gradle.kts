@@ -82,6 +82,9 @@ val compileNative = tasks.register<Exec>("compileNative") {
 tasks.processResources {
     dependsOn(compileNative)
     // Required for configuration cache
+    val platformString = findProperty("ffmpeg.platform")?.toString()
+    val withGPL: Boolean = findProperty("ffmpeg.gpl").toString().toBoolean()
+    val platformExtension = "-gpl".takeIf { withGPL }.orEmpty()
     val platform = platformString?.let { Platform(it, platformExtension) } ?: NativePlatform.platform(platformExtension)
 
     from(compileNative.get().outputs.files) {
