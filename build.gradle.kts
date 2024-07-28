@@ -21,16 +21,23 @@ dependencies {
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
     implementation(libs.compose.gl)
+    implementation(libs.compose.gl.natives)
     implementation(libs.jni.utils)
     implementation(libs.bundles.kotlinx)
-    implementation(libs.bundles.logging)
+    implementation(libs.slf4j.api)  // for logging
     if (deployNative) {
         implementation(project(":native"))
     }
     implementation(kotlin("reflect"))
+//    implementation(libs.bundles.skiko) {
+//        version {
+//            strictly(libs.skiko.awt.runtime.linux.x64.get().version!!)
+//        }
+//    }
 
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)
+    testImplementation(libs.logback.classic)
 }
 
 configurations.all {

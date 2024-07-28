@@ -25,7 +25,7 @@ import dev.silenium.compose.gl.surface.rememberGLSurfaceState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import org.lwjgl.opengles.GLES30.*
+import org.lwjgl.opengl.GL30.*
 import java.nio.file.Path
 import kotlin.time.Duration.Companion.milliseconds
 

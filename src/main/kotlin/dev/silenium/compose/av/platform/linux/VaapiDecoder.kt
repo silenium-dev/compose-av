@@ -6,14 +6,14 @@ import dev.silenium.compose.av.decode.Decoder
 import dev.silenium.compose.av.demux.Stream
 import dev.silenium.compose.av.util.Natives
 
-class VaapiDecoder(stream: Stream, vaDevice: String) : Decoder<VaapiDecoder>(stream) {
+class VaapiDecoder(stream: Stream, val vaDevice: String) : Decoder<VaapiDecoder>(stream) {
     override val nativePointer: NativePointer =
         createDecoderN(stream.nativePointer.address, vaDevice).getOrThrow()
             .asNativePointer(::releaseDecoder)
 
     val vaDisplay by lazy { getVADisplayN(nativePointer.address) }
 
-    override fun createGLRenderInterop() = VAGLRenderInterop(this)
+    override fun createGLRenderInterop() = VAGLXRenderInterop(this)
 
     companion object {
         init {

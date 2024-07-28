@@ -9,21 +9,21 @@
 #include "helper/EGL.hpp"
 #include <EGL/eglext.h>
 
-class VAGLInteropImage final : public GLInteropImage {
+class VAEGLInteropImage final : public GLInteropImage {
 public:
-    VAGLInteropImage(EGLDisplay display, const std::vector<EGLImageKHR> &images,
+    VAEGLInteropImage(EGLDisplay display, const std::vector<EGLImageKHR> &images,
                      const std::vector<unsigned int> &textures,
                      const std::vector<Swizzles> &swizzles);
 
-    VAGLInteropImage(VAGLInteropImage &&) noexcept = default;
+    VAEGLInteropImage(VAEGLInteropImage &&) noexcept = default;
 
-    VAGLInteropImage &operator=(VAGLInteropImage &&) noexcept = default;
+    VAEGLInteropImage &operator=(VAEGLInteropImage &&) noexcept = default;
 
-    VAGLInteropImage(const VAGLInteropImage &) = delete;
+    VAEGLInteropImage(const VAEGLInteropImage &) = delete;
 
-    VAGLInteropImage &operator=(const VAGLInteropImage &) = delete;
+    VAEGLInteropImage &operator=(const VAEGLInteropImage &) = delete;
 
-    ~VAGLInteropImage() override;
+    ~VAEGLInteropImage() override;
 
     [[nodiscard]] const std::vector<unsigned int> &planeTextures() const override;
 

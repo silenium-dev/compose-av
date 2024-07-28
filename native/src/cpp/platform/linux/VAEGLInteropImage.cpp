@@ -2,18 +2,18 @@
 // Created by silenium-dev on 7/23/24.
 //
 
-#include "VAGLInteropImage.hpp"
+#include "VAEGLInteropImage.hpp"
 
 #include <GLES3/gl3.h>
 
-VAGLInteropImage::VAGLInteropImage(const EGLDisplay display,
+VAEGLInteropImage::VAEGLInteropImage(const EGLDisplay display,
                                    const std::vector<EGLImageKHR> &images,
                                    const std::vector<unsigned int> &textures,
                                    const std::vector<Swizzles> &swizzles)
     : eglDisplay(display), eglImages(images), textures(textures), swizzles(swizzles) {
 }
 
-VAGLInteropImage::~VAGLInteropImage() {
+VAEGLInteropImage::~VAEGLInteropImage() {
     const auto eglDestroyImageKHR = getFunc<PFNEGLDESTROYIMAGEKHRPROC>("eglDestroyImageKHR");
     for (const auto &eglImage: eglImages) {
         if (eglImage != EGL_NO_IMAGE_KHR) {
@@ -25,10 +25,10 @@ VAGLInteropImage::~VAGLInteropImage() {
     }
 }
 
-const std::vector<GLuint> &VAGLInteropImage::planeTextures() const {
+const std::vector<GLuint> &VAEGLInteropImage::planeTextures() const {
     return textures;
 }
 
-const std::vector<Swizzles> &VAGLInteropImage::planeSwizzles() const {
+const std::vector<Swizzles> &VAEGLInteropImage::planeSwizzles() const {
     return swizzles;
 }

@@ -17,6 +17,15 @@ struct Swizzles {
     Swizzle g = Swizzle::USE_GREEN;
     Swizzle b = Swizzle::USE_BLUE;
     Swizzle a = Swizzle::USE_ALPHA;
+
+    static Swizzles Identity;
+};
+
+Swizzles Swizzles::Identity{
+        .r = Swizzle::USE_RED,
+        .g = Swizzle::USE_GREEN,
+        .b = Swizzle::USE_BLUE,
+        .a = Swizzle::USE_ALPHA,
 };
 
 #endif //SWIZZLES_HPP

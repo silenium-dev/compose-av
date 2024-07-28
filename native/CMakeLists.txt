@@ -60,9 +60,12 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
             src/cpp/platform/linux/helper/EGL.cpp
             src/cpp/platform/linux/helper/EGL.hpp
             src/cpp/platform/linux/Errors.cpp
-            src/cpp/platform/linux/VAGLInteropImage.cpp
-            src/cpp/platform/linux/VAGLInteropImage.hpp
-            src/cpp/platform/linux/VAGLRenderInterop.cpp
+            src/cpp/platform/linux/VAEGLInteropImage.cpp
+            src/cpp/platform/linux/VAEGLInteropImage.hpp
+            src/cpp/platform/linux/VAGLXInteropImage.cpp
+            src/cpp/platform/linux/VAGLXInteropImage.hpp
+            src/cpp/platform/linux/VAGLXRenderInterop.cpp
+            src/cpp/platform/linux/VAEGLRenderInterop.cpp
             src/cpp/platform/linux/VaapiDecoder.cpp
     )
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -81,7 +84,7 @@ endif ()
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_definitions(${PROJECT_NAME} PRIVATE -D_LINUX)
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GL REQUIRED IMPORTED_TARGET gl egl libva libva-drm libdrm)
+    pkg_check_modules(GL REQUIRED IMPORTED_TARGET gl egl libva libva-drm libdrm glx libva-glx)
     target_link_libraries(${PROJECT_NAME} PUBLIC PkgConfig::GL)
     target_include_directories(${PROJECT_NAME} PUBLIC "${JAVA_HOME}/include/linux")
     if (USE_SYSTEM_FFMPEG)

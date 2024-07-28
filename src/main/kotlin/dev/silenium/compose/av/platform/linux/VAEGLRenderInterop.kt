@@ -7,7 +7,7 @@ import dev.silenium.compose.av.render.GLRenderInterop
 import dev.silenium.compose.av.util.Natives
 import org.lwjgl.egl.EGL15
 
-class VAGLRenderInterop(
+class VAEGLRenderInterop(
     override val decoder: VaapiDecoder,
     private val eglDisplay: Long = EGL15.eglGetCurrentDisplay(),
 ) : GLRenderInterop<VaapiDecoder> {

@@ -6,7 +6,9 @@ kotlinx-serialization = "1.7.1"
 kotlinx-datetime = "0.6.0"
 
 compose = "1.6.11"
-compose-gl = "0.2.6"
+compose-gl = "0.3.0"
+jni-utils = "0.1.5"
+skiko = "0.8.10-egl"
 
 slf4j = "2.0.13"
 logback = "1.5.6"
@@ -15,7 +17,6 @@ kotest = "5.9.1"
 mockk = "1.13.12"
 
 idea-ext = "1.1.8"
-jni-utils = "0.1.5"
 
 [libraries]
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
@@ -31,8 +32,12 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 compose-gl = { group = "dev.silenium.compose.gl", name = "compose-gl", version.ref = "compose-gl" }
+compose-gl-natives = { group = "dev.silenium.compose.gl", name = "compose-gl-natives-linux-x86_64", version.ref = "compose-gl" }
 ffmpeg-natives = { group = "dev.silenium.libs", name = "ffmpeg-natives", version = "7.0+0.2.0" }
 jni-utils = { group = "dev.silenium.libs.jni", name = "jni-utils", version.ref = "jni-utils" }
+
+skiko-awt = { group = "org.jetbrains.skiko", name = "skiko-awt", version.ref = "skiko" }
+skiko-awt-runtime-linux-x64 = { group = "org.jetbrains.skiko", name = "skiko-awt-runtime-linux-x64", version.ref = "skiko" }
 
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
@@ -64,14 +69,14 @@ kotlinx = [
     "kotlinx-datetime",
 ]
 
-logging = [
-    "slf4j-api",
-    "logback-classic",
-]
-
 kotest = [
     "kotest-runner-junit5",
     "kotest-property",
     "kotest-assertions-core",
     "kotest-assertions-json",
+]
+
+skiko = [
+    "skiko-awt",
+    "skiko-awt-runtime-linux-x64",
 ]

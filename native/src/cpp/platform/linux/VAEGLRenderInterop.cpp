@@ -2,12 +2,12 @@
 // Created by silenium-dev on 7/15/24.
 //
 
-#include "VAGLInteropImage.hpp"
-#include "render/GLInteropImage.hpp"
+#include "VAEGLInteropImage.hpp"
 #include "helper/errors.hpp"
+#include "render/GLInteropImage.hpp"
 
 #include <jni.h>
-#include <GLES3/gl3.h>
+#include <GL/gl.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <va/va.h>
@@ -34,7 +34,7 @@ void closeDrm(const VADRMPRIMESurfaceDescriptor &drm) {
 
 extern "C" {
 JNIEXPORT jlong JNICALL
-Java_dev_silenium_compose_av_platform_linux_VAGLRenderInteropKt_getVADisplayN(
+Java_dev_silenium_compose_av_platform_linux_VAEGLRenderInteropKt_getVADisplayN(
         JNIEnv *env, jobject thiz, const jlong frame) {
     const auto avFrame = reinterpret_cast<AVFrame *>(frame);
     const auto deviceCtx = reinterpret_cast<AVHWFramesContext *>(avFrame->hw_frames_ctx->data)->device_ctx;
@@ -54,7 +54,7 @@ std::map<AVPixelFormat, std::map<int, std::pair<int, int> > > planeFractions{
 };
 
 JNIEXPORT jobject JNICALL
-Java_dev_silenium_compose_av_platform_linux_VAGLRenderInteropKt_mapN(JNIEnv *env, jobject thiz,
+Java_dev_silenium_compose_av_platform_linux_VAEGLRenderInteropKt_mapN(JNIEnv *env, jobject thiz,
                                                                      const jint pixelFormat_,
                                                                      const jlong vaSurface_, const jlong vaDisplay_,
                                                                      const jlong eglDisplay_) {
@@ -188,7 +188,7 @@ Java_dev_silenium_compose_av_platform_linux_VAGLRenderInteropKt_mapN(JNIEnv *env
     closeDrm(drm);
     glBindTexture(GL_TEXTURE_2D, prevTexture);
 
-    const auto interopImage = new VAGLInteropImage(eglDisplay, eglImages, textures, swizzles);
+    const auto interopImage = new VAEGLInteropImage(eglDisplay, eglImages, textures, swizzles);
 
     return resultSuccess(env, reinterpret_cast<jlong>(interopImage));
 }
