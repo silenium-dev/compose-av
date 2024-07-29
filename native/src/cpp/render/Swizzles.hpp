@@ -21,11 +21,4 @@ struct Swizzles {
     static Swizzles Identity;
 };
 
-Swizzles Swizzles::Identity{
-        .r = Swizzle::USE_RED,
-        .g = Swizzle::USE_GREEN,
-        .b = Swizzle::USE_BLUE,
-        .a = Swizzle::USE_ALPHA,
-};
-
 #endif //SWIZZLES_HPP

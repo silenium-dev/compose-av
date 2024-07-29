@@ -23,7 +23,7 @@ class VaapiDecoderTest : FunSpec({
     test("test VaapiDecoder") {
         val demuxer = FileDemuxer(videoFile)
         val decoder =
-            VaapiDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }, "/dev/dri/renderD128")
+            VaapiDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }, VaapiDecoder.Device.DRM("/dev/dri/renderD128"))
         decoder.submit(demuxer.nextPacket().getOrThrow())
         val frame = decoder.receive().getOrThrow()
         frame.stream shouldBe demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }

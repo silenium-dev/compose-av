@@ -18,6 +18,8 @@
 #include <map>
 #include <vector>
 
+#include "helper/va.hpp"
+
 typedef void (EGLAPIENTRYP PFNEGLIMAGETARGETTEXTURE2DOESPROC)(EGLenum target, void *image);
 
 extern "C" {
@@ -26,11 +28,6 @@ extern "C" {
 #include <libavutil/frame.h>
 }
 
-void closeDrm(const VADRMPRIMESurfaceDescriptor &drm) {
-    for (int i = 0; i < drm.num_objects; ++i) {
-        close(drm.objects[i].fd);
-    }
-}
 
 extern "C" {
 JNIEXPORT jlong JNICALL

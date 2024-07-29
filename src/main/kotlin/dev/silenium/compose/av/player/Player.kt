@@ -31,15 +31,10 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class VideoPlayer(path: Path) : AutoCloseable {
     val demuxer = FileDemuxer(path)
-    private val decoder =
-        VaapiDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }, "/dev/dri/renderD128")
+    private var decoder: VaapiDecoder? = null
 
     //    private val decoder = SoftwareDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO })
     private val frames = Channel<Frame>(4, onBufferOverflow = BufferOverflow.SUSPEND)
-
-    init {
-        println("Codec: ${decoder.stream.codec.description}")
-    }
 
     private lateinit var interop: GLRenderInterop<*>
     private var glInitialized = false
@@ -49,6 +44,8 @@ class VideoPlayer(path: Path) : AutoCloseable {
     private var ibo: Int = 0
 
     private val decodeJob = CoroutineScope(Dispatchers.IO).launch {
+        while (decoder == null) delay(10.milliseconds)
+        val decoder = decoder!!
         while (isActive) {
             val packet = demuxer.nextPacket().getOrNull() ?: break
             while (decoder.submit(packet).isFailure) delay(10.milliseconds)
@@ -133,9 +130,11 @@ class VideoPlayer(path: Path) : AutoCloseable {
 
     private suspend fun initializeGL() {
         if (glInitialized) return
+        decoder = VaapiDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }, VaapiDecoder.Device.GLX())
+        println("Codec: ${decoder!!.stream.codec.description}")
         initShader()
         initBuffers()
-        interop = decoder.createGLRenderInterop()
+        interop = decoder!!.createGLRenderInterop()
         glInitialized = true
     }
 
@@ -191,7 +190,7 @@ class VideoPlayer(path: Path) : AutoCloseable {
     override fun close() {
         runBlocking { decodeJob.cancelAndJoin() }
         demuxer.close()
-        decoder.close()
+        decoder!!.close()
     }
 }
 

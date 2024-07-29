@@ -13,7 +13,6 @@ class VAGLXInteropImage final : public GLInteropImage {
 public:
     VAGLXInteropImage(
             VADisplay display,
-            VASurfaceID surface,
             void *glxSurfaces,
             unsigned int textures,
             Swizzles swizzles);

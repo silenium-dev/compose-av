@@ -46,6 +46,7 @@ set(SOURCES
         src/cpp/render/GLInteropImage.cpp
         src/cpp/render/GLInteropImage.hpp
         src/cpp/render/Swizzles.hpp
+        src/cpp/render/Swizzles.cpp
         src/cpp/util/Errors.cpp
 )
 
@@ -59,6 +60,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
             src/cpp/platform/linux/helper/drm_mapping.hpp
             src/cpp/platform/linux/helper/EGL.cpp
             src/cpp/platform/linux/helper/EGL.hpp
+            src/cpp/platform/linux/helper/va.cpp
+            src/cpp/platform/linux/helper/va.hpp
             src/cpp/platform/linux/Errors.cpp
             src/cpp/platform/linux/VAEGLInteropImage.cpp
             src/cpp/platform/linux/VAEGLInteropImage.hpp
@@ -88,7 +91,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(${PROJECT_NAME} PUBLIC PkgConfig::GL)
     target_include_directories(${PROJECT_NAME} PUBLIC "${JAVA_HOME}/include/linux")
     if (USE_SYSTEM_FFMPEG)
-        pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavcodec libavformat libavutil libswscale)
+        pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavcodec libavformat libavutil libswscale libavfilter)
         target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::FFMPEG)
     endif ()
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -96,3 +99,9 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_link_libraries(${PROJECT_NAME} PUBLIC opengl32 dxgi d3d11 d3dcompiler)
     target_include_directories(${PROJECT_NAME} PUBLIC "${JAVA_HOME}/include/win32")
 endif ()
+
+#add_executable(test main.cpp)
+#target_link_libraries(test PRIVATE PkgConfig::FFMPEG)
+#target_link_libraries(test PRIVATE ${PROJECT_NAME})
+#target_link_libraries(test PRIVATE X11 GLX xcb va va-glx va-x11)
+#target_include_directories(test PRIVATE "src/cpp/")

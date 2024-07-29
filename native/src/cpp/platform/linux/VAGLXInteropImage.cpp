@@ -9,18 +9,17 @@
 
 VAGLXInteropImage::VAGLXInteropImage(
         VADisplay display,
-        VASurfaceID surface,
         void *glxSurface,
         unsigned int texture,
         Swizzles swizzles)
-    : display(display), surface(surface), glxSurface(glxSurface), texture({texture}), swizzles({swizzles}) {
+    : display(display), glxSurface(glxSurface), texture({texture}), swizzles({swizzles}) {
 }
 
 VAGLXInteropImage::~VAGLXInteropImage() {
-    if (glxSurface != None) {
+    if (glxSurface != nullptr) {
         vaDestroySurfaceGLX(display, glxSurface);
     }
-    vaDestroySurfaces(display, &surface, 1);
+    // vaDestroySurfaces(display, &surface, 1);
     glDeleteTextures(1, &texture[0]);
 }
 
