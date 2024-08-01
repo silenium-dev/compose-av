@@ -8,18 +8,12 @@
 #include <va/va_glx.h>
 
 VAGLXInteropImage::VAGLXInteropImage(
-        VADisplay display,
-        void *glxSurface,
         unsigned int texture,
         Swizzles swizzles)
-    : display(display), glxSurface(glxSurface), texture({texture}), swizzles({swizzles}) {
+    : texture({texture}), swizzles({swizzles}) {
 }
 
 VAGLXInteropImage::~VAGLXInteropImage() {
-    if (glxSurface != nullptr) {
-        vaDestroySurfaceGLX(display, glxSurface);
-    }
-    // vaDestroySurfaces(display, &surface, 1);
     glDeleteTextures(1, &texture[0]);
 }
 

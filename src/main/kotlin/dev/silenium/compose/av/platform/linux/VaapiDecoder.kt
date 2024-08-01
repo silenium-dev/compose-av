@@ -11,7 +11,10 @@ class VaapiDecoder(stream: Stream, val context: VaapiDeviceContext) : Decoder<Va
         createN(stream.nativePointer.address, context.nativePointer.address).getOrThrow()
             .asNativePointer(::releaseDecoder)
 
-    override fun createGLRenderInterop() = VAGLXRenderInterop(this)
+    override fun createGLRenderInterop() = when (context) {
+        is VaapiDeviceContext.DRM -> VAEGLRenderInterop(this)
+        is VaapiDeviceContext.GLX -> VAGLXRenderInterop(this)
+    }
 
     companion object {
         init {

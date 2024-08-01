@@ -12,11 +12,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.silenium.compose.av.data.AVMediaType
+import dev.silenium.compose.av.data.AVPixelFormat
 import dev.silenium.compose.av.data.AVPixelFormat.*
 import dev.silenium.compose.av.data.Frame
+import dev.silenium.compose.av.data.fromId
 import dev.silenium.compose.av.demux.FileDemuxer
 import dev.silenium.compose.av.platform.linux.VaapiDecoder
 import dev.silenium.compose.av.platform.linux.VaapiDeviceContext
+import dev.silenium.compose.av.platform.linux.VaapiYuvToRgbConversion
 import dev.silenium.compose.av.render.GLInteropImage
 import dev.silenium.compose.av.render.GLRenderInterop
 import dev.silenium.compose.av.util.Resources.loadTextFromClasspath
@@ -33,6 +36,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class VideoPlayer(path: Path) : AutoCloseable {
     val demuxer = FileDemuxer(path)
     private var decoder: VaapiDecoder? = null
+    private var conversion: VaapiYuvToRgbConversion? = null
     private var deviceContext: VaapiDeviceContext? = null
 
     //    private val decoder = SoftwareDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO })
@@ -53,7 +57,17 @@ class VideoPlayer(path: Path) : AutoCloseable {
             while (decoder.submit(packet).isFailure) delay(10.milliseconds)
             while (isActive) {
                 val frame = decoder.receive().getOrNull() ?: break
-                frames.send(frame)
+                if (conversion == null) {
+                    conversion = VaapiYuvToRgbConversion(deviceContext!!, frame)
+                }
+                conversion!!.submit(frame).onFailure {
+                    println("Failed to filter frame: $it")
+                }.getOrNull() ?: continue
+                frame.close()
+                val converted = conversion!!.receive().onFailure {
+                    println("Failed to receive frame: $it")
+                }.getOrNull() ?: continue
+                frames.send(converted)
             }
         }
     }
@@ -64,14 +78,14 @@ class VideoPlayer(path: Path) : AutoCloseable {
         val fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
         glShaderSource(vertexShader, loadTextFromClasspath("shaders/video.vert"))
         glCompileShader(vertexShader)
-        glGetShaderInfoLog(vertexShader).let(::println)
+        glGetShaderInfoLog(vertexShader).takeIf(String::isNotBlank)?.let(::println)
         glAttachShader(shaderProgram, vertexShader)
         glShaderSource(fragmentShader, loadTextFromClasspath("shaders/video.frag"))
         glCompileShader(fragmentShader)
-        glGetShaderInfoLog(fragmentShader).let(::println)
+        glGetShaderInfoLog(fragmentShader).takeIf(String::isNotBlank)?.let(::println)
         glAttachShader(shaderProgram, fragmentShader)
         glLinkProgram(shaderProgram)
-        glGetProgramInfoLog(shaderProgram).let(::println)
+        glGetProgramInfoLog(shaderProgram).takeIf(String::isNotBlank)?.let(::println)
         glDeleteShader(vertexShader)
         glDeleteShader(fragmentShader)
         // Check status
@@ -85,7 +99,7 @@ class VideoPlayer(path: Path) : AutoCloseable {
         // TODO: Get parameters from decoder
         glUseProgram(shaderProgram)
         val formatLocation = glGetUniformLocation(shaderProgram, "tex_format")
-        glUniform1i(formatLocation, 2)
+        glUniform1i(formatLocation, 1)
         val limitedLocation = glGetUniformLocation(shaderProgram, "limitedRange")
         glUniform1i(limitedLocation, 1)
         val texYLocation = glGetUniformLocation(shaderProgram, "tex_y")
@@ -132,7 +146,7 @@ class VideoPlayer(path: Path) : AutoCloseable {
 
     private suspend fun initializeGL() {
         if (glInitialized) return
-        deviceContext = VaapiDeviceContext.GLX()
+        deviceContext = VaapiDeviceContext.detect()
         decoder = VaapiDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }, deviceContext!!)
         println("Codec: ${decoder!!.stream.codec.description}")
         initShader()
@@ -141,7 +155,7 @@ class VideoPlayer(path: Path) : AutoCloseable {
         glInitialized = true
     }
 
-    private suspend fun renderImage(image: GLInteropImage) {
+    private suspend fun renderImage(image: GLInteropImage, hdr: Boolean = false) {
         glClearColor(0f, 0f, 0f, 1f)
         glClear(GL_COLOR_BUFFER_BIT)
 
@@ -157,13 +171,7 @@ class VideoPlayer(path: Path) : AutoCloseable {
             }
 
         val hdrLocation = glGetUniformLocation(shaderProgram, "enableHDR")
-        if ((image.frame.swFormat ?: image.frame.format) in setOf(
-                AV_PIX_FMT_P010LE,
-                AV_PIX_FMT_P010BE,
-                AV_PIX_FMT_YUV420P10LE,
-                AV_PIX_FMT_YUV420P10BE
-            )
-        ) {
+        if (hdr) {
             glUniform1i(hdrLocation, 1)
         } else {
             glUniform1i(hdrLocation, 0)
@@ -185,7 +193,16 @@ class VideoPlayer(path: Path) : AutoCloseable {
                 println("Failed to map frame: $it")
                 return
             }.use {
-                renderImage(it)
+                val format = fromId<AVPixelFormat>(decoder!!.stream.format)
+                val hdr = when (format) {
+                    AV_PIX_FMT_P010LE,
+                    AV_PIX_FMT_P010BE,
+                    AV_PIX_FMT_YUV420P10LE,
+                    AV_PIX_FMT_YUV420P10BE -> true
+
+                    else -> false
+                }
+                renderImage(it, hdr)
             }
         }
     }
@@ -193,7 +210,8 @@ class VideoPlayer(path: Path) : AutoCloseable {
     override fun close() {
         runBlocking { decodeJob.cancelAndJoin() }
         demuxer.close()
-        decoder!!.close()
+        decoder?.close()
+        conversion?.close()
     }
 }
 

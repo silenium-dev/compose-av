@@ -13,6 +13,7 @@ plugins {
 
 val deployNative = (findProperty("deploy.native") as String?)?.toBoolean() ?: true
 val deployKotlin = (findProperty("deploy.kotlin") as String?)?.toBoolean() ?: true
+val skikoEGL = (findProperty("skiko.egl") as String?)?.toBoolean() ?: false
 
 dependencies {
     // Note, if you develop a library, you should use compose.desktop.common.
@@ -29,11 +30,13 @@ dependencies {
         implementation(project(":native"))
     }
     implementation(kotlin("reflect"))
-//    implementation(libs.bundles.skiko) {
-//        version {
-//            strictly(libs.skiko.awt.runtime.linux.x64.get().version!!)
-//        }
-//    }
+    if (skikoEGL) {
+        implementation(libs.bundles.skiko) {
+            version {
+                strictly(libs.skiko.awt.runtime.linux.x64.get().version!!)
+            }
+        }
+    }
 
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)

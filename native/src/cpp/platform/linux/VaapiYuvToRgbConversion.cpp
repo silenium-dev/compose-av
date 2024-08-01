@@ -2,7 +2,6 @@
 // Created by silenium-dev on 8/1/24.
 //
 
-#include "VaapiYuvToRgbConversion.hpp"
 #include "helper/errors.hpp"
 #include "helper/rationals.hpp"
 #include <cinttypes>
@@ -89,6 +88,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiYuvTo
     AVFilterInOut *filterOut{nullptr};
     auto ret = avfilter_graph_parse2(filterGraph, filterString, &filterIn, &filterOut);
     if (ret < 0) {
+        av_buffer_unref(&inputFramesRef);
+        av_buffer_unref(&outputFramesRef);
         avfilter_graph_free(&filterGraph);
         return avResultFailure(env, "parse filter graph", ret);
     }
@@ -106,6 +107,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiYuvTo
     std::cout << "In link: " << inLink << std::endl;
     inLink->hw_frames_ctx = av_buffer_ref(inputFramesRef);
     AVFilterLink *outLink = scale->outputs[0];
+    std::cout << "Out link: " << outLink << std::endl;
+    outLink->hw_frames_ctx = av_buffer_ref(outputFramesRef);
 
     AVBufferSrcParameters srcParams{};
     srcParams.format = AV_PIX_FMT_VAAPI;
@@ -118,14 +121,21 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiYuvTo
     ret = av_buffersrc_parameters_set(bufferSrc, &srcParams);
     if (ret < 0) {
         av_buffer_unref(&srcParams.hw_frames_ctx);
+        av_buffer_unref(&inputFramesRef);
+        av_buffer_unref(&outputFramesRef);
+        av_buffer_unref(&outLink->hw_frames_ctx);
+        av_buffer_unref(&inLink->hw_frames_ctx);
         avfilter_graph_free(&filterGraph);
         return avResultFailure(env, "set buffer source parameters", ret);
     }
-    outLink->hw_frames_ctx = av_buffer_ref(outputFramesRef);
 
     ret = avfilter_graph_config(filterGraph, nullptr);
     if (ret < 0) {
         av_buffer_unref(&srcParams.hw_frames_ctx);
+        av_buffer_unref(&inputFramesRef);
+        av_buffer_unref(&outputFramesRef);
+        av_buffer_unref(&outLink->hw_frames_ctx);
+        av_buffer_unref(&inLink->hw_frames_ctx);
         avfilter_graph_free(&filterGraph);
         return avResultFailure(env, "config filter graph", ret);
     }

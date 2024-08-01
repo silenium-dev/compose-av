@@ -45,6 +45,15 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_demux_StreamKt_bitRateN(
     return stream->codecpar->bit_rate;
 }
 
+JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_demux_StreamKt_formatN(
+        JNIEnv *env,
+        jobject thiz,
+        const jlong context
+) {
+    const auto stream = reinterpret_cast<AVStream *>(context);
+    return stream->codecpar->format;
+}
+
 JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_demux_StreamKt_avgFrameRateN(
     JNIEnv *env,
     jobject thiz,

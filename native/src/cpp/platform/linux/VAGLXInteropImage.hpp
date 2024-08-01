@@ -12,8 +12,6 @@
 class VAGLXInteropImage final : public GLInteropImage {
 public:
     VAGLXInteropImage(
-            VADisplay display,
-            void *glxSurfaces,
             unsigned int textures,
             Swizzles swizzles);
 
@@ -32,9 +30,6 @@ public:
     [[nodiscard]] const std::vector<Swizzles> &planeSwizzles() const override;
 
 private:
-    VADisplay display{nullptr};
-    VASurfaceID surface{0};
-    void *glxSurface{};
     std::vector<unsigned int> texture{};
     std::vector<Swizzles> swizzles{};
 };

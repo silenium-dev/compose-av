@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include "helper/errors.hpp"
+#include <iostream>
 #include <va/va_drm.h>
 #include <va/va_x11.h>
 
@@ -34,12 +35,18 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDevic
         return avResultFailure(env, "getting VA display", AVERROR_UNKNOWN);
     }
 
+    int majorVersion, minorVersion;
+    if (vaInitialize(vaDisplay, &majorVersion, &minorVersion) != VA_STATUS_SUCCESS) {
+        return avResultFailure(env, "initializing VA display", AVERROR_UNKNOWN);
+    }
+    std::cout << "VA-API version: " << majorVersion << "." << minorVersion << std::endl;
+
     auto deviceRef = av_hwdevice_ctx_alloc(AV_HWDEVICE_TYPE_VAAPI);
     if (deviceRef == nullptr) {
         return avResultFailure(env, "allocating hw device context", AVERROR(ENOMEM));
     }
 
-    auto vaapi = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(deviceRef->data)->hwctx);
+    const auto vaapi = static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(deviceRef->data)->hwctx);
     vaapi->display = vaDisplay;
 
     auto ret = av_hwdevice_ctx_init(deviceRef);

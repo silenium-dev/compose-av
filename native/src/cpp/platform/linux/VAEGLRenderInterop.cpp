@@ -6,62 +6,51 @@
 #include "helper/errors.hpp"
 #include "render/GLInteropImage.hpp"
 
-#include <jni.h>
-#include <GL/gl.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <GL/gl.h>
+#include <algorithm>
+#include <drm_fourcc.h>
+#include <jni.h>
+#include <map>
+#include <unistd.h>
 #include <va/va.h>
 #include <va/va_drmcommon.h>
-#include <unistd.h>
-#include <drm_fourcc.h>
-#include <algorithm>
-#include <map>
 #include <vector>
 
 #include "helper/va.hpp"
 
-typedef void (EGLAPIENTRYP PFNEGLIMAGETARGETTEXTURE2DOESPROC)(EGLenum target, void *image);
+typedef void(EGLAPIENTRYP PFNEGLIMAGETARGETTEXTURE2DOESPROC)(EGLenum target, void *image);
 
 extern "C" {
+#include <libavutil/frame.h>
 #include <libavutil/hwcontext.h>
 #include <libavutil/hwcontext_vaapi.h>
-#include <libavutil/frame.h>
 }
-
 
 extern "C" {
-JNIEXPORT jlong JNICALL
-Java_dev_silenium_compose_av_platform_linux_VAEGLRenderInteropKt_getVADisplayN(
-        JNIEnv *env, jobject thiz, const jlong frame) {
-    const auto avFrame = reinterpret_cast<AVFrame *>(frame);
-    const auto deviceCtx = reinterpret_cast<AVHWFramesContext *>(avFrame->hw_frames_ctx->data)->device_ctx;
-    const auto vaContext = static_cast<AVVAAPIDeviceContext *>(deviceCtx->hwctx);
-    return reinterpret_cast<jlong>(vaContext->display);
-}
-
-std::map<AVPixelFormat, std::map<int, std::pair<int, int> > > planeFractions{
-        {AV_PIX_FMT_NV12,        {{0, {1, 1}}, {1, {2, 2}}}},
-        {AV_PIX_FMT_P010LE,      {{0, {1, 1}}, {1, {2, 2}}}},
-        {AV_PIX_FMT_P010BE,      {{0, {1, 1}}, {1, {2, 2}}}},
-        {AV_PIX_FMT_YUV420P,     {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
+std::map<AVPixelFormat, std::map<int, std::pair<int, int>>> planeFractions{
+        {AV_PIX_FMT_NV12, {{0, {1, 1}}, {1, {2, 2}}}},
+        {AV_PIX_FMT_P010LE, {{0, {1, 1}}, {1, {2, 2}}}},
+        {AV_PIX_FMT_P010BE, {{0, {1, 1}}, {1, {2, 2}}}},
+        {AV_PIX_FMT_YUV420P, {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
         {AV_PIX_FMT_YUV420P10LE, {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
         {AV_PIX_FMT_YUV420P10BE, {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
-        {AV_PIX_FMT_YUV422P,     {{0, {1, 1}}, {1, {2, 1}}, {2, {2, 1}}}},
-        {AV_PIX_FMT_YUV444P,     {{0, {1, 1}}, {1, {1, 1}}, {2, {1, 1}}}},
+        {AV_PIX_FMT_YUV422P, {{0, {1, 1}}, {1, {2, 1}}, {2, {2, 1}}}},
+        {AV_PIX_FMT_YUV444P, {{0, {1, 1}}, {1, {1, 1}}, {2, {1, 1}}}},
 };
 
 JNIEXPORT jobject JNICALL
 Java_dev_silenium_compose_av_platform_linux_VAEGLRenderInteropKt_mapN(JNIEnv *env, jobject thiz,
-                                                                     const jint pixelFormat_,
-                                                                     const jlong vaSurface_, const jlong vaDisplay_,
-                                                                     const jlong eglDisplay_) {
-    const auto pixelFormat = static_cast<AVPixelFormat>(pixelFormat_);
-    const auto vaDisplay = reinterpret_cast<VADisplay>(vaDisplay_);
-    const auto vaSurface = static_cast<VASurfaceID>(vaSurface_);
+                                                                      const jlong frame_,
+                                                                      const jlong eglDisplay_) {
+    const auto *frame = reinterpret_cast<AVFrame *>(frame_);
+    const auto pixelFormat = static_cast<AVPixelFormat>(frame->format);
+    const auto deviceCtx = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data)->device_ctx;
+    const auto vaContext = static_cast<AVVAAPIDeviceContext *>(deviceCtx->hwctx);
+    const auto vaDisplay = vaContext->display;
+    const VASurfaceID vaSurface = reinterpret_cast<intptr_t>(frame->data[3]);
     const auto eglDisplay = reinterpret_cast<EGLDisplay>(eglDisplay_);
-    //    std::cout << "VASurface: " << vaSurface << std::endl;
-    //    std::cout << "VADisplay: " << vaDisplay << std::endl;
-    //    std::cout << "EGLDisplay: " << eglDisplay << std::endl;
 
     const auto eglCreateImageKHR = getFunc<PFNEGLCREATEIMAGEKHRPROC>("eglCreateImageKHR");
     if (!eglCreateImageKHR) {
@@ -141,11 +130,9 @@ Java_dev_silenium_compose_av_platform_linux_VAEGLRenderInteropKt_mapN(JNIEnv *en
                 EGL_DMA_BUF_PLANE0_FD_EXT, fd,
                 EGL_DMA_BUF_PLANE0_OFFSET_EXT, static_cast<EGLint>(offset[0]),
                 EGL_DMA_BUF_PLANE0_PITCH_EXT, static_cast<EGLint>(pitch[0]),
-                EGL_NONE
-        };
+                EGL_NONE};
 
         EGLImageKHR eglImage = eglCreateImageKHR(eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr, attribs);
-        //        std::cout << "eglImage: " << eglImage << std::endl;
         long error = eglGetError();
         if (eglImage == EGL_NO_IMAGE_KHR || error != EGL_SUCCESS) {
             closeDrm(drm);
@@ -160,7 +147,6 @@ Java_dev_silenium_compose_av_platform_linux_VAEGLRenderInteropKt_mapN(JNIEnv *en
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, eglImage);
-        //        std::cout << "bound egl image to texture" << std::endl;
         error = glGetError();
         if (error != GL_NO_ERROR) {
             std::cerr << "Failed to bind egl image to texture: " << error << std::endl;
@@ -180,7 +166,6 @@ Java_dev_silenium_compose_av_platform_linux_VAEGLRenderInteropKt_mapN(JNIEnv *en
         textures.emplace_back(texture);
         swizzles.emplace_back(channels);
     }
-    //    std::cout << "eglVASurface: " << eglVASurface << std::endl;
 
     closeDrm(drm);
     glBindTexture(GL_TEXTURE_2D, prevTexture);

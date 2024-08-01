@@ -5,6 +5,7 @@ import dev.silenium.compose.av.data.NativePointer
 import dev.silenium.compose.av.data.asNativePointer
 import dev.silenium.compose.av.util.Natives
 import dev.silenium.compose.av.util.destroyAVBufferN
+import dev.silenium.compose.gl.context.EGLContext
 import dev.silenium.compose.gl.context.GLXContext
 
 sealed class VaapiDeviceContext(override val nativePointer: NativePointer) : NativeCleanable {
@@ -22,6 +23,12 @@ sealed class VaapiDeviceContext(override val nativePointer: NativePointer) : Nat
     companion object {
         init {
             Natives.ensureLoaded()
+        }
+
+        fun detect() = when {
+            EGLContext.fromCurrent() != null -> DRM("/dev/dri/renderD128")
+            GLXContext.fromCurrent() != null -> GLX()
+            else -> error("No context current, please specify explicit context")
         }
     }
 }
