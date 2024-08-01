@@ -21,7 +21,7 @@ class SoftwareDecoderTest : FunSpec({
         val decoder = SoftwareDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO })
         decoder.submit(demuxer.nextPacket().getOrThrow())
         val frame = decoder.receive().getOrThrow()
-        frame.stream shouldBe demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }
+        frame.timeBase shouldBe demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }.timeBase
         println(frame.buf.first()?.limit())
         frame.close()
         decoder.close()

@@ -3,6 +3,7 @@ package dev.silenium.compose.av.decode
 import dev.silenium.compose.av.data.AVMediaType
 import dev.silenium.compose.av.demux.FileDemuxer
 import dev.silenium.compose.av.platform.linux.VaapiDecoder
+import dev.silenium.compose.av.platform.linux.VaapiDeviceContext
 import io.kotest.core.annotation.RequiresTag
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -23,10 +24,13 @@ class VaapiDecoderTest : FunSpec({
     test("test VaapiDecoder") {
         val demuxer = FileDemuxer(videoFile)
         val decoder =
-            VaapiDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }, VaapiDecoder.Device.DRM("/dev/dri/renderD128"))
+            VaapiDecoder(
+                demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO },
+                VaapiDeviceContext.DRM("/dev/dri/renderD128")
+            )
         decoder.submit(demuxer.nextPacket().getOrThrow())
         val frame = decoder.receive().getOrThrow()
-        frame.stream shouldBe demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }
+        frame.timeBase shouldBe demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }.timeBase
         println("VASurface: 0x${frame.rawData[3].toHexString()}")
         println("Format: ${frame.format}")
         println("Is HW: ${frame.isHW}")

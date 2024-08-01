@@ -16,6 +16,7 @@ import dev.silenium.compose.av.data.AVPixelFormat.*
 import dev.silenium.compose.av.data.Frame
 import dev.silenium.compose.av.demux.FileDemuxer
 import dev.silenium.compose.av.platform.linux.VaapiDecoder
+import dev.silenium.compose.av.platform.linux.VaapiDeviceContext
 import dev.silenium.compose.av.render.GLInteropImage
 import dev.silenium.compose.av.render.GLRenderInterop
 import dev.silenium.compose.av.util.Resources.loadTextFromClasspath
@@ -32,6 +33,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class VideoPlayer(path: Path) : AutoCloseable {
     val demuxer = FileDemuxer(path)
     private var decoder: VaapiDecoder? = null
+    private var deviceContext: VaapiDeviceContext? = null
 
     //    private val decoder = SoftwareDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO })
     private val frames = Channel<Frame>(4, onBufferOverflow = BufferOverflow.SUSPEND)
@@ -130,7 +132,8 @@ class VideoPlayer(path: Path) : AutoCloseable {
 
     private suspend fun initializeGL() {
         if (glInitialized) return
-        decoder = VaapiDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }, VaapiDecoder.Device.GLX())
+        deviceContext = VaapiDeviceContext.GLX()
+        decoder = VaapiDecoder(demuxer.streams.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }, deviceContext!!)
         println("Codec: ${decoder!!.stream.codec.description}")
         initShader()
         initBuffers()

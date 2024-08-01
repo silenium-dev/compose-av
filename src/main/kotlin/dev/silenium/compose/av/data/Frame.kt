@@ -1,22 +1,21 @@
 package dev.silenium.compose.av.data
 
-import dev.silenium.compose.av.demux.Stream
 import dev.silenium.compose.av.util.Natives
 import java.nio.ByteBuffer
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-data class Frame(override val nativePointer: NativePointer, val stream: Stream) : NativeCleanable {
-    constructor(pointer: Long, stream: Stream) : this(pointer.asNativePointer(::releaseFrameN), stream)
+data class Frame(override val nativePointer: NativePointer, val timeBase: Rational) : NativeCleanable {
+    constructor(pointer: Long, timeBase: Rational) : this(pointer.asNativePointer(::releaseFrameN), timeBase)
 
     val width: Int by lazy { widthN(nativePointer.address) }
     val height: Int by lazy { heightN(nativePointer.address) }
     val format: AVPixelFormat by lazy { fromId<AVPixelFormat>(formatN(nativePointer.address)) }
     val swFormat: AVPixelFormat? by lazy { swFormatN(nativePointer.address).takeIf { it >= 0 }?.let(::fromId) }
     val keyFrame: Boolean by lazy { keyFrameN(nativePointer.address) }
-    val pts: Duration by lazy { (ptsN(nativePointer.address) * stream.timeBase.asDouble).seconds }
-    val bestEffortTimestamp: Duration by lazy { (bestEffortTimestampN(nativePointer.address) * stream.timeBase.asDouble).seconds }
-    val duration: Duration by lazy { (durationN(nativePointer.address) * stream.timeBase.asDouble).seconds }
+    val pts: Duration by lazy { (ptsN(nativePointer.address) * timeBase.asDouble).seconds }
+    val bestEffortTimestamp: Duration by lazy { (bestEffortTimestampN(nativePointer.address) * timeBase.asDouble).seconds }
+    val duration: Duration by lazy { (durationN(nativePointer.address) * timeBase.asDouble).seconds }
     val buf: Array<ByteBuffer?> by lazy { dataN(nativePointer.address) }
     val rawData: Array<Long> by lazy { rawDataN(nativePointer.address) }
     val pitch: Array<Int> by lazy { pitchN(nativePointer.address) }
@@ -28,7 +27,7 @@ data class Frame(override val nativePointer: NativePointer, val stream: Stream) 
 
     val isHW: Boolean by lazy { isHWN(nativePointer.address) }
     fun transferToSW(): Result<Frame> {
-        return transferToSWN(nativePointer.address).map { Frame(it, stream) }
+        return transferToSWN(nativePointer.address).map { Frame(it, timeBase) }
     }
 
     companion object {
@@ -38,6 +37,7 @@ data class Frame(override val nativePointer: NativePointer, val stream: Stream) 
     }
 }
 
+private external fun timeBaseN(frame: Long): Rational
 private external fun widthN(frame: Long): Int
 private external fun heightN(frame: Long): Int
 private external fun formatN(frame: Long): Int

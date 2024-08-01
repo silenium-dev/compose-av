@@ -21,7 +21,7 @@ abstract class Decoder<T : Decoder<T>>(val stream: Stream) : NativeCleanable {
     }
 
     open fun receive(): Result<Frame> {
-        return receiveN(nativePointer.address).mapCatching { it.asFrameResult(stream).getOrThrow() }
+        return receiveN(nativePointer.address).mapCatching { it.asFrameResult(stream.timeBase).getOrThrow() }
     }
 }
 

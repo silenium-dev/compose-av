@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "helper/errors.hpp"
+#include "helper/rationals.hpp"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -18,6 +19,14 @@ JNIEXPORT void JNICALL Java_dev_silenium_compose_av_data_FrameKt_releaseFrameN(
 ) {
     auto avFrame = reinterpret_cast<AVFrame *>(frame);
     av_frame_free(&avFrame);
+}
+JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_data_FrameKt_timeBaseN(
+        JNIEnv *env,
+        jobject thiz,
+        const jlong frame
+) {
+    const auto avFrame = reinterpret_cast<AVFrame *>(frame);
+    return toJava(env, avFrame->time_base);
 }
 
 JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_widthN(

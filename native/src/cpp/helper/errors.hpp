@@ -15,6 +15,7 @@ jobject boxedLong(JNIEnv *env, long value);
 jobject boxedInt(JNIEnv *env, int value);
 
 jobject resultSuccess(JNIEnv *env, long value);
+jobject resultUnit(JNIEnv *env);
 
 jobject avResultFailure(JNIEnv *env, const char *operation, int returnCode);
 

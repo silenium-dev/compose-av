@@ -32,6 +32,14 @@ jobject resultSuccess(JNIEnv *env, const long value) {
     return boxed;
 }
 
+jobject resultUnit(JNIEnv *env) {
+    const auto unitClass = env->FindClass("kotlin/Unit");
+    const auto instanceField = env->GetStaticFieldID(unitClass, "INSTANCE", "Lkotlin/Unit;");
+    const auto instance = env->GetStaticObjectField(unitClass, instanceField);
+
+    return instance;
+}
+
 jobject avResultFailure(JNIEnv *env, const char *operation, const int returnCode) {
     const auto resultClass = env->FindClass("kotlin/Result$Failure");
     const auto errorClass = env->FindClass("dev/silenium/compose/av/util/AVException");
@@ -73,7 +81,6 @@ jobject glResultFailure(JNIEnv *env, const char *operation, const int returnCode
     const auto errorResult = env->NewObject(resultClass, resultConstructor, error);
     return errorResult;
 }
-
 jobject vaResultFailure(JNIEnv *env, const char *operation, const int returnCode) {
     const auto resultClass = env->FindClass("kotlin/Result$Failure");
     const auto errorClass = env->FindClass("dev/silenium/compose/av/util/VAException");
