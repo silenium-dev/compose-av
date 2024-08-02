@@ -9,7 +9,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_decode_SoftwareDecoderKt_createDecoderN(
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_decode_SoftwareDecoderKt_createDecoderN(
     JNIEnv *env,
     jobject thiz,
     const jlong stream

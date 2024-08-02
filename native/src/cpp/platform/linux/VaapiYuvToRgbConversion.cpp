@@ -24,7 +24,7 @@ struct VaapiYuvToRgbConversionContext {
     AVFilterContext *bufferSink{nullptr};
 };
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiYuvToRgbConversionKt_createN(JNIEnv *env, jclass clazz, const jlong _deviceRef, const jlong _inputFrame, jobject _timeBase) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiYuvToRgbConversionKt_createN(JNIEnv *env, jclass clazz, const jlong _deviceRef, const jlong _inputFrame, jobject _timeBase) {
     const auto deviceRef = reinterpret_cast<AVBufferRef *>(_deviceRef);
     const auto inputFrame = reinterpret_cast<AVFrame *>(_inputFrame);
     const auto timeBase = fromJava(env, _timeBase);
@@ -150,7 +150,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiYuvTo
     return resultSuccess(env, reinterpret_cast<jlong>(vaapiYuvToRgbConversionContext));
 }
 
-JNIEXPORT void JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiYuvToRgbConversionKt_destroyN(JNIEnv *env, jclass clazz, const jlong _context) {
+JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiYuvToRgbConversionKt_destroyN(JNIEnv *env, jclass clazz, const jlong _context) {
     const auto vaapiYuvToRgbConversionContext = reinterpret_cast<VaapiYuvToRgbConversionContext *>(_context);
     std::cout << "Destroying context: " << vaapiYuvToRgbConversionContext << std::endl;
     avfilter_graph_free(&vaapiYuvToRgbConversionContext->filterGraph);
@@ -162,7 +162,7 @@ JNIEXPORT void JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiYuvToRgb
     delete vaapiYuvToRgbConversionContext;
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiYuvToRgbConversionKt_submitN(JNIEnv *env, jclass clazz, const jlong _context, const jlong _inputFrame) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiYuvToRgbConversionKt_submitN(JNIEnv *env, jclass clazz, const jlong _context, const jlong _inputFrame) {
     const auto ctx = reinterpret_cast<VaapiYuvToRgbConversionContext *>(_context);
     const auto inputFrame = reinterpret_cast<AVFrame *>(_inputFrame);
 
@@ -196,7 +196,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiYuvTo
     return resultUnit(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiYuvToRgbConversionKt_receiveN(JNIEnv *env, jclass clazz, const jlong _context) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiYuvToRgbConversionKt_receiveN(JNIEnv *env, jclass clazz, const jlong _context) {
     const auto ctx = reinterpret_cast<VaapiYuvToRgbConversionContext *>(_context);
     auto frame = av_frame_alloc();
     auto ret = av_buffersink_get_frame(ctx->bufferSink, frame);

@@ -16,7 +16,7 @@ extern "C" {
 #include <libavutil/frame.h>
 #include <libavutil/imgutils.h>
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_render_SoftwareGLRenderInteropKt_mapN(
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_render_SoftwareGLRenderInteropKt_mapN(
         JNIEnv *env,
         jobject thiz,
         const jlong frame) {

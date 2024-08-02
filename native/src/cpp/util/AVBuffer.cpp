@@ -6,7 +6,7 @@
 
 extern "C" {
 #include <libavutil/buffer.h>
-JNIEXPORT void JNICALL Java_dev_silenium_compose_av_util_AVBufferKt_destroyAVBufferN(
+JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_util_AVBufferKt_destroyAVBufferN(
         JNIEnv *env,
         jobject thiz,
         const jlong buffer) {

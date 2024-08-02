@@ -11,7 +11,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 
-JNIEXPORT void JNICALL Java_dev_silenium_compose_av_decode_DecoderKt_releaseDecoderN(
+JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_decode_DecoderKt_releaseDecoderN(
     JNIEnv *env,
     jobject thiz,
     const jlong codecContext
@@ -20,7 +20,7 @@ JNIEXPORT void JNICALL Java_dev_silenium_compose_av_decode_DecoderKt_releaseDeco
     avcodec_free_context(&avCodecContext);
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_decode_DecoderKt_submitN(
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_core_decode_DecoderKt_submitN(
     JNIEnv *env,
     jobject thiz,
     const jlong codecContext,
@@ -31,7 +31,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_decode_DecoderKt_submitN(
     return avcodec_send_packet(avCodecContext, avPacket);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_decode_DecoderKt_receiveN(
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_decode_DecoderKt_receiveN(
     JNIEnv *env,
     jobject thiz,
     const jlong codecContext

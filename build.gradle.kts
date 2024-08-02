@@ -101,7 +101,7 @@ allprojects {
     apply<MavenPublishPlugin>()
     apply<BasePlugin>()
 
-    group = "dev.silenium.compose.av"
+    group = "dev.silenium.multimedia"
     version = findProperty("deploy.version") as String? ?: "0.0.0-SNAPSHOT"
 
     repositories {

@@ -8,7 +8,7 @@
 extern "C" {
 #include <libavutil/error.h>
 
-JNIEXPORT jstring JNICALL Java_dev_silenium_compose_av_util_ErrorsKt_avErrorStringN(
+JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_core_util_ErrorsKt_avErrorStringN(
     JNIEnv *env,
     jobject thiz,
     const jint error
@@ -18,7 +18,7 @@ JNIEXPORT jstring JNICALL Java_dev_silenium_compose_av_util_ErrorsKt_avErrorStri
     return env->NewStringUTF(errorStr);
 }
 
-JNIEXPORT jstring JNICALL Java_dev_silenium_compose_av_util_ErrorsKt_glErrorStringN(
+JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_core_util_ErrorsKt_glErrorStringN(
         JNIEnv *env,
         jobject thiz,
         const jint error

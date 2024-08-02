@@ -41,7 +41,7 @@ std::map<AVPixelFormat, std::map<int, std::pair<int, int>>> planeFractions{
 };
 
 JNIEXPORT jobject JNICALL
-Java_dev_silenium_compose_av_platform_linux_VAEGLRenderInteropKt_mapN(JNIEnv *env, jobject thiz,
+Java_dev_silenium_multimedia_core_platform_linux_VAEGLRenderInteropKt_mapN(JNIEnv *env, jobject thiz,
                                                                       const jlong frame_,
                                                                       const jlong eglDisplay_) {
     const auto *frame = reinterpret_cast<AVFrame *>(frame_);

@@ -8,7 +8,7 @@
 extern "C" {
 #include <libavformat/avformat.h>
 
-JNIEXPORT void JNICALL Java_dev_silenium_compose_av_data_PacketKt_releasePacketN(
+JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_data_PacketKt_releasePacketN(
     JNIEnv *env,
     jobject thiz,
     const jlong packet
@@ -17,7 +17,7 @@ JNIEXPORT void JNICALL Java_dev_silenium_compose_av_data_PacketKt_releasePacketN
     av_packet_free(&avPacket);
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_PacketKt_sizeN(
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_core_data_PacketKt_sizeN(
     JNIEnv *env,
     jobject thiz,
     const jlong packet
@@ -26,7 +26,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_PacketKt_sizeN(
     return avPacket->size;
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_data_PacketKt_dataN(
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_data_PacketKt_dataN(
     JNIEnv *env,
     jobject thiz,
     const jlong packet,

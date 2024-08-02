@@ -15,7 +15,7 @@ extern "C" {
 
 extern "C" {
 JNIEXPORT jobject JNICALL
-Java_dev_silenium_compose_av_platform_linux_VAGLXRenderInteropKt_mapN(JNIEnv *env, jobject thiz, const jlong frame_) {
+Java_dev_silenium_multimedia_core_platform_linux_VAGLXRenderInteropKt_mapN(JNIEnv *env, jobject thiz, const jlong frame_) {
     const auto frame = reinterpret_cast<AVFrame *>(frame_);
 
     auto swFrame = av_frame_alloc();

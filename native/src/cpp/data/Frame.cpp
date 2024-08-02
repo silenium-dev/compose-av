@@ -12,7 +12,7 @@
 extern "C" {
 #include <libavformat/avformat.h>
 
-JNIEXPORT void JNICALL Java_dev_silenium_compose_av_data_FrameKt_releaseFrameN(
+JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_releaseFrameN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -20,7 +20,7 @@ JNIEXPORT void JNICALL Java_dev_silenium_compose_av_data_FrameKt_releaseFrameN(
     auto avFrame = reinterpret_cast<AVFrame *>(frame);
     av_frame_free(&avFrame);
 }
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_data_FrameKt_timeBaseN(
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_timeBaseN(
         JNIEnv *env,
         jobject thiz,
         const jlong frame
@@ -29,7 +29,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_data_FrameKt_timeBaseN(
     return toJava(env, avFrame->time_base);
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_widthN(
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_widthN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -38,7 +38,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_widthN(
     return avFrame->width;
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_heightN(
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_heightN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -47,7 +47,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_heightN(
     return avFrame->height;
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_formatN(
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_formatN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -56,7 +56,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_formatN(
     return avFrame->format;
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_colorSpaceN(
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_colorSpaceN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -65,7 +65,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_colorSpaceN(
     return avFrame->colorspace;
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_colorRangeN(
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_colorRangeN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -74,7 +74,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_colorRangeN(
     return avFrame->color_range;
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_colorPrimariesN(
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_colorPrimariesN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -83,7 +83,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_colorPrimariesN
     return avFrame->color_primaries;
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_colorTrcN(
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_colorTrcN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -92,7 +92,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_colorTrcN(
     return avFrame->color_trc;
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_swFormatN(
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_swFormatN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -103,7 +103,7 @@ JNIEXPORT jint JNICALL Java_dev_silenium_compose_av_data_FrameKt_swFormatN(
     return hwFramesCtx->sw_format;
 }
 
-JNIEXPORT jboolean JNICALL Java_dev_silenium_compose_av_data_FrameKt_keyFrameN(
+JNIEXPORT jboolean JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_keyFrameN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -112,7 +112,7 @@ JNIEXPORT jboolean JNICALL Java_dev_silenium_compose_av_data_FrameKt_keyFrameN(
     return (avFrame->flags & AV_FRAME_FLAG_KEY) > 0;
 }
 
-JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_data_FrameKt_ptsN(
+JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_ptsN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -121,7 +121,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_data_FrameKt_ptsN(
     return avFrame->pts;
 }
 
-JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_data_FrameKt_bestEffortTimestampN(
+JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_bestEffortTimestampN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -130,7 +130,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_data_FrameKt_bestEffortTime
     return avFrame->best_effort_timestamp;
 }
 
-JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_data_FrameKt_durationN(
+JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_durationN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -139,7 +139,7 @@ JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_data_FrameKt_durationN(
     return avFrame->duration;
 }
 
-JNIEXPORT jboolean JNICALL Java_dev_silenium_compose_av_data_FrameKt_isHWN(
+JNIEXPORT jboolean JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_isHWN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -148,7 +148,7 @@ JNIEXPORT jboolean JNICALL Java_dev_silenium_compose_av_data_FrameKt_isHWN(
     return avFrame->hw_frames_ctx != nullptr;
 }
 
-JNIEXPORT jobjectArray JNICALL Java_dev_silenium_compose_av_data_FrameKt_dataN(
+JNIEXPORT jobjectArray JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_dataN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -165,7 +165,7 @@ JNIEXPORT jobjectArray JNICALL Java_dev_silenium_compose_av_data_FrameKt_dataN(
     return result;
 }
 
-JNIEXPORT jobjectArray JNICALL Java_dev_silenium_compose_av_data_FrameKt_rawDataN(
+JNIEXPORT jobjectArray JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_rawDataN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -179,7 +179,7 @@ JNIEXPORT jobjectArray JNICALL Java_dev_silenium_compose_av_data_FrameKt_rawData
     return result;
 }
 
-JNIEXPORT jobjectArray JNICALL Java_dev_silenium_compose_av_data_FrameKt_pitchN(
+JNIEXPORT jobjectArray JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_pitchN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame
@@ -196,7 +196,20 @@ JNIEXPORT jobjectArray JNICALL Java_dev_silenium_compose_av_data_FrameKt_pitchN(
     return result;
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_data_FrameKt_transferToSWN(
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_cloneN(
+        JNIEnv *env,
+        jobject thiz,
+        const jlong frame
+) {
+    const auto avFrame = reinterpret_cast<AVFrame *>(frame);
+    auto clone = av_frame_clone(avFrame);
+    if (clone == nullptr) {
+        return avResultFailure(env, "clone frame", AVERROR(ENOMEM));
+    }
+    return resultSuccess(env, reinterpret_cast<jlong>(clone));
+}
+
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_data_FrameKt_transferToSWN(
     JNIEnv *env,
     jobject thiz,
     const jlong frame

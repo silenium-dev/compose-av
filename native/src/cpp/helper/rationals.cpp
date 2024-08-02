@@ -4,7 +4,7 @@
 
 #include "rationals.hpp"
 
-constexpr auto RationalClass = "dev/silenium/compose/av/data/Rational";
+constexpr auto RationalClass = "dev/silenium/multimedia/core/data/Rational";
 
 jobject toJava(JNIEnv *env, const AVRational &rational) {
     const auto clazz = env->FindClass(RationalClass);

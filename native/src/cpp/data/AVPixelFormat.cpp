@@ -8,7 +8,7 @@ extern "C" {
 #include <libavutil/pixfmt.h>
 #include <libavutil/pixdesc.h>
 
-JNIEXPORT jstring JNICALL Java_dev_silenium_compose_av_data_AVPixelFormatKt_descriptionN(
+JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_core_data_AVPixelFormatKt_descriptionN(
     JNIEnv *env,
     jobject thiz,
     const jint format

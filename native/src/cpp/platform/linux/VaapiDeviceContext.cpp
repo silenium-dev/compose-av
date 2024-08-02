@@ -15,7 +15,7 @@ extern "C" {
 #include <libavutil/hwcontext.h>
 #include <libavutil/hwcontext_vaapi.h>
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDeviceContextKt_createDrmN(JNIEnv *env, jclass clazz, jstring _device) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiDeviceContextKt_createDrmN(JNIEnv *env, jclass clazz, jstring _device) {
     AVBufferRef *deviceRef;
 
     const auto device = env->GetStringUTFChars(_device, nullptr);
@@ -28,7 +28,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDevic
     return resultSuccess(env, reinterpret_cast<jlong>(deviceRef));
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDeviceContextKt_createGlxN(JNIEnv *env, jclass clazz, jlong glxDisplay) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiDeviceContextKt_createGlxN(JNIEnv *env, jclass clazz, jlong glxDisplay) {
     const auto display = reinterpret_cast<Display *>(glxDisplay);
     const auto vaDisplay = vaGetDisplay(display);
     if (vaDisplay == nullptr) {
@@ -58,7 +58,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDevic
     return resultSuccess(env, reinterpret_cast<jlong>(deviceRef));
 }
 
-JNIEXPORT jlong JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDeviceContextKt_getDisplayN(JNIEnv *env, jclass clazz, const jlong _deviceRef) {
+JNIEXPORT jlong JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiDeviceContextKt_getDisplayN(JNIEnv *env, jclass clazz, const jlong _deviceRef) {
     const auto deviceRef = reinterpret_cast<AVBufferRef *>(_deviceRef);
     return reinterpret_cast<jlong>(static_cast<AVVAAPIDeviceContext *>(reinterpret_cast<AVHWDeviceContext *>(deviceRef->data)->hwctx)->display);
 }

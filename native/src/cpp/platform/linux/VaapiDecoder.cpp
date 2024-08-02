@@ -44,7 +44,7 @@ AVPixelFormat getFormat(AVCodecContext *codec_context, const AVPixelFormat *fmts
 }
 
 extern "C" {
-JNIEXPORT jobject JNICALL Java_dev_silenium_compose_av_platform_linux_VaapiDecoderKt_createN(
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiDecoderKt_createN(
         JNIEnv *env,
         jobject thiz,
         const jlong stream,

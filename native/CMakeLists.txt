@@ -45,6 +45,9 @@ set(SOURCES
         src/cpp/helper/rationals.hpp
         src/cpp/render/GLInteropImage.cpp
         src/cpp/render/GLInteropImage.hpp
+        src/cpp/render/SoftwareGLInteropImage.cpp
+        src/cpp/render/SoftwareGLInteropImage.hpp
+        src/cpp/render/SoftwareGLRenderInterop.cpp
         src/cpp/render/Swizzles.hpp
         src/cpp/render/Swizzles.cpp
         src/cpp/util/Errors.cpp
