@@ -113,14 +113,12 @@ allprojects {
 
     publishing {
         repositories {
-            maven(System.getenv("REPOSILITE_URL") ?: "https://reposilite.silenium.dev/private") {
+            val url = System.getenv("MAVEN_REPO_URL") ?: return@repositories
+            maven(url) {
                 name = "reposilite"
                 credentials {
-                    username =
-                        System.getenv("REPOSILITE_USERNAME") ?: project.findProperty("reposiliteUser") as String? ?: ""
-                    password =
-                        System.getenv("REPOSILITE_PASSWORD") ?: project.findProperty("reposilitePassword") as String?
-                                ?: ""
+                    username = System.getenv("MAVEN_REPO_USERNAME") ?: ""
+                    password = System.getenv("MAVEN_REPO_PASSWORD") ?: ""
                 }
             }
         }
