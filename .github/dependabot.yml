@@ -9,7 +9,5 @@ updates:
     directories:
       - "/"
       - "native"
-      - "os-utils"
-      - "os-utils-plugin"
     schedule:
       interval: "weekly"
