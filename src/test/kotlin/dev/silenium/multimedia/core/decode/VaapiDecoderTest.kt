@@ -8,6 +8,7 @@ import dev.silenium.multimedia.core.data.FramePadMetadata
 import dev.silenium.multimedia.core.demux.FileDemuxer
 import dev.silenium.multimedia.core.platform.linux.VaapiDecoder
 import dev.silenium.multimedia.core.platform.linux.VaapiDeviceContext
+import io.kotest.core.annotation.RequiresTag
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CompletableDeferred
@@ -18,7 +19,7 @@ import kotlin.io.path.deleteIfExists
 import kotlin.io.path.outputStream
 
 @OptIn(ExperimentalStdlibApi::class)
-//@RequiresTag("disabled")
+@RequiresTag("vaapi")
 class VaapiDecoderTest : FunSpec({
     val videoFile = Files.createTempFile("video", ".webm")
     this::class.java.classLoader.getResourceAsStream("1080p.webm").use {

@@ -11,6 +11,7 @@ import dev.silenium.multimedia.core.platform.linux.VaapiDeviceContext
 import dev.silenium.multimedia.core.platform.linux.VaapiYuvToRgbConversion
 import dev.silenium.multimedia.core.util.Mode
 import dev.silenium.multimedia.core.util.savePNG
+import io.kotest.core.annotation.RequiresTag
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,7 @@ import kotlinx.coroutines.withContext
 import java.nio.file.Files
 import kotlin.io.path.outputStream
 
+@RequiresTag("vaapi")
 class VATest : FunSpec({
     val file = run {
         val videoFile = Files.createTempFile("video", ".webm")
