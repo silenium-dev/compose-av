@@ -1,4 +1,4 @@
-package dev.silenium.multimedia.core.player
+package dev.silenium.multimedia.compose.player
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,34 +14,36 @@ import androidx.compose.ui.unit.dp
 import dev.silenium.compose.gl.surface.GLDrawScope
 import dev.silenium.compose.gl.surface.GLSurfaceView
 import dev.silenium.compose.gl.surface.rememberGLSurfaceState
+import dev.silenium.libs.flows.api.FlowGraph
+import dev.silenium.libs.flows.api.FlowItem
+import dev.silenium.libs.flows.api.Sink
+import dev.silenium.libs.flows.impl.FlowGraph
 import dev.silenium.multimedia.core.data.AVMediaType
-import dev.silenium.multimedia.core.data.AVPixelFormat
 import dev.silenium.multimedia.core.data.AVPixelFormat.*
 import dev.silenium.multimedia.core.data.Frame
-import dev.silenium.multimedia.core.data.fromId
+import dev.silenium.multimedia.core.data.FramePadMetadata
+import dev.silenium.multimedia.core.decode.Decoder
 import dev.silenium.multimedia.core.demux.FileDemuxer
-import dev.silenium.multimedia.core.flow.process
-import dev.silenium.multimedia.core.flow.processConstructed
 import dev.silenium.multimedia.core.platform.linux.VaapiDecoder
 import dev.silenium.multimedia.core.platform.linux.VaapiDeviceContext
 import dev.silenium.multimedia.core.platform.linux.VaapiYuvToRgbConversion
 import dev.silenium.multimedia.core.render.GLInteropImage
 import dev.silenium.multimedia.core.render.GLRenderInterop
 import dev.silenium.multimedia.core.util.Resources.loadTextFromClasspath
-import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import org.lwjgl.opengl.GL30.*
 import java.nio.file.Path
-import kotlin.time.Duration.Companion.milliseconds
+import java.util.*
 
-class VideoPlayer(path: Path) : AutoCloseable {
+class VideoPlayer(path: Path) : Sink<Frame, FramePadMetadata> {
     val demuxer = FileDemuxer(path)
-    private var decoder: VaapiDecoder? = null
+    private var decoder: Decoder? = null
     private var conversion: VaapiYuvToRgbConversion? = null
     private var deviceContext: VaapiDeviceContext? = null
 
     private val frames = Channel<Frame>(4, onBufferOverflow = BufferOverflow.SUSPEND)
+    private var flowGraph: FlowGraph? = null
 
     private lateinit var interop: GLRenderInterop<*>
     private var glInitialized = false
@@ -50,12 +52,31 @@ class VideoPlayer(path: Path) : AutoCloseable {
     private var vbo: Int = 0
     private var ibo: Int = 0
 
-    private val decodeJob = CoroutineScope(Dispatchers.IO).launch {
-        while (decoder == null) delay(1.milliseconds)
-        demuxer.process(0, decoder!!).processConstructed { VaapiYuvToRgbConversion(deviceContext!!, it) }.collect {
-            println("Frame: ${it.pts}")
-            frames.send(it.clone().getOrThrow())
-        }
+    private val _inputMetadata = mutableMapOf<UInt, FramePadMetadata?>()
+    override val inputMetadata: Map<UInt, FramePadMetadata?> = Collections.unmodifiableMap(_inputMetadata)
+
+    override fun configure(pad: UInt, metadata: FramePadMetadata): Result<Unit> {
+        check(!_inputMetadata.containsKey(pad)) { "Already configured" }
+        _inputMetadata[pad] = metadata
+        return Result.success(Unit)
+    }
+
+//    private var lastFrame: Frame? = null
+
+    override suspend fun receive(item: FlowItem<Frame, FramePadMetadata>): Result<Unit> {
+        println("PTS: ${item.value.pts}, VASurface: 0x${item.value.data[3].toString(16)}")
+//        println("PTS: ${item.value.pts}")
+//        lastFrame?.let {
+//            if (it.pts >= item.value.pts) {
+//                println("Dropping frame: ${item.value.pts}")
+//                item.close()
+//                return Result.success(Unit)
+//            }
+//        }
+//        lastFrame?.close()
+//        lastFrame = item.value.clone().getOrThrow()
+        frames.send(item.value)
+        return Result.success(Unit)
     }
 
     private fun initShader() {
@@ -85,7 +106,7 @@ class VideoPlayer(path: Path) : AutoCloseable {
         // TODO: Get parameters from decoder
         glUseProgram(shaderProgram)
         val formatLocation = glGetUniformLocation(shaderProgram, "tex_format")
-        glUniform1i(formatLocation, 1)
+        glUniform1i(formatLocation, 2)
         val limitedLocation = glGetUniformLocation(shaderProgram, "limitedRange")
         glUniform1i(limitedLocation, 1)
         val texYLocation = glGetUniformLocation(shaderProgram, "tex_y")
@@ -133,12 +154,28 @@ class VideoPlayer(path: Path) : AutoCloseable {
     private suspend fun initializeGL() {
         if (glInitialized) return
         deviceContext = VaapiDeviceContext.detect()
-        decoder =
-            VaapiDecoder(demuxer.streams.values.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }, deviceContext!!)
-        println("Codec: ${decoder!!.stream.codec.description}")
+        println("Device context: $deviceContext")
+        val decoder = VaapiDecoder(deviceContext!!).also { this.decoder = it }
+//        val decoder = Decoder().also { this.decoder = it }
+        flowGraph = FlowGraph {
+            val demuxerSource = source(demuxer, "demuxer")
+            val decoderTransformer = transformer(decoder, "decoder")
+            connect(demuxerSource to decoderTransformer) { selected, _, pad, metadata ->
+                if (metadata.type == AVMediaType.AVMEDIA_TYPE_VIDEO && selected.isEmpty()) pad else null
+            }
+//            conversion = VaapiYuvToRgbConversion(decoder.framesContext)
+//            conversion = VaapiYuvToRgbConversion()
+//            val filterTransformer = transformer(conversion!!, "filter")
+//            connect(decoderTransformer to filterTransformer)
+            val sink = sink(this@VideoPlayer, "sink")
+//            connect(filterTransformer to sink)
+            connect(decoderTransformer to sink)
+        }
+        demuxer.start()
+
         initShader()
         initBuffers()
-        interop = decoder!!.createGLRenderInterop()
+        interop = decoder.createGLRenderInterop()
         glInitialized = true
     }
 
@@ -180,7 +217,7 @@ class VideoPlayer(path: Path) : AutoCloseable {
                 println("Failed to map frame: $it")
                 return
             }.use {
-                val format = fromId<AVPixelFormat>(decoder!!.stream.format)
+                val format = decoder!!.outputMetadata[0u]!!.swFormat
                 val hdr = when (format) {
                     AV_PIX_FMT_P010LE,
                     AV_PIX_FMT_P010BE,
@@ -194,12 +231,11 @@ class VideoPlayer(path: Path) : AutoCloseable {
         }
     }
 
-    override fun close() {
-        runBlocking { decodeJob.cancelAndJoin() }
-        demuxer.close()
-        decoder?.close()
-        conversion?.close()
+    fun stop() {
+        flowGraph?.close()
     }
+
+    override fun close() = Unit
 }
 
 @Composable
@@ -208,7 +244,7 @@ fun rememberVideoPlayer(path: Path) =
         .also {
             DisposableEffect(path) {
                 onDispose {
-                    it.close()
+                    it.stop()
                 }
             }
         }

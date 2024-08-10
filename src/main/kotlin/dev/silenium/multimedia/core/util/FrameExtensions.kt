@@ -16,8 +16,8 @@ fun Frame.savePNG(plane: Int, path: Path, mode: Mode) {
         transferToSW().getOrThrow().savePNG(plane, path, mode)
     } else {
         val buffer = buf[plane] ?: return
-        val data = ByteArray(buffer.remaining())
-        buffer.get(data)
+        val data = ByteArray(buffer.data.remaining())
+        buffer.data.get(data)
         BufferedImage(
             width, height, when (mode) {
                 Mode.GREY -> BufferedImage.TYPE_BYTE_GRAY

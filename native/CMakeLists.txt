@@ -31,12 +31,13 @@ if (NOT USE_SYSTEM_FFMPEG)
 endif ()
 
 set(SOURCES
+        src/cpp/data/AVBufferRef.cpp
         src/cpp/data/AVCodecID.cpp
         src/cpp/data/AVPixelFormat.cpp
         src/cpp/data/Frame.cpp
         src/cpp/data/Packet.cpp
         src/cpp/decode/Decoder.cpp
-        src/cpp/decode/SoftwareDecoder.cpp
+        src/cpp/demux/Demuxer.cpp
         src/cpp/demux/FileDemuxer.cpp
         src/cpp/demux/Stream.cpp
         src/cpp/helper/errors.cpp
@@ -51,7 +52,16 @@ set(SOURCES
         src/cpp/render/Swizzles.hpp
         src/cpp/render/Swizzles.cpp
         src/cpp/util/Errors.cpp
-        src/cpp/util/AVBuffer.cpp
+        src/cpp/data/AVCodecParameters.cpp
+        src/cpp/decode/DecoderContext.h
+        src/cpp/decode/DecoderContext.cpp
+        src/cpp/data/FramePadMetadata.cpp
+        src/cpp/data/FramePadMetadata.hpp
+        src/cpp/demux/Demuxer.hpp
+        src/cpp/hw/DeviceContext.cpp
+        src/cpp/hw/FramesContext.cpp
+        src/cpp/helper/buffers.hpp
+        src/cpp/helper/buffers.cpp
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")

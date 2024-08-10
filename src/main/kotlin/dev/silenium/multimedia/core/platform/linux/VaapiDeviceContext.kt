@@ -2,16 +2,16 @@ package dev.silenium.multimedia.core.platform.linux
 
 import dev.silenium.compose.gl.context.EGLContext
 import dev.silenium.compose.gl.context.GLXContext
-import dev.silenium.multimedia.core.data.NativeCleanable
-import dev.silenium.multimedia.core.data.NativePointer
-import dev.silenium.multimedia.core.data.asNativePointer
+import dev.silenium.multimedia.core.data.AVBufferRef
+import dev.silenium.multimedia.core.data.AVHWDeviceType
+import dev.silenium.multimedia.core.hw.DeviceContext
 import dev.silenium.multimedia.core.util.Natives
-import dev.silenium.multimedia.core.util.destroyAVBufferN
 
-sealed class VaapiDeviceContext(override val nativePointer: NativePointer) : NativeCleanable {
-    constructor(nativePointer: Long) : this(nativePointer.asNativePointer(::destroyAVBufferN))
+sealed class VaapiDeviceContext(bufferRef: AVBufferRef) :
+    DeviceContext(AVHWDeviceType.AV_HWDEVICE_TYPE_VAAPI, bufferRef) {
+    constructor(nativePointer: Long) : this(AVBufferRef(nativePointer))
 
-    val display: Long by lazy { getDisplayN(nativePointer.address) }
+    val display: Long by lazy { getDisplayN(bufferRef.nativePointer.address) }
 
     data class GLX(
         val glxContext: GLXContext = GLXContext.fromCurrent()

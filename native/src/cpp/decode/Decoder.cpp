@@ -2,46 +2,61 @@
 // Created by silenium-dev on 7/21/24.
 //
 
-#include "helper/rationals.hpp"
-#include <jni.h>
-
+#include "DecoderContext.h"
 #include "helper/errors.hpp"
 
-extern "C" {
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
+#include <jni.h>
 
-JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_decode_DecoderKt_releaseDecoderN(
-    JNIEnv *env,
-    jobject thiz,
-    const jlong codecContext
-) {
-    auto avCodecContext = reinterpret_cast<AVCodecContext *>(codecContext);
-    avcodec_free_context(&avCodecContext);
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_decode_DecoderKt_createN(
+        JNIEnv *env,
+        jobject thiz) {
+    return resultSuccess(env, reinterpret_cast<jlong>(new DecoderContext));
 }
 
-JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_core_decode_DecoderKt_submitN(
-    JNIEnv *env,
-    jobject thiz,
-    const jlong codecContext,
-    const jlong packet
-) {
-    const auto avCodecContext = reinterpret_cast<AVCodecContext *>(codecContext);
-    const auto avPacket = reinterpret_cast<AVPacket *>(packet);
-    return avcodec_send_packet(avCodecContext, avPacket);
+JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_decode_DecoderKt_releaseN(
+        JNIEnv *env,
+        jobject thiz,
+        const jlong ctx) {
+    const auto context = reinterpret_cast<DecoderContext *>(ctx);
+    delete context;
+}
+
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_decode_DecoderKt_configureN(
+        JNIEnv *env,
+        jobject thiz,
+        jobject _instance,
+        const jlong _context,
+        const jlong codecParameters) {
+    const auto ctx = reinterpret_cast<DecoderContext *>(_context);
+    return ctx->configure(env, _instance, reinterpret_cast<AVCodecParameters *>(codecParameters));
+}
+
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_decode_DecoderKt_submitN(
+        JNIEnv *env,
+        jobject thiz,
+        const jlong ctx,
+        const jlong packet) {
+    const auto context = reinterpret_cast<DecoderContext *>(ctx);
+    return context->submit(env, packet);
 }
 
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_decode_DecoderKt_receiveN(
-    JNIEnv *env,
-    jobject thiz,
-    const jlong codecContext
-) {
-    const auto avCodecContext = reinterpret_cast<AVCodecContext *>(codecContext);
-    auto frame = av_frame_alloc();
-    if (const auto result = avcodec_receive_frame(avCodecContext, frame); result != 0) {
-        av_frame_free(&frame);
-        return avResultFailure(env, "receive frame", result);
-    }
-    return resultSuccess(env, reinterpret_cast<jlong>(frame));
+        JNIEnv *env,
+        jobject thiz,
+        const jlong ctx) {
+    const auto context = reinterpret_cast<DecoderContext *>(ctx);
+    return context->receive(env);
+}
+
+JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiDecoderKt_flushN(
+        JNIEnv *env,
+        jobject thiz,
+        const jlong codecContext) {
+    const auto context = reinterpret_cast<DecoderContext *>(codecContext);
+    context->flush(env);
 }
 }

@@ -3,7 +3,10 @@
 //
 
 #include "VAEGLInteropImage.hpp"
+#include "helper/drm_mapping.hpp"
 #include "helper/errors.hpp"
+#include "helper/formats.hpp"
+#include "helper/va.hpp"
 #include "render/GLInteropImage.hpp"
 
 #include <EGL/egl.h>
@@ -18,35 +21,23 @@
 #include <va/va_drmcommon.h>
 #include <vector>
 
-#include "helper/va.hpp"
-
 typedef void(EGLAPIENTRYP PFNEGLIMAGETARGETTEXTURE2DOESPROC)(EGLenum target, void *image);
 
 extern "C" {
 #include <libavutil/frame.h>
 #include <libavutil/hwcontext.h>
 #include <libavutil/hwcontext_vaapi.h>
+#include <libavutil/pixdesc.h>
 }
 
 extern "C" {
-std::map<AVPixelFormat, std::map<int, std::pair<int, int>>> planeFractions{
-        {AV_PIX_FMT_NV12, {{0, {1, 1}}, {1, {2, 2}}}},
-        {AV_PIX_FMT_P010LE, {{0, {1, 1}}, {1, {2, 2}}}},
-        {AV_PIX_FMT_P010BE, {{0, {1, 1}}, {1, {2, 2}}}},
-        {AV_PIX_FMT_YUV420P, {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
-        {AV_PIX_FMT_YUV420P10LE, {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
-        {AV_PIX_FMT_YUV420P10BE, {{0, {1, 1}}, {1, {2, 2}}, {2, {2, 2}}}},
-        {AV_PIX_FMT_YUV422P, {{0, {1, 1}}, {1, {2, 1}}, {2, {2, 1}}}},
-        {AV_PIX_FMT_YUV444P, {{0, {1, 1}}, {1, {1, 1}}, {2, {1, 1}}}},
-};
-
 JNIEXPORT jobject JNICALL
 Java_dev_silenium_multimedia_core_platform_linux_VAEGLRenderInteropKt_mapN(JNIEnv *env, jobject thiz,
-                                                                      const jlong frame_,
-                                                                      const jlong eglDisplay_) {
+                                                                           const jlong frame_,
+                                                                           const jlong eglDisplay_) {
     const auto *frame = reinterpret_cast<AVFrame *>(frame_);
-    const auto pixelFormat = static_cast<AVPixelFormat>(frame->format);
     const auto deviceCtx = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data)->device_ctx;
+    const auto swFormat = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data)->sw_format;
     const auto vaContext = static_cast<AVVAAPIDeviceContext *>(deviceCtx->hwctx);
     const auto vaDisplay = vaContext->display;
     const VASurfaceID vaSurface = reinterpret_cast<intptr_t>(frame->data[3]);
@@ -115,8 +106,8 @@ Java_dev_silenium_multimedia_core_platform_linux_VAEGLRenderInteropKt_mapN(JNIEn
         //        std::cout << "layer[" << layer << "]: pitch: " << pitch[0] << std::endl;
 
         std::pair<int, int> fraction;
-        if (planeFractions.contains(pixelFormat)) {
-            fraction = planeFractions[pixelFormat][layer];
+        if (planeFractions.contains(swFormat)) {
+            fraction = planeFractions[swFormat][layer];
         } else {
             fraction = {1, 1};
         }

@@ -34,7 +34,7 @@ class FileDemuxerTest : FunSpec({
             AVMediaType.AVMEDIA_TYPE_VIDEO,
         )
         demuxer.isSeekable shouldBe true
-        demuxer.take(1).collect { packet ->
+        demuxer.flow.take(1).collect { (_, _, packet) ->
             packet.size shouldBeGreaterThan 0
             packet.data.limit() shouldBe packet.size
         }

@@ -1,11 +1,13 @@
 package dev.silenium.multimedia.core.decode
 
+import dev.silenium.libs.flows.impl.FlowGraph
 import dev.silenium.multimedia.core.data.AVMediaType
 import dev.silenium.multimedia.core.demux.FileDemuxer
-import dev.silenium.multimedia.core.flow.process
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
 import java.nio.file.Files
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.outputStream
@@ -20,12 +22,25 @@ class SoftwareDecoderTest : FunSpec({
     }
     test("test SoftwareDecoder") {
         val demuxer = FileDemuxer(videoFile)
-        val decoder = SoftwareDecoder(demuxer.streams.values.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO })
-        demuxer.process(0, decoder).take(1).collect { frame ->
-            frame.timeBase shouldBe demuxer.streams.values.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }.timeBase
-            println(frame.buf.first()?.limit())
+        val decoder = Decoder()
+        val graph = FlowGraph {
+            val demuxerSource = source(demuxer, "demuxer")
+            val decoderTransformer = sink(decoder, "decoder")
+            connect(demuxerSource to decoderTransformer)
         }
-        decoder.close()
-        demuxer.close()
+
+        val started = CompletableDeferred<Unit>()
+        val frameDeferred = async {
+            started.complete(Unit)
+            decoder.flow.first().value
+        }
+        started.await()
+        demuxer.start()
+        val frame = frameDeferred.await()
+        graph.close()
+
+        frame.timeBase shouldBe demuxer.streams.values.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO }.timeBase
+        println(frame.buf.first()?.size)
+        frame.close()
     }
 })

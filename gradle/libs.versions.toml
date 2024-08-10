@@ -1,10 +1,11 @@
 [versions]
-kotlin = "2.0.0"
+kotlin = "2.0.10"
 
 kotlinx-coroutines = "1.8.1"
 kotlinx-serialization = "1.7.1"
 kotlinx-datetime = "0.6.0"
 
+flow-graph = "e9463af-dev"
 compose = "1.6.11"
 compose-gl = "0.3.0"
 jni-utils = "0.1.5"
@@ -31,6 +32,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
+flow-graph = { group = "dev.silenium.libs.flow-graph", name = "kotlin-flow-graph", version.ref = "flow-graph" }
 compose-gl = { group = "dev.silenium.compose.gl", name = "compose-gl", version.ref = "compose-gl" }
 compose-gl-natives = { group = "dev.silenium.compose.gl", name = "compose-gl-natives-linux-x86_64", version.ref = "compose-gl" }
 ffmpeg-natives = { group = "dev.silenium.libs", name = "ffmpeg-natives", version = "7.0+0.2.0" }

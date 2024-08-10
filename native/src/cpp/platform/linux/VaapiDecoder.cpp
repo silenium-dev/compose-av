@@ -2,22 +2,19 @@
 // Created by silenium-dev on 7/21/24.
 //
 
-#include <iostream>
+#include "decode/DecoderContext.h"
 
+#include "helper/buffers.hpp"
 #include "helper/errors.hpp"
+#include <iostream>
 #include <jni.h>
 #include <map>
-#include <unistd.h>
-#include <va/va_glx.h>
 #include <vector>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavfilter/avfilter.h>
-#include <libavfilter/buffersink.h>
-#include <libavfilter/buffersrc.h>
 #include <libavformat/avformat.h>
-#include <libavutil/hwcontext_vaapi.h>
 }
 
 static std::map<AVPixelFormat, AVPixelFormat> nativeMapping{
@@ -33,9 +30,58 @@ AVPixelFormat mapToNative(const AVPixelFormat format) {
     return format;
 }
 
+AVPixelFormat getFormat(AVCodecContext *codec_context, const AVPixelFormat *fmts);
+
+class VaapiDecoderContext final : public DecoderContext {
+public:
+    explicit VaapiDecoderContext(AVBufferRef *deviceRef) : deviceRef(deviceRef) {}
+
+    ~VaapiDecoderContext() override {
+        av_buffer_unref(&framesRef);
+        av_buffer_unref(&deviceRef);
+    }
+
+    jobject configure(JNIEnv *env, jobject thiz, const AVCodecParameters *parameters) override {
+        const auto thizClass = env->GetObjectClass(thiz);
+        const auto framesContextField = env->GetFieldID(thizClass, "framesContext", "Ldev/silenium/multimedia/core/hw/FramesContext;");
+        const auto framesContext = env->GetObjectField(thiz, framesContextField);
+        const auto framesContextClass = env->GetObjectClass(framesContext);
+        const auto framesContextBufferRefField = env->GetFieldID(framesContextClass, "bufferRef", "Ldev/silenium/multimedia/core/data/AVBufferRef;");
+        const auto framesContextBufferRef = env->GetObjectField(framesContext, framesContextBufferRefField);
+
+        framesRef = av_buffer_ref(bufferFromJava(env, framesContextBufferRef));
+        if (!framesRef) {
+            return avResultFailure(env, "frames context bufferRef not found", AVERROR(EINVAL));
+        }
+
+        deviceRef = av_buffer_ref(reinterpret_cast<AVHWFramesContext *>(framesRef->data)->device_ref);
+
+        codec = avcodec_find_decoder(parameters->codec_id);
+        context = avcodec_alloc_context3(codec);
+
+        avcodec_parameters_to_context(context, parameters);
+
+        context->opaque = reinterpret_cast<void *>(this);
+        context->get_format = &getFormat;
+
+        if (const auto ret = avcodec_open2(context, codec, nullptr); ret < 0) {
+            av_buffer_unref(&framesRef);
+            avcodec_free_context(&context);
+            return avResultFailure(env, "open codec context", ret);
+        }
+
+        return resultUnit(env);
+    }
+
+    AVBufferRef *deviceRef{nullptr};
+    AVBufferRef *framesRef{nullptr};
+};
+
 AVPixelFormat getFormat(AVCodecContext *codec_context, const AVPixelFormat *fmts) {
+    const auto opaque = static_cast<VaapiDecoderContext *>(codec_context->opaque);
     for (auto fmt = fmts; *fmt != AV_PIX_FMT_NONE; fmt++) {
         if (*fmt == AV_PIX_FMT_VAAPI) {
+            codec_context->hw_frames_ctx = av_buffer_ref(opaque->framesRef);
             return AV_PIX_FMT_VAAPI;
         }
     }
@@ -43,55 +89,23 @@ AVPixelFormat getFormat(AVCodecContext *codec_context, const AVPixelFormat *fmts
     return AV_PIX_FMT_NONE;
 }
 
+
 extern "C" {
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiDecoderKt_createN(
         JNIEnv *env,
         jobject thiz,
-        const jlong stream,
         const jlong _deviceRef) {
     const auto deviceRef = reinterpret_cast<AVBufferRef *>(_deviceRef);
-    const auto avStream = reinterpret_cast<AVStream *>(stream);
 
-    auto framesRef = av_hwframe_ctx_alloc(deviceRef);
-    //    std::cout << "Frames: " << framesRef << std::endl;
-    if (!framesRef) {
-        //        printf("Failed to allocate hw frame context\n");
-        //        fflush(stdout);
-        return avResultFailure(env, "allocate hw frame context", AVERROR(ENOMEM));
-    }
-    const auto framesCtx = reinterpret_cast<AVHWFramesContext *>(framesRef->data);
-    framesCtx->format = AV_PIX_FMT_VAAPI;
-    framesCtx->sw_format = mapToNative(static_cast<AVPixelFormat>(avStream->codecpar->format));
-    framesCtx->width = avStream->codecpar->width;
-    framesCtx->height = avStream->codecpar->height;
-    framesCtx->initial_pool_size = 20;
-    auto ret = av_hwframe_ctx_init(framesRef);
-    if (ret < 0) {
-        //        printf("Failed to initialize hw frame context\n");
-        //        fflush(stdout);
-        av_buffer_unref(&framesRef);
-        return avResultFailure(env, "initialize hw frame context", ret);
-    }
+    auto ctx = new VaapiDecoderContext{deviceRef};
+    return resultSuccess(env, reinterpret_cast<jlong>(ctx));
+}
 
-    const auto codec = avcodec_find_decoder(avStream->codecpar->codec_id);
-    //    std::cout << "Codec: " << codec << std::endl;
-    auto avCodecContext = avcodec_alloc_context3(codec);
-    //    std::cout << "Codec context: " << avCodecContext << std::endl;
-    avcodec_parameters_to_context(avCodecContext, avStream->codecpar);
-
-    avCodecContext->hw_device_ctx = av_buffer_ref(deviceRef);
-    avCodecContext->hw_frames_ctx = framesRef;
-    avCodecContext->get_format = &getFormat;
-
-    ret = avcodec_open2(avCodecContext, codec, nullptr);
-    if (ret < 0) {
-        //        printf("Failed to open codec context\n");
-        //        fflush(stdout);
-        av_buffer_unref(&framesRef);
-        avcodec_free_context(&avCodecContext);
-        return avResultFailure(env, "open codec context", ret);
-    }
-
-    return resultSuccess(env, reinterpret_cast<jlong>(avCodecContext));
+JNIEXPORT jint JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiDecoderKt_mapToNativeN(
+        JNIEnv *env,
+        jobject thiz,
+        const jint _format) {
+    const auto format = static_cast<AVPixelFormat>(_format);
+    return mapToNative(format);
 }
 }

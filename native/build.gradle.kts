@@ -59,7 +59,7 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
 
 val compileNative = tasks.register<Exec>("compileNative") {
     workingDir = layout.buildDirectory.dir("cmake").get().asFile
-    commandLine(cmakeExe, "--build", ".")
+    commandLine(cmakeExe, "--build", ".", "-j", Runtime.getRuntime().availableProcessors().toString())
     dependsOn(generateMakefile)
 
     standardOutput = System.out

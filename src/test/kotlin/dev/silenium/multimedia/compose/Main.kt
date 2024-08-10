@@ -7,8 +7,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.awaitApplication
+import dev.silenium.multimedia.compose.player.VideoPlayer
 import dev.silenium.multimedia.core.demux.FileDemuxer
-import dev.silenium.multimedia.core.player.VideoPlayer
 import java.nio.file.Files
 import kotlin.io.path.outputStream
 
@@ -17,7 +17,7 @@ fun App() {
     MaterialTheme {
         val file = remember {
             val videoFile = Files.createTempFile("video", ".webm")
-            FileDemuxer::class.java.classLoader.getResourceAsStream("4K_HDR.webm").use {
+            FileDemuxer::class.java.classLoader.getResourceAsStream("1080p.mp4").use {
                 videoFile.outputStream().use(it::copyTo)
             }
             videoFile.apply { toFile().deleteOnExit() }

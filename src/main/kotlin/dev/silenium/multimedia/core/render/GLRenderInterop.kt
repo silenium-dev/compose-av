@@ -10,7 +10,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 
-abstract class GLRenderInterop<D : Decoder<D>> {
+abstract class GLRenderInterop<D : Decoder> {
     protected val log: Logger by lazy { LoggerFactory.getLogger(javaClass) }
 
     private var stats = RollingWindowStatistics()

@@ -2,6 +2,7 @@
 // Created by silenium-dev on 8/1/24.
 //
 
+#include "data/FramePadMetadata.hpp"
 #include "helper/errors.hpp"
 #include "helper/rationals.hpp"
 #include <cinttypes>
@@ -14,7 +15,6 @@ extern "C" {
 #include <libavfilter/buffersrc.h>
 #include <libavutil/frame.h>
 #include <libavutil/hwcontext.h>
-#include <libavutil/hwcontext_vaapi.h>
 
 struct VaapiYuvToRgbConversionContext {
     AVBufferRef *inputFramesRef{nullptr};
@@ -24,72 +24,33 @@ struct VaapiYuvToRgbConversionContext {
     AVFilterContext *bufferSink{nullptr};
 };
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiYuvToRgbConversionKt_createN(JNIEnv *env, jclass clazz, const jlong _deviceRef, const jlong _inputFrame, jobject _timeBase) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiYuvToRgbConversionKt_createN(JNIEnv *env, jclass clazz, jobject _inputMetadata, const jlong _deviceRef, const jlong _inputFramesContext, const jlong _outputFramesContext, jobject _timeBase) {
     const auto deviceRef = reinterpret_cast<AVBufferRef *>(_deviceRef);
-    const auto inputFrame = reinterpret_cast<AVFrame *>(_inputFrame);
+    const auto inputFramesRef = reinterpret_cast<AVBufferRef *>(_inputFramesContext);
+    const auto outputFramesRef = reinterpret_cast<AVBufferRef *>(_outputFramesContext);
+    const FramePadMetadata inputMetadata{env, _inputMetadata};
     const auto timeBase = fromJava(env, _timeBase);
-    AVBufferRef *inputFramesRef = nullptr;
-    if (inputFrame->hw_frames_ctx) {
-        inputFramesRef = av_buffer_ref(inputFrame->hw_frames_ctx);
-    } else {
-        inputFramesRef = av_hwframe_ctx_alloc(deviceRef);
-        if (inputFramesRef == nullptr) {
-            return avResultFailure(env, "allocating hw frame context", AVERROR(ENOMEM));
-        }
-
-        auto hwFramesContext = reinterpret_cast<AVHWFramesContext *>(inputFramesRef->data);
-        hwFramesContext->format = AV_PIX_FMT_VAAPI;
-        hwFramesContext->sw_format = static_cast<AVPixelFormat>(inputFrame->format);
-        hwFramesContext->width = inputFrame->width;
-        hwFramesContext->height = inputFrame->height;
-        hwFramesContext->initial_pool_size = 1;
-        if (const auto ret = av_hwframe_ctx_init(inputFramesRef); ret < 0) {
-            av_buffer_unref(&inputFramesRef);
-            return avResultFailure(env, "initializing hw frame context", ret);
-        }
-    }
-    AVBufferRef *outputFramesRef = av_hwframe_ctx_alloc(deviceRef);
-    if (outputFramesRef == nullptr) {
-        av_buffer_unref(&inputFramesRef);
-        return avResultFailure(env, "allocating hw frame context", AVERROR(ENOMEM));
-    }
-
-    {
-        auto hwFramesContext = reinterpret_cast<AVHWFramesContext *>(outputFramesRef->data);
-        hwFramesContext->format = AV_PIX_FMT_VAAPI;
-        hwFramesContext->sw_format = AV_PIX_FMT_RGB0;
-        hwFramesContext->width = inputFrame->width;
-        hwFramesContext->height = inputFrame->height;
-        hwFramesContext->initial_pool_size = 1;
-        if (const auto ret = av_hwframe_ctx_init(outputFramesRef); ret < 0) {
-            av_buffer_unref(&inputFramesRef);
-            av_buffer_unref(&outputFramesRef);
-            return avResultFailure(env, "initializing hw frame context", ret);
-        }
-    }
 
     char filterString[2048];
     snprintf(filterString, sizeof(filterString),
              "buffer=video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d [in_1];"
              "[in_1] scale_vaapi=w=%d:h=%d:format=rgb0 [out_1];"
              "[out_1] buffersink",
-             inputFrame->width,
-             inputFrame->height,
+             inputMetadata.width(),
+             inputMetadata.height(),
              AV_PIX_FMT_VAAPI,
              timeBase.num,
              timeBase.den,
-             inputFrame->sample_aspect_ratio.num,
-             inputFrame->sample_aspect_ratio.den,
-             inputFrame->width,
-             inputFrame->height);
+             inputMetadata.sample_aspect_ratio().num,
+             inputMetadata.sample_aspect_ratio().den,
+             inputMetadata.width(),
+             inputMetadata.height());
 
     auto filterGraph = avfilter_graph_alloc();
     AVFilterInOut *filterIn{nullptr};
     AVFilterInOut *filterOut{nullptr};
     auto ret = avfilter_graph_parse2(filterGraph, filterString, &filterIn, &filterOut);
     if (ret < 0) {
-        av_buffer_unref(&inputFramesRef);
-        av_buffer_unref(&outputFramesRef);
         avfilter_graph_free(&filterGraph);
         return avResultFailure(env, "parse filter graph", ret);
     }
@@ -113,18 +74,18 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_Vaapi
     AVBufferSrcParameters srcParams{};
     srcParams.format = AV_PIX_FMT_VAAPI;
     srcParams.time_base = timeBase;
-    srcParams.width = inputFrame->width;
-    srcParams.height = inputFrame->height;
+    srcParams.width = inputMetadata.width();
+    srcParams.height = inputMetadata.height();
     srcParams.hw_frames_ctx = av_buffer_ref(inputFramesRef);
-    srcParams.color_range = inputFrame->color_range;
-    srcParams.color_space = inputFrame->colorspace;
+    srcParams.color_range = inputMetadata.colorRange();
+    srcParams.color_space = inputMetadata.colorSpace();
     ret = av_buffersrc_parameters_set(bufferSrc, &srcParams);
     if (ret < 0) {
         av_buffer_unref(&srcParams.hw_frames_ctx);
-        av_buffer_unref(&inputFramesRef);
-        av_buffer_unref(&outputFramesRef);
         av_buffer_unref(&outLink->hw_frames_ctx);
         av_buffer_unref(&inLink->hw_frames_ctx);
+        av_buffer_unref(&bufferSrc->hw_device_ctx);
+        av_buffer_unref(&bufferSink->hw_device_ctx);
         avfilter_graph_free(&filterGraph);
         return avResultFailure(env, "set buffer source parameters", ret);
     }
@@ -132,17 +93,17 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_Vaapi
     ret = avfilter_graph_config(filterGraph, nullptr);
     if (ret < 0) {
         av_buffer_unref(&srcParams.hw_frames_ctx);
-        av_buffer_unref(&inputFramesRef);
-        av_buffer_unref(&outputFramesRef);
         av_buffer_unref(&outLink->hw_frames_ctx);
         av_buffer_unref(&inLink->hw_frames_ctx);
+        av_buffer_unref(&bufferSrc->hw_device_ctx);
+        av_buffer_unref(&bufferSink->hw_device_ctx);
         avfilter_graph_free(&filterGraph);
         return avResultFailure(env, "config filter graph", ret);
     }
 
     const auto vaapiYuvToRgbConversionContext = new VaapiYuvToRgbConversionContext{
-            .inputFramesRef = inputFramesRef,
-            .outputFramesRef = outputFramesRef,
+            .inputFramesRef = av_buffer_ref(inputFramesRef),
+            .outputFramesRef = av_buffer_ref(outputFramesRef),
             .filterGraph = filterGraph,
             .bufferSrc = bufferSrc,
             .bufferSink = bufferSink,
@@ -183,6 +144,17 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_Vaapi
             av_frame_free(&hwFrame);
             return avResultFailure(env, "transfer frame data", ret);
         }
+
+        hwFrame->best_effort_timestamp = frame->best_effort_timestamp;
+        hwFrame->pts = frame->pts;
+        hwFrame->duration = frame->duration;
+        hwFrame->flags = frame->flags;
+        hwFrame->color_primaries = frame->color_primaries;
+        hwFrame->color_trc = frame->color_trc;
+        hwFrame->colorspace = frame->colorspace;
+        hwFrame->color_range = frame->color_range;
+        hwFrame->sample_aspect_ratio = frame->sample_aspect_ratio;
+
         av_frame_free(&frame);
         frame = hwFrame;
     }

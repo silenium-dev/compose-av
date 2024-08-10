@@ -1,4 +1,4 @@
-package dev.silenium.multimedia.core.player
+package dev.silenium.multimedia.compose.player
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding

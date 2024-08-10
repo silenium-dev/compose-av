@@ -25,3 +25,15 @@ private external fun avErrorStringN(error: Int): String
 private external fun eglErrorStringN(error: Long): String
 private external fun glErrorStringN(error: Int): String
 private external fun vaErrorStringN(error: Int): String
+
+val Throwable.shouldIgnore
+    get() = when (this) {
+        is AVException -> when (error) {
+            -11 -> true // EAGAIN
+            -12 -> true // ENOMEM
+            -541478725 -> true // AVERROR_EOF
+            else -> false
+        }
+
+        else -> false
+    }
