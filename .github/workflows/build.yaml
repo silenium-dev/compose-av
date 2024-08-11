@@ -26,7 +26,7 @@ jobs:
           release-repo-url: "https://reposilite.silenium.dev/releases"
           repo-username: ${{ secrets.REPOSILITE_USERNAME }}
           repo-password: ${{ secrets.REPOSILITE_PASSWORD }}
-          tests: false
+          tests: true
           java-version: 11
           platform: ${{ github.job }}
   kotlin:
