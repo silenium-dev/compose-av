@@ -5,7 +5,7 @@ kotlinx-coroutines = "1.8.1"
 kotlinx-serialization = "1.7.1"
 kotlinx-datetime = "0.6.0"
 
-flow-graph = "e9463af-dev"
+flow-graph = "0856b2e-dev"
 compose = "1.6.11"
 compose-gl = "0.3.0"
 jni-utils = "0.1.5"
