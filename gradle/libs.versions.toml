@@ -7,7 +7,7 @@ kotlinx-datetime = "0.6.1"
 
 flow-graph = "e9463af-dev"
 compose = "1.6.11"
-compose-gl = "0.3.0"
+compose-gl = "0.3.3"
 jni-utils = "0.1.5"
 skiko = "0.8.10-egl"
 
