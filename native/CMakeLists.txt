@@ -81,8 +81,6 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
             src/cpp/platform/linux/VaapiYuvToRgbConversion.cpp
             src/cpp/platform/linux/VAEGLInteropImage.cpp
             src/cpp/platform/linux/VAEGLInteropImage.hpp
-            src/cpp/platform/linux/VAGLXInteropImage.cpp
-            src/cpp/platform/linux/VAGLXInteropImage.hpp
             src/cpp/platform/linux/VAEGLRenderInterop.cpp
             src/cpp/platform/linux/VaapiDecoder.cpp
     )

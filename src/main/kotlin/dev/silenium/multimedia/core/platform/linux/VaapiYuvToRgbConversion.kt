@@ -54,7 +54,6 @@ class VaapiYuvToRgbConversion :
             deviceContext.address,
             inputFramesContext!!.address,
             outputFramesContext.address,
-            metadata.timeBase,
         ).getOrThrow().asNativePointer(::destroyN)
 
         return super.configure(pad, metadata)
@@ -128,7 +127,6 @@ private external fun createN(
     deviceContext: Long,
     inputFramesContext: Long,
     outputFramesContext: Long,
-    timeBase: Rational
 ): Result<Long>
 
 private external fun destroyN(context: Long)

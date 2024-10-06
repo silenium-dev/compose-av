@@ -5,6 +5,8 @@
 #include "data/FramePadMetadata.hpp"
 #include "helper/errors.hpp"
 #include "helper/rationals.hpp"
+#include "helper/va.hpp"
+
 #include <cinttypes>
 #include <iostream>
 #include <unistd.h>
@@ -24,12 +26,12 @@ struct VaapiYuvToRgbConversionContext {
     AVFilterContext *bufferSink{nullptr};
 };
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiYuvToRgbConversionKt_createN(JNIEnv *env, jclass clazz, jobject _inputMetadata, const jlong _deviceRef, const jlong _inputFramesContext, const jlong _outputFramesContext, jobject _timeBase) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_VaapiYuvToRgbConversionKt_createN(JNIEnv *env, jclass clazz, jobject _inputMetadata, const jlong _deviceRef, const jlong _inputFramesContext, const jlong _outputFramesContext) {
     const auto deviceRef = reinterpret_cast<AVBufferRef *>(_deviceRef);
     const auto inputFramesRef = reinterpret_cast<AVBufferRef *>(_inputFramesContext);
     const auto outputFramesRef = reinterpret_cast<AVBufferRef *>(_outputFramesContext);
     const FramePadMetadata inputMetadata{env, _inputMetadata};
-    const auto timeBase = fromJava(env, _timeBase);
+    const auto timeBase = inputMetadata.timeBase();
 
     char filterString[2048];
     snprintf(filterString, sizeof(filterString),
@@ -154,6 +156,23 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_platform_linux_Vaapi
         hwFrame->colorspace = frame->colorspace;
         hwFrame->color_range = frame->color_range;
         hwFrame->sample_aspect_ratio = frame->sample_aspect_ratio;
+
+        av_frame_free(&frame);
+        frame = hwFrame;
+    } else {
+        if (frame->format != AV_PIX_FMT_VAAPI) {
+            return avResultFailure(env, "input frame format is not VAAPI", AVERROR(EINVAL));
+        }
+        const auto hwFrame = av_frame_clone(frame);
+        if (hwFrame == nullptr) {
+            return avResultFailure(env, "allocating hw frame", AVERROR(ENOMEM));
+        }
+
+        // auto ret = mapFrameToDifferentContext(hwFrame, inputFrame, ctx->inputFramesRef);
+        // if (ret.code != 0) {
+            // av_frame_free(&hwFrame);
+            // return avResultFailure(env, ret.message, ret.code);
+        // }
 
         av_frame_free(&frame);
         frame = hwFrame;

@@ -140,7 +140,7 @@ Java_dev_silenium_multimedia_core_platform_linux_VAEGLRenderInteropKt_mapN(JNIEn
         glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, eglImage);
         error = glGetError();
         if (error != GL_NO_ERROR) {
-            std::cerr << "Failed to bind egl image to texture: " << error << std::endl;
+            // std::cerr << "Failed to bind egl image to texture: " << error << std::endl;
             eglDestroyImageKHR(eglDisplay, eglImage);
             closeDrm(drm);
             return glResultFailure(env, "glEGLImageTargetTexture2DOES", error);

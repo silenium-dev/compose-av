@@ -64,7 +64,7 @@ class VideoPlayer(path: Path) : Sink<Frame, FramePadMetadata> {
 //    private var lastFrame: Frame? = null
 
     override suspend fun receive(item: FlowItem<Frame, FramePadMetadata>): Result<Unit> {
-        println("PTS: ${item.value.pts}, VASurface: 0x${item.value.data[3].toString(16)}")
+//        println("PTS: ${item.value.pts}, VASurface: 0x${item.value.data[3].toString(16)}")
 //        println("PTS: ${item.value.pts}")
 //        lastFrame?.let {
 //            if (it.pts >= item.value.pts) {
@@ -222,11 +222,13 @@ class VideoPlayer(path: Path) : Sink<Frame, FramePadMetadata> {
                     AV_PIX_FMT_P010LE,
                     AV_PIX_FMT_P010BE,
                     AV_PIX_FMT_YUV420P10LE,
-                    AV_PIX_FMT_YUV420P10BE -> true
+                    AV_PIX_FMT_YUV420P10BE,
+                        -> true
 
                     else -> false
                 }
                 renderImage(it, hdr)
+                redrawAfter(it.frame.duration)
             }
         }
     }

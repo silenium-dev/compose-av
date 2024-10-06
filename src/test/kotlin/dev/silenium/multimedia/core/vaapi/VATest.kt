@@ -11,7 +11,6 @@ import dev.silenium.multimedia.core.platform.linux.VaapiDeviceContext
 import dev.silenium.multimedia.core.platform.linux.VaapiYuvToRgbConversion
 import dev.silenium.multimedia.core.util.Mode
 import dev.silenium.multimedia.core.util.savePNG
-import io.kotest.core.annotation.RequiresTag
 import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -21,11 +20,11 @@ import kotlinx.coroutines.withContext
 import java.nio.file.Files
 import kotlin.io.path.outputStream
 
-@RequiresTag("vaapi")
+//@RequiresTag("vaapi")
 class VATest : FunSpec({
     val file = run {
         val videoFile = Files.createTempFile("video", ".webm")
-        FileDemuxer::class.java.classLoader.getResourceAsStream("1080p.webm").use {
+        FileDemuxer::class.java.classLoader.getResourceAsStream("1080p.cut.webm").use {
             videoFile.outputStream().use(it::copyTo)
         }
         videoFile.apply { toFile().deleteOnExit() }
@@ -45,11 +44,9 @@ class VATest : FunSpec({
             connect(demuxerSource to decoderTransformer) { _, _, pad, metadata ->
                 if (metadata.type == AVMediaType.AVMEDIA_TYPE_VIDEO) pad else null
             }
-            filter = VaapiYuvToRgbConversion()
-            val filterTransformer = transformer(filter, "filter")
-            connect(decoderTransformer to filterTransformer)
+            filter = VaapiYuvToRgbConversion(decoder.outputMetadata.values.first(), decoder.framesContext)
             val sink = sink(bufferSink, "sink")
-            connect(filterTransformer to sink)
+            connect(decoderTransformer to sink)
         }
         val started = CompletableDeferred<Unit>()
         val frameDeferred = async {
@@ -61,8 +58,11 @@ class VATest : FunSpec({
         val frame = frameDeferred.await()
         graph.close()
 
+        filter.submit(frame).getOrThrow()
+        val converted = filter.receive().getOrThrow()
+
         withContext(Dispatchers.IO) {
-            frame.savePNG(0, Files.createTempFile("frame", ".png"), Mode.RGB0)
+            converted.savePNG(0, Files.createTempFile("frame", ".png"), Mode.RGB0)
         }
 
         context.close()
