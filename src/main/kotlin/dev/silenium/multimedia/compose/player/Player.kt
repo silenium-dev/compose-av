@@ -24,8 +24,8 @@ class VideoPlayer(private val path: Path) : AutoCloseable {
     private var glInitialized = false
     private val mpv = createMPV()
     private var render: MPV.Render? = null
-    val duration = mpv.propertyFlow<Double>("duration").mapState { it?.seconds }
-    val position = mpv.propertyFlow<Double>("time-pos").mapState { it?.seconds }
+    suspend fun duration() = mpv.propertyFlow<Double>("duration").mapState { it?.seconds }
+    suspend fun position() = mpv.propertyFlow<Double>("time-pos").mapState { it?.seconds }
 
     private fun createMPV(hwdec: Boolean = true): MPV {
         val mpv = MPV()
@@ -35,9 +35,8 @@ class VideoPlayer(private val path: Path) : AutoCloseable {
             mpv.setOption(it.key, it.value)
         }
         mpv.initialize().getOrThrow()
-        initProperties.forEach {
-            mpv.setProperty(it.key, it.value)
-        }
+        mpv.setProperty("loop", false).getOrThrow()
+        mpv.setProperty("keep-open", "yes").getOrThrow()
         return mpv
     }
 

@@ -11,12 +11,13 @@ import androidx.compose.ui.unit.dp
 import dev.silenium.compose.gl.surface.GLSurfaceState
 import dev.silenium.compose.gl.surface.Stats
 import dev.silenium.multimedia.compose.format.format
+import dev.silenium.multimedia.core.util.deferredFlowStateOf
 
 @Composable
 fun PlayerStats(player: VideoPlayer, state: GLSurfaceState) {
     Column(modifier = Modifier.padding(6.dp)) {
-        val position by player.position.collectAsState()
-        val duration by player.duration.collectAsState()
+        val position by deferredFlowStateOf(player::position)
+        val duration by deferredFlowStateOf(player::duration)
         Text("Positon: ${position?.format() ?: "N/A"}")
         Text("Duration: ${duration?.format() ?: "N/A"}")
 
