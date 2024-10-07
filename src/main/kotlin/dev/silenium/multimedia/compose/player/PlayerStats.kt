@@ -10,12 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.silenium.compose.gl.surface.GLSurfaceState
 import dev.silenium.compose.gl.surface.Stats
-import dev.silenium.multimedia.core.data.AVMediaType
 
 @Composable
 fun PlayerStats(player: VideoPlayer, state: GLSurfaceState) {
     Column(modifier = Modifier.padding(6.dp)) {
-        Text("Duration: ${player.demuxer.duration(player.demuxer.streams.values.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO })}")
+//        Text("Duration: ${player.demuxer.duration(player.demuxer.streams.values.first { it.type == AVMediaType.AVMEDIA_TYPE_VIDEO })}")
 
         val display by state.displayStatistics.collectAsState()
         Text("Display datapoints: ${display.frameTimes.values.size}")

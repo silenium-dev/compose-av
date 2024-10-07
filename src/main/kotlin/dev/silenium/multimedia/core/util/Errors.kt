@@ -12,6 +12,9 @@ class GLException(val operation: String, val error: Int) :
 class VAException(val operation: String, val error: Int) :
     Exception("VA error during $operation: ${error.asVAErrorString()}")
 
+class MPVException(val operation: String, val error: Int) :
+    Exception("MPV error during $operation: ${error.asAVErrorString()}")
+
 fun Int.asAVError(operation: String = "ffmpeg call"): Exception = AVException(operation, this)
 fun Int.asAVErrorString(): String = avErrorStringN(this)
 fun Long.asEGLError(operation: String = "EGL call"): Exception = EGLException(operation, this)
@@ -20,11 +23,14 @@ fun Int.asGLError(operation: String = "GL call"): Exception = GLException(operat
 fun Int.asGLErrorString(): String = glErrorStringN(this)
 fun Int.asVAError(operation: String = "VA call"): Exception = VAException(operation, this)
 fun Int.asVAErrorString(): String = vaErrorStringN(this)
+fun Int.asMPVError(operation: String = "MPV call"): Exception = MPVException(operation, this)
+fun Int.asMPVErrorString(): String = mpvErrorStringN(this)
 
 private external fun avErrorStringN(error: Int): String
 private external fun eglErrorStringN(error: Long): String
 private external fun glErrorStringN(error: Int): String
 private external fun vaErrorStringN(error: Int): String
+private external fun mpvErrorStringN(error: Int): String
 
 val Throwable.shouldIgnore
     get() = when (this) {

@@ -3,26 +3,32 @@
 //
 
 #include <GL/gl.h>
+#include <cstring>
 #include <jni.h>
+#include <mpv/client.h>
 
 extern "C" {
 #include <libavutil/error.h>
 
 JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_core_util_ErrorsKt_avErrorStringN(
-    JNIEnv *env,
-    jobject thiz,
-    const jint error
-) {
+        JNIEnv *env,
+        jobject thiz,
+        const jint error) {
     char errorStr[AV_ERROR_MAX_STRING_SIZE];
     av_make_error_string(errorStr, AV_ERROR_MAX_STRING_SIZE, error);
     return env->NewStringUTF(errorStr);
+}
+JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_core_util_ErrorsKt_mpvErrorStringN(
+        JNIEnv *env,
+        jobject thiz,
+        const jint error) {
+    return env->NewStringUTF(mpv_error_string(error));
 }
 
 JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_core_util_ErrorsKt_glErrorStringN(
         JNIEnv *env,
         jobject thiz,
-        const jint error
-) {
+        const jint error) {
     switch (error) {
         case GL_NO_ERROR:
             return env->NewStringUTF("GL_NO_ERROR");

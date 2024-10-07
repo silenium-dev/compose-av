@@ -1,6 +1,6 @@
 package dev.silenium.multimedia.compose
 
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.awaitApplication
 import dev.silenium.multimedia.compose.player.VideoPlayer
-import dev.silenium.multimedia.core.demux.FileDemuxer
 import java.nio.file.Files
 import kotlin.io.path.outputStream
 
@@ -17,12 +16,12 @@ fun App() {
     MaterialTheme {
         val file = remember {
             val videoFile = Files.createTempFile("video", ".webm")
-            FileDemuxer::class.java.classLoader.getResourceAsStream("1080p.mp4").use {
+            Thread.currentThread().contextClassLoader.getResourceAsStream("1080p.webm").use {
                 videoFile.outputStream().use(it::copyTo)
             }
             videoFile.apply { toFile().deleteOnExit() }
         }
-        VideoPlayer(file, showStats = true, modifier = Modifier.aspectRatio(16f / 9))
+        VideoPlayer(file, showStats = true, modifier = Modifier.fillMaxSize())
     }
 }
 

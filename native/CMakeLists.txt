@@ -31,37 +31,15 @@ if (NOT USE_SYSTEM_FFMPEG)
 endif ()
 
 set(SOURCES
-        src/cpp/data/AVBufferRef.cpp
-        src/cpp/data/AVCodecID.cpp
-        src/cpp/data/AVPixelFormat.cpp
-        src/cpp/data/Frame.cpp
-        src/cpp/data/Packet.cpp
-        src/cpp/decode/Decoder.cpp
-        src/cpp/demux/Demuxer.cpp
-        src/cpp/demux/FileDemuxer.cpp
-        src/cpp/demux/Stream.cpp
-        src/cpp/helper/errors.cpp
-        src/cpp/helper/errors.hpp
-        src/cpp/helper/rationals.cpp
-        src/cpp/helper/rationals.hpp
-        src/cpp/render/GLInteropImage.cpp
-        src/cpp/render/GLInteropImage.hpp
-        src/cpp/render/SoftwareGLInteropImage.cpp
-        src/cpp/render/SoftwareGLInteropImage.hpp
-        src/cpp/render/SoftwareGLRenderInterop.cpp
-        src/cpp/render/Swizzles.hpp
-        src/cpp/render/Swizzles.cpp
         src/cpp/util/Errors.cpp
-        src/cpp/data/AVCodecParameters.cpp
-        src/cpp/decode/DecoderContext.h
-        src/cpp/decode/DecoderContext.cpp
-        src/cpp/data/FramePadMetadata.cpp
-        src/cpp/data/FramePadMetadata.hpp
-        src/cpp/demux/Demuxer.hpp
-        src/cpp/hw/DeviceContext.cpp
-        src/cpp/hw/FramesContext.cpp
         src/cpp/helper/buffers.hpp
         src/cpp/helper/buffers.cpp
+        src/cpp/helper/errors.hpp
+        src/cpp/helper/errors.cpp
+        src/cpp/helper/formats.hpp
+        src/cpp/helper/rationals.hpp
+        src/cpp/helper/rationals.cpp
+        src/cpp/mpv/MPV.cpp
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -69,21 +47,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         set(JAVA_HOME "/usr/lib/jvm/java-11-openjdk")
     endif ()
 
-    list(APPEND SOURCES
-            src/cpp/platform/linux/helper/drm_mapping.cpp
-            src/cpp/platform/linux/helper/drm_mapping.hpp
-            src/cpp/platform/linux/helper/EGL.cpp
-            src/cpp/platform/linux/helper/EGL.hpp
-            src/cpp/platform/linux/helper/va.cpp
-            src/cpp/platform/linux/helper/va.hpp
-            src/cpp/platform/linux/Errors.cpp
-            src/cpp/platform/linux/VaapiDeviceContext.cpp
-            src/cpp/platform/linux/VaapiYuvToRgbConversion.cpp
-            src/cpp/platform/linux/VAEGLInteropImage.cpp
-            src/cpp/platform/linux/VAEGLInteropImage.hpp
-            src/cpp/platform/linux/VAEGLRenderInterop.cpp
-            src/cpp/platform/linux/VaapiDecoder.cpp
-    )
+#    list(APPEND SOURCES)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 endif ()
 
@@ -101,7 +65,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_definitions(${PROJECT_NAME} PRIVATE -D_LINUX)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GL REQUIRED IMPORTED_TARGET gl egl libva libva-drm libdrm glx libva-glx)
-    target_link_libraries(${PROJECT_NAME} PUBLIC PkgConfig::GL)
+    pkg_check_modules(MPV REQUIRED IMPORTED_TARGET mpv)
+    target_link_libraries(${PROJECT_NAME} PUBLIC PkgConfig::GL PkgConfig::MPV)
     target_include_directories(${PROJECT_NAME} PUBLIC "${JAVA_HOME}/include/linux")
     if (USE_SYSTEM_FFMPEG)
         pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavcodec libavformat libavutil libswscale libavfilter)

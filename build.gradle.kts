@@ -25,6 +25,7 @@ dependencies {
     implementation(libs.compose.gl)
     implementation(libs.compose.gl.natives)
     implementation(libs.jni.utils)
+    implementation(libs.jna)
     implementation(libs.bundles.kotlinx)
     implementation(libs.slf4j.api)  // for logging
     if (deployNative) {

@@ -8,6 +8,7 @@ build/
 *.webm
 *.mkv
 *.mp4
+*.gif
 nv12.png
 output.png
 rgb.png

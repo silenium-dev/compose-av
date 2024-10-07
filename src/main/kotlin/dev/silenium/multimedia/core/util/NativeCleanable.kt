@@ -1,4 +1,4 @@
-package dev.silenium.multimedia.core.data
+package dev.silenium.multimedia.core.util
 
 interface NativeCleanable : AutoCloseable {
     val nativePointer: NativePointer

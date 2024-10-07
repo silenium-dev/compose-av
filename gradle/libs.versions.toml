@@ -6,10 +6,11 @@ kotlinx-serialization = "1.7.3"
 kotlinx-datetime = "0.6.1"
 
 flow-graph = "e9463af-dev"
-compose = "1.6.11"
-compose-gl = "0.4.0"
+compose = "1.7.0-beta02"
+compose-gl = "0.5.1"
 jni-utils = "0.1.5"
 skiko = "0.8.12-egl"
+jna = "5.15.0"
 
 slf4j = "2.0.16"
 logback = "1.5.8"
@@ -37,6 +38,7 @@ compose-gl = { group = "dev.silenium.compose.gl", name = "compose-gl", version.r
 compose-gl-natives = { group = "dev.silenium.compose.gl", name = "compose-gl-natives-linux-x86_64", version.ref = "compose-gl" }
 ffmpeg-natives = { group = "dev.silenium.libs", name = "ffmpeg-natives", version = "7.0+0.2.0" }
 jni-utils = { group = "dev.silenium.libs.jni", name = "jni-utils", version.ref = "jni-utils" }
+jna = { group = "net.java.dev.jna", name = "jna", version.ref = "jna" }
 
 skiko-awt = { group = "org.jetbrains.skiko", name = "skiko-awt", version.ref = "skiko" }
 skiko-awt-runtime-linux-x64 = { group = "org.jetbrains.skiko", name = "skiko-awt-runtime-linux-x64", version.ref = "skiko" }
