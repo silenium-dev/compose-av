@@ -23,7 +23,7 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-option(USE_SYSTEM_FFMPEG "Link dynamically against system ffmpeg instead of using static prebuilt libraries" OFF)
+option(USE_SYSTEM_FFMPEG "Link dynamically against system ffmpeg instead of using static prebuilt libraries" ON)
 
 include(ExternalProject)
 if (NOT USE_SYSTEM_FFMPEG)
@@ -32,13 +32,8 @@ endif ()
 
 set(SOURCES
         src/cpp/util/Errors.cpp
-        src/cpp/helper/buffers.hpp
-        src/cpp/helper/buffers.cpp
         src/cpp/helper/errors.hpp
         src/cpp/helper/errors.cpp
-        src/cpp/helper/formats.hpp
-        src/cpp/helper/rationals.hpp
-        src/cpp/helper/rationals.cpp
         src/cpp/mpv/MPV.cpp
 )
 
