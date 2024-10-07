@@ -16,7 +16,7 @@ fun App() {
     MaterialTheme {
         val file = remember {
             val videoFile = Files.createTempFile("video", ".webm")
-            Thread.currentThread().contextClassLoader.getResourceAsStream("1080p.webm").use {
+            Thread.currentThread().contextClassLoader.getResourceAsStream("4K_HDR.webm").use {
                 videoFile.outputStream().use(it::copyTo)
             }
             videoFile.apply { toFile().deleteOnExit() }

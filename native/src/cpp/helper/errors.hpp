@@ -21,6 +21,7 @@ jobject resultSuccess(JNIEnv *env, const char *value);
 jobject resultSuccess(JNIEnv *env, double value);
 jobject resultSuccess(JNIEnv *env, bool value);
 jobject resultSuccess(JNIEnv *env);
+jobject resultSuccessNull();
 
 jobject eglResultFailure(JNIEnv *env, const char *operation, long returnCode);
 jobject glResultFailure(JNIEnv *env, const char *operation, uint returnCode);

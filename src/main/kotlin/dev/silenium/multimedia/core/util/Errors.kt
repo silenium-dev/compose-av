@@ -13,7 +13,7 @@ class VAException(val operation: String, val error: Int) :
     Exception("VA error during $operation: ${error.asVAErrorString()}")
 
 class MPVException(val operation: String, val error: Int) :
-    Exception("MPV error during $operation: ${error.asAVErrorString()}")
+    Exception("MPV error during $operation: ${error.asMPVErrorString()}")
 
 fun Int.asAVError(operation: String = "ffmpeg call"): Exception = AVException(operation, this)
 fun Int.asAVErrorString(): String = avErrorStringN(this)

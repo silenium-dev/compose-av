@@ -154,7 +154,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_createN(JNIEnv 
 }
 
 JNIEXPORT void JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_destroyN(JNIEnv *env, jobject thiz, const jlong handle) {
-    mpv_destroy(reinterpret_cast<mpv_handle *>(handle));
+    mpv_terminate_destroy(reinterpret_cast<mpv_handle *>(handle));
 }
 
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_setOptionStringN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, jstring value) {
@@ -222,10 +222,15 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_getPropertyStri
     char *value;
     const auto ret = mpv_get_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_STRING, &value);
     env->ReleaseStringUTFChars(name, nameStr);
+    if (ret == MPV_ERROR_PROPERTY_UNAVAILABLE) {
+        return resultSuccessNull();
+    }
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_get_property", ret);
     }
-    return resultSuccess(env, value);
+    const auto result = resultSuccess(env, value);
+    mpv_free(value);
+    return result;
 }
 
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_getPropertyLongN(JNIEnv *env, jobject thiz, const jlong handle, jstring name) {
@@ -233,6 +238,9 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_getPropertyLong
     long value;
     const auto ret = mpv_get_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_INT64, &value);
     env->ReleaseStringUTFChars(name, nameStr);
+    if (ret == MPV_ERROR_PROPERTY_UNAVAILABLE) {
+        return resultSuccessNull();
+    }
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_get_property", ret);
     }
@@ -244,6 +252,9 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_getPropertyDoub
     double value;
     const auto ret = mpv_get_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_DOUBLE, &value);
     env->ReleaseStringUTFChars(name, nameStr);
+    if (ret == MPV_ERROR_PROPERTY_UNAVAILABLE) {
+        return resultSuccessNull();
+    }
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_get_property", ret);
     }
@@ -255,6 +266,9 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_getPropertyFlag
     bool value;
     const auto ret = mpv_get_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_FLAG, &value);
     env->ReleaseStringUTFChars(name, nameStr);
+    if (ret == MPV_ERROR_PROPERTY_UNAVAILABLE) {
+        return resultSuccessNull();
+    }
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_get_property", ret);
     }
@@ -404,7 +418,6 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_createRenderN(J
                 jni_env->DeleteLocalRef(nameStr);
                 jvm->DetachCurrentThread();
                 // const auto ret = glXGetProcAddress(reinterpret_cast<const GLubyte *>(name));
-                std::cerr << "getProcAddress: " << name << " -> " << ret << std::endl;
                 return reinterpret_cast<void *>(ret);
             }),
     };

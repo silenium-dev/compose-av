@@ -13,32 +13,38 @@ import dev.silenium.compose.gl.surface.GLDrawScope
 import dev.silenium.compose.gl.surface.GLSurfaceState
 import dev.silenium.compose.gl.surface.GLSurfaceView
 import dev.silenium.compose.gl.surface.rememberGLSurfaceState
+import dev.silenium.multimedia.core.util.mapState
 import dev.silenium.multimedia.mpv.MPV
 import org.lwjgl.opengl.GL30.*
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
+import kotlin.time.Duration.Companion.seconds
 
 class VideoPlayer(private val path: Path) : AutoCloseable {
     private var glInitialized = false
-    private val mpv = MPV()
+    private val mpv = createMPV()
     private var render: MPV.Render? = null
+    val duration = mpv.propertyFlow<Double>("duration").mapState { it?.seconds }
+    val position = mpv.propertyFlow<Double>("time-pos").mapState { it?.seconds }
 
-    init {
-        mpv.setOption("terminal", "yes")
-        mpv.setOption("msg-level", "all=v")
-        mpv.setOption("vo", "libmpv")
-        mpv.setOption("hwdec", "auto")
+    private fun createMPV(hwdec: Boolean = true): MPV {
+        val mpv = MPV()
+        val options = defaultOptions.toMutableMap()
+        options["hwdec"] = if (hwdec) "auto" else "no"
+        options.forEach {
+            mpv.setOption(it.key, it.value)
+        }
         mpv.initialize().getOrThrow()
-        mpv.setProperty("loop", "inf").getOrThrow()
-        mpv.observePropertyDouble("duration").getOrThrow()
-        mpv.observePropertyDouble("time-pos").getOrThrow()
+        initProperties.forEach {
+            mpv.setProperty(it.key, it.value)
+        }
+        return mpv
     }
 
     context(GLDrawScope)
     fun initializeGL(state: GLSurfaceState) {
         if (glInitialized) return
         render = mpv.createRender(state::requestUpdate)
-        println("Render created")
         mpv.command(listOf("loadfile", path.absolutePathString())).getOrThrow()
         glInitialized = true
     }
@@ -58,6 +64,19 @@ class VideoPlayer(private val path: Path) : AutoCloseable {
         stop()
         render?.close()
         mpv.close()
+    }
+
+    companion object {
+        private val defaultOptions = mapOf(
+            "terminal" to "yes",
+            "msg-level" to "all=info",
+            "vo" to "libmpv",
+            "hwdec" to "auto",
+        )
+        private val initProperties = mapOf(
+            "loop" to "inf",
+            "keep-open" to "yes",
+        )
     }
 }
 

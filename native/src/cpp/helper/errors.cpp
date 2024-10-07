@@ -81,6 +81,10 @@ jobject resultSuccess(JNIEnv *env) {
     return instance;
 }
 
+jobject resultSuccessNull() {
+    return nullptr;
+}
+
 jobject eglResultFailure(JNIEnv *env, const char *operation, const long returnCode) {
     const auto resultClass = env->FindClass("kotlin/Result$Failure");
     const auto errorClass = env->FindClass("dev/silenium/multimedia/core/util/EGLException");
