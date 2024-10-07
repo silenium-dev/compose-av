@@ -16,12 +16,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.cast
 import kotlin.time.Duration.Companion.milliseconds
 
-interface MPVAsyncListener {
-    suspend fun onPropertyChanged(name: String, value: Any?)
-    suspend fun onPropertyGet(subscriptionId: Long, result: Result<Any?>)
-    suspend fun onPropertySet(subscriptionId: Long, result: Result<Unit>)
-}
-
 sealed class Property<T> {
     abstract val name: String
     abstract val value: T
@@ -42,6 +36,8 @@ class MPV : NativeCleanable, MPVAsyncListener {
     private val propertyGetCallbackId = AtomicLong(0)
     private val propertySetCallbacks = ConcurrentHashMap<Long, (Result<Unit>) -> Unit>()
     private val propertySetCallbackId = AtomicLong(0)
+    private val commandReplyCallbacks = ConcurrentHashMap<Long, (Result<Unit>) -> Unit>()
+    private val commandReplyCallbackId = AtomicLong(0)
 
     private val propertyUpdates = MutableSharedFlow<Property<*>>()
 
@@ -180,7 +176,7 @@ class MPV : NativeCleanable, MPVAsyncListener {
     }
 
     suspend fun propertyFlowLong(name: String): StateFlow<Long?> {
-        val initialValue = getPropertyLong(name).getOrThrow()
+        val initialValue = getPropertyLongAsync(name).getOrThrow()
         val flow = propertyUpdates.filter { it.name == name }.filterIsInstance<LongProperty>().map { it.value }
         return flow.stateIn(
             CoroutineScope(EmptyCoroutineContext),
@@ -190,7 +186,7 @@ class MPV : NativeCleanable, MPVAsyncListener {
     }
 
     suspend fun propertyFlowDouble(name: String): StateFlow<Double?> {
-        val initialValue = getPropertyDouble(name).getOrThrow()
+        val initialValue = getPropertyDoubleAsync(name).getOrThrow()
         val flow = propertyUpdates.filter { it.name == name }.filterIsInstance<DoubleProperty>().map { it.value }
         return flow.stateIn(
             CoroutineScope(EmptyCoroutineContext),
@@ -200,7 +196,7 @@ class MPV : NativeCleanable, MPVAsyncListener {
     }
 
     suspend fun propertyFlowFlag(name: String): StateFlow<Boolean?> {
-        val initialValue = getPropertyFlag(name).getOrThrow()
+        val initialValue = getPropertyFlagAsync(name).getOrThrow()
         val flow = propertyUpdates.filter { it.name == name }.filterIsInstance<FlagProperty>().map { it.value }
         return flow.stateIn(
             CoroutineScope(EmptyCoroutineContext),
@@ -219,6 +215,17 @@ class MPV : NativeCleanable, MPVAsyncListener {
 
     fun command(command: Collection<String>) = commandN(nativePointer.address, command.toTypedArray())
     fun command(command: String) = commandStringN(nativePointer.address, command)
+    suspend fun commandAsync(command: Collection<String>): Result<Unit> = suspendCancellableCoroutine { continuation ->
+        val subscriptionId = commandReplyCallbackId.getAndIncrement()
+        commandReplyCallbacks[subscriptionId] = { result ->
+            continuation.resume(result)
+        }
+        commandAsyncN(nativePointer.address, command.toTypedArray(), subscriptionId).onFailure {
+            commandReplyCallbacks.remove(subscriptionId)
+            logger.error("Failed to execute command $command", it)
+            continuation.resume(Result.failure(it))
+        }
+    }
 
     override suspend fun onPropertyChanged(name: String, value: Any?) {
         val type = value?.javaClass?.kotlin ?: propertySubscriptions[name]?.second
@@ -241,6 +248,10 @@ class MPV : NativeCleanable, MPVAsyncListener {
 
     override suspend fun onPropertySet(subscriptionId: Long, result: Result<Unit>) {
         propertySetCallbacks.remove(subscriptionId)?.invoke(result)
+    }
+
+    override suspend fun onCommandReply(subscriptionId: Long, result: Result<Unit>) {
+        commandReplyCallbacks.remove(subscriptionId)?.invoke(result)
     }
 
     fun createRender(updateCallback: () -> Unit) = Render(this, updateCallback)
@@ -280,10 +291,18 @@ class MPV : NativeCleanable, MPVAsyncListener {
     }
 }
 
+interface MPVAsyncListener {
+    suspend fun onPropertyChanged(name: String, value: Any?)
+    suspend fun onPropertyGet(subscriptionId: Long, result: Result<Any?>)
+    suspend fun onPropertySet(subscriptionId: Long, result: Result<Unit>)
+    suspend fun onCommandReply(subscriptionId: Long, result: Result<Unit>)
+}
+
 private interface MPVListener {
     fun onPropertyChanged(name: String, value: Any?)
     fun onPropertyGet(subscriptionId: Long, result: Result<Any?>)
     fun onPropertySet(subscriptionId: Long, result: Result<Unit>)
+    fun onCommandReply(subscriptionId: Long, result: Result<Unit>)
 }
 
 private class MPVListenerWrapper(private val wrapped: MPVAsyncListener) : MPVListener, AutoCloseable {
@@ -306,6 +325,12 @@ private class MPVListenerWrapper(private val wrapped: MPVAsyncListener) : MPVLis
     private data class PropertySet(val subscriptionId: Long, val result: Result<Unit>) : Event {
         override suspend fun call(listener: MPVAsyncListener) {
             listener.onPropertySet(subscriptionId, result)
+        }
+    }
+
+    private data class CommandReply(val subscriptionId: Long, val result: Result<Unit>) : Event {
+        override suspend fun call(listener: MPVAsyncListener) {
+            listener.onCommandReply(subscriptionId, result)
         }
     }
 
@@ -333,6 +358,10 @@ private class MPVListenerWrapper(private val wrapped: MPVAsyncListener) : MPVLis
         events.add(PropertySet(subscriptionId, result))
     }
 
+    override fun onCommandReply(subscriptionId: Long, result: Result<Unit>) {
+        events.add(CommandReply(subscriptionId, result))
+    }
+
     override fun close() {
         executor.cancel()
     }
@@ -348,6 +377,7 @@ private external fun unsetCallbackN(callbackHandle: Long): Result<Unit>
 
 private external fun commandN(handle: Long, command: Array<String>): Result<Unit>
 private external fun commandStringN(handle: Long, command: String): Result<Unit>
+private external fun commandAsyncN(handle: Long, command: Array<String>, subscriptionId: Long): Result<Unit>
 
 private external fun getPropertyStringAsyncN(handle: Long, name: String, subscriptionId: Long): Result<Unit>
 private external fun getPropertyLongAsyncN(handle: Long, name: String, subscriptionId: Long): Result<Unit>

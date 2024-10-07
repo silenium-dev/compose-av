@@ -153,6 +153,27 @@ void eventCallback(JNIEnv *env, const mpv_event *event, jobject callback) {
             }
             env->CallVoidMethod(callback, method, static_cast<jlong>(event->reply_userdata), value);
         }
+        case MPV_EVENT_COMMAND_REPLY: {
+            // const auto reply = static_cast<mpv_event_command *>(event->data);
+            // TODO: Proper node conversions
+            jobject value = nullptr;
+            if (event->error == MPV_ERROR_SUCCESS) {
+                value = resultSuccess(env);
+            } else {
+                value = mpvResultFailure(env, "mpv_event_command reply", event->error);
+            }
+            const auto clazz = env->FindClass("dev/silenium/multimedia/mpv/MPVListener");
+            if (clazz == nullptr) {
+                std::cerr << "Class not found" << std::endl;
+                return;
+            }
+            const auto method = env->GetMethodID(clazz, "onCommandReply", "(JLjava/lang/Object;)V");
+            if (method == nullptr) {
+                std::cerr << "Method not found: onCommandReply" << std::endl;
+                return;
+            }
+            env->CallVoidMethod(callback, method, static_cast<jlong>(event->reply_userdata), value);
+        }
         default:
             break;
     }
@@ -219,6 +240,25 @@ JNIEXPORT void JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_unsetCallbackN(JNI
     mpv_set_wakeup_callback(context->handle, nullptr, nullptr);
     env->DeleteGlobalRef(context->object);
     delete context;
+}
+
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_commandAsyncN(JNIEnv *env, jobject thiz, const jlong handle, jobjectArray args, const jlong replyUserdata) {
+    const auto size = env->GetArrayLength(args);
+    std::vector<const char *> argv(size);
+    for (auto i = 0; i < size; i++) {
+        const auto arg = env->GetObjectArrayElement(args, i);
+        const auto str = env->GetStringUTFChars(static_cast<jstring>(arg), nullptr);
+        argv[i] = str;
+    }
+    const auto ret = mpv_command_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, argv.data());
+    for (auto i = 0; i < size; i++) {
+        const auto arg = env->GetObjectArrayElement(args, i);
+        env->ReleaseStringUTFChars(static_cast<jstring>(arg), argv[i]);
+    }
+    if (ret < 0) {
+        return mpvResultFailure(env, "mpv_command_async", ret);
+    }
+    return resultSuccess(env);
 }
 
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_commandN(JNIEnv *env, jobject thiz, const jlong handle, jobjectArray args) {
