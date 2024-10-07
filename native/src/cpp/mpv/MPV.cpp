@@ -269,7 +269,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_commandN(JNIEnv
         const auto str = env->GetStringUTFChars(static_cast<jstring>(arg), nullptr);
         argv[i] = str;
     }
-    const auto ret = mpv_command(reinterpret_cast<mpv_handle *>(handle), argv.data());
+    mpv_node result;
+    const auto ret = mpv_command_ret(reinterpret_cast<mpv_handle *>(handle), argv.data(), &result);
     for (auto i = 0; i < size; i++) {
         const auto arg = env->GetObjectArrayElement(args, i);
         env->ReleaseStringUTFChars(static_cast<jstring>(arg), argv[i]);
@@ -277,6 +278,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_commandN(JNIEnv
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_command", ret);
     }
+    // TODO: Convert result to Java
+    mpv_free_node_contents(&result);
     return resultSuccess(env);
 }
 

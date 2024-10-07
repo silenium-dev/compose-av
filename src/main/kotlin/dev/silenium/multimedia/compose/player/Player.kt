@@ -15,9 +15,6 @@ import dev.silenium.compose.gl.surface.GLSurfaceView
 import dev.silenium.compose.gl.surface.rememberGLSurfaceState
 import dev.silenium.multimedia.core.util.mapState
 import dev.silenium.multimedia.mpv.MPV
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.lwjgl.opengl.GL30.*
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -47,9 +44,7 @@ class VideoPlayer(private val path: Path) : AutoCloseable {
     fun initializeGL(state: GLSurfaceState) {
         if (glInitialized) return
         render = mpv.createRender(state::requestUpdate)
-        CoroutineScope(Dispatchers.Default).launch {
-            mpv.commandAsync(listOf("loadfile", path.absolutePathString())).getOrThrow()
-        }
+        mpv.command(listOf("loadfile", path.absolutePathString())).getOrThrow()
         glInitialized = true
     }
 
