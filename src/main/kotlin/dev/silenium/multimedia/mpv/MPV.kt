@@ -254,11 +254,13 @@ class MPV : NativeCleanable, MPVAsyncListener {
         commandReplyCallbacks.remove(subscriptionId)?.invoke(result)
     }
 
-    fun createRender(updateCallback: () -> Unit) = Render(this, updateCallback)
+    fun createRender(advancedControl: Boolean = false, updateCallback: () -> Unit) =
+        Render(this, advancedControl, updateCallback)
 
-    class Render(mpv: MPV, private val updateCallback: () -> Unit) : NativeCleanable {
+    class Render internal constructor(mpv: MPV, advancedControl: Boolean, private val updateCallback: () -> Unit) :
+        NativeCleanable {
         override val nativePointer: NativePointer =
-            createRenderN(mpv.nativePointer.address, this).getOrThrow()
+            createRenderN(mpv.nativePointer.address, this, advancedControl).getOrThrow()
                 .asNativePointer(::destroyRenderN)
 
         fun render(fbo: FBO): Result<Unit> {
@@ -421,6 +423,6 @@ private external fun observePropertyDoubleN(handle: Long, name: String, subscrip
 private external fun observePropertyFlagN(handle: Long, name: String, subscriptionId: Long): Result<Unit>
 private external fun unobservePropertyN(handle: Long, subscriptionId: Long): Result<Unit>
 
-private external fun createRenderN(handle: Long, self: MPV.Render): Result<Long>
+private external fun createRenderN(handle: Long, self: MPV.Render, advancedControl: Boolean): Result<Long>
 private external fun destroyRenderN(handle: Long)
 private external fun renderN(handle: Long, fbo: Int, width: Int, height: Int, glInternalFormat: Int): Result<Unit>

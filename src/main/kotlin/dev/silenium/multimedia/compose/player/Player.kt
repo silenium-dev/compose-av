@@ -9,12 +9,13 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.silenium.compose.gl.surface.GLDrawScope
-import dev.silenium.compose.gl.surface.GLSurfaceState
-import dev.silenium.compose.gl.surface.GLSurfaceView
-import dev.silenium.compose.gl.surface.rememberGLSurfaceState
+import dev.silenium.compose.gl.surface.*
 import dev.silenium.multimedia.core.util.mapState
 import dev.silenium.multimedia.mpv.MPV
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import org.lwjgl.opengl.GL30.*
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -26,6 +27,16 @@ class VideoPlayer(private val path: Path) : AutoCloseable {
     private var render: MPV.Render? = null
     suspend fun duration() = mpv.propertyFlow<Double>("duration").mapState { it?.seconds }
     suspend fun position() = mpv.propertyFlow<Double>("time-pos").mapState { it?.seconds }
+
+    @Composable
+    inline fun <reified T : Any> property(name: String): State<T?> {
+        var flow by remember { mutableStateOf<Flow<T?>?>(null) }
+        val state = flow?.collectAsState(initial = null) ?: remember { mutableStateOf<T?>(null) }
+        LaunchedEffect(mpv) {
+            flow = mpv.propertyFlow<T>(name)
+        }
+        return state
+    }
 
     private fun createMPV(hwdec: Boolean = true): MPV {
         val mpv = MPV()
@@ -43,14 +54,16 @@ class VideoPlayer(private val path: Path) : AutoCloseable {
     context(GLDrawScope)
     fun initializeGL(state: GLSurfaceState) {
         if (glInitialized) return
-        render = mpv.createRender(state::requestUpdate)
-        mpv.command(listOf("loadfile", path.absolutePathString())).getOrThrow()
+        render = mpv.createRender(advancedControl = true, state::requestUpdate)
+        CoroutineScope(Dispatchers.Default).launch {
+            mpv.commandAsync(listOf("loadfile", path.absolutePathString())).getOrThrow()
+        }
         glInitialized = true
     }
 
     context(GLDrawScope)
     fun onRender() {
-        glClearColor(0f, 0f, 0f, 0f)
+        glClearColor(0f, 0f, 0f, 1f)
         glClear(GL_COLOR_BUFFER_BIT)
         render?.render(fbo)?.getOrThrow()
     }
@@ -92,19 +105,32 @@ fun VideoPlayer(
     val state = rememberGLSurfaceState()
     var initialized by remember { mutableStateOf(false) }
 
+    val dwidth by player.property<Long>("width")
+    val dheight by player.property<Long>("height")
+    val fboSizeOverride = remember(dwidth, dheight) {
+        dwidth?.let { w ->
+            dheight?.let { h ->
+                FBOSizeOverride(w.toInt(), h.toInt())
+            }
+        }
+    }
+
     Box(modifier = modifier) {
         GLSurfaceView(
             state,
             modifier = Modifier.fillMaxSize(),
             presentMode = GLSurfaceView.PresentMode.MAILBOX,
+            swapChainSize = 3,
             draw = {
                 if (!initialized) {
                     player.initializeGL(state)
                     initialized = true
                 }
                 player.onRender()
+                redrawAfter(null)
             },
             cleanup = player::close,
+            fboSizeOverride = fboSizeOverride,
         )
         if (showStats) {
             Surface(modifier = Modifier.padding(6.dp).width(360.dp), shape = MaterialTheme.shapes.medium) {

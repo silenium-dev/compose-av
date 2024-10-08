@@ -538,7 +538,7 @@ struct RenderContext {
 };
 
 // Rendering
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_createRenderN(JNIEnv *env, jobject thiz, const jlong mpvHandle, jobject self) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_createRenderN(JNIEnv *env, jobject thiz, const jlong mpvHandle, jobject self, const jboolean advancedControl) {
     std::vector<mpv_render_param> params{
             {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
     };
@@ -582,7 +582,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_createRenderN(J
             }),
     };
     params.emplace_back(MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_params);
-    int advControl = 1;
+    int advControl = advancedControl ? 1 : 0;
     params.emplace_back(MPV_RENDER_PARAM_ADVANCED_CONTROL, &advControl);
     params.emplace_back(MPV_RENDER_PARAM_INVALID, nullptr);
 
@@ -592,7 +592,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_createRenderN(J
     }
     const auto updateMethod = env->GetMethodID(env->GetObjectClass(self), "requestUpdate", "()V");
     if (updateMethod == nullptr) {
-        std::cerr << "Method not found: getProcAddress" << std::endl;
+        std::cerr << "Method not found: requestUpdate" << std::endl;
         return mpvResultFailure(env, "GetMethodID", MPV_ERROR_GENERIC);
     }
     mpv_render_context_set_update_callback(
