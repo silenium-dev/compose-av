@@ -244,12 +244,13 @@ JNIEXPORT void JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_unsetCallbackN(JNI
 
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_commandAsyncN(JNIEnv *env, jobject thiz, const jlong handle, jobjectArray args, const jlong replyUserdata) {
     const auto size = env->GetArrayLength(args);
-    std::vector<const char *> argv(size);
+    std::vector<const char *> argv(size + 1);
     for (auto i = 0; i < size; i++) {
         const auto arg = env->GetObjectArrayElement(args, i);
         const auto str = env->GetStringUTFChars(static_cast<jstring>(arg), nullptr);
         argv[i] = str;
     }
+    argv[size] = nullptr;
     const auto ret = mpv_command_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, argv.data());
     for (auto i = 0; i < size; i++) {
         const auto arg = env->GetObjectArrayElement(args, i);
@@ -263,12 +264,13 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_commandAsyncN(J
 
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_commandN(JNIEnv *env, jobject thiz, const jlong handle, jobjectArray args) {
     const auto size = env->GetArrayLength(args);
-    std::vector<const char *> argv(size);
+    std::vector<const char *> argv(size + 1);
     for (auto i = 0; i < size; i++) {
         const auto arg = env->GetObjectArrayElement(args, i);
         const auto str = env->GetStringUTFChars(static_cast<jstring>(arg), nullptr);
         argv[i] = str;
     }
+    argv[size] = nullptr;
     mpv_node result;
     const auto ret = mpv_command_ret(reinterpret_cast<mpv_handle *>(handle), argv.data(), &result);
     for (auto i = 0; i < size; i++) {
@@ -394,9 +396,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_getPropertyFlag
 
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_mpv_MPVKt_setPropertyStringAsyncN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, jstring value, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    const auto valueStrLength = env->GetStringUTFLength(value);
     auto valueStr = const_cast<char *>(env->GetStringUTFChars(value, nullptr));
-    const auto ret = mpv_set_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, "loop", MPV_FORMAT_STRING, &valueStr);
+    const auto ret = mpv_set_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_STRING, &valueStr);
     env->ReleaseStringUTFChars(name, nameStr);
     env->ReleaseStringUTFChars(value, valueStr);
     if (ret < 0) {
