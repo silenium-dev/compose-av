@@ -8,35 +8,37 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.silenium.compose.gl.surface.*
+import dev.silenium.multimedia.core.annotation.InternalMultimediaApi
+import dev.silenium.multimedia.core.util.deferredFlowStateOf
 import dev.silenium.multimedia.core.util.mapState
 import dev.silenium.multimedia.mpv.MPV
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 import org.lwjgl.opengl.GL30.*
-import java.nio.file.Path
-import kotlin.io.path.absolutePathString
 import kotlin.time.Duration.Companion.seconds
 
-class VideoPlayer(private val path: Path) : AutoCloseable {
-    private var glInitialized = false
-    private val mpv = createMPV()
+class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
+    private var initialized = false
+
+    @PublishedApi
+    internal val mpv = createMPV(hwdec)
     private var render: MPV.Render? = null
     suspend fun duration() = mpv.propertyFlow<Double>("duration").mapState { it?.seconds }
     suspend fun position() = mpv.propertyFlow<Double>("time-pos").mapState { it?.seconds }
 
+    @InternalMultimediaApi
+    suspend inline fun <reified T : Any> getProperty(name: String): Result<T?> = mpv.getPropertyAsync<T>(name)
+
+    @InternalMultimediaApi
+    suspend fun <T : Any> setProperty(name: String, value: T) = mpv.setPropertyAsync(name, value)
+
     @Composable
-    inline fun <reified T : Any> property(name: String): State<T?> {
-        var flow by remember { mutableStateOf<Flow<T?>?>(null) }
-        val state = flow?.collectAsState(initial = null) ?: remember { mutableStateOf<T?>(null) }
-        LaunchedEffect(mpv) {
-            flow = mpv.propertyFlow<T>(name)
-        }
-        return state
-    }
+    @InternalMultimediaApi
+    inline fun <reified T : Any> property(name: String): State<T?> = deferredFlowStateOf { mpv.propertyFlow(name) }
+
+    @InternalMultimediaApi
+    suspend fun command(command: Array<String>) = mpv.commandAsync(command)
 
     private fun createMPV(hwdec: Boolean = true): MPV {
         val mpv = MPV()
@@ -52,20 +54,20 @@ class VideoPlayer(private val path: Path) : AutoCloseable {
     }
 
     context(GLDrawScope)
-    fun initializeGL(state: GLSurfaceState) {
-        if (glInitialized) return
+    private fun initialize(state: GLSurfaceState) {
+        if (initialized) return
         render = mpv.createRender(advancedControl = true, state::requestUpdate)
-        CoroutineScope(Dispatchers.Default).launch {
-            mpv.commandAsync(listOf("loadfile", path.absolutePathString())).getOrThrow()
-        }
-        glInitialized = true
+        initialized = true
     }
 
     context(GLDrawScope)
-    fun onRender() {
-        glClearColor(0f, 0f, 0f, 1f)
+    fun onRender(state: GLSurfaceState) {
+        initialize(state)
+
+        glClearColor(0f, 0f, 0f, 0f)
         glClear(GL_COLOR_BUFFER_BIT)
         render?.render(fbo)?.getOrThrow()
+        redrawAfter(null)
     }
 
     fun stop() {
@@ -93,19 +95,28 @@ class VideoPlayer(private val path: Path) : AutoCloseable {
 }
 
 @Composable
-fun rememberVideoPlayer(path: Path) = remember(path) { VideoPlayer(path) }
+fun rememberVideoPlayer(): VideoPlayer {
+    val player = remember { VideoPlayer() }
+    DisposableEffect(player) {
+        onDispose {
+            player.close()
+        }
+    }
+    return player
+}
 
 @Composable
-fun VideoPlayer(
-    path: Path,
+fun VideoSurface(
+    player: VideoPlayer,
     showStats: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    val player = rememberVideoPlayer(path)
-    val state = rememberGLSurfaceState()
-    var initialized by remember { mutableStateOf(false) }
+    val surfaceState = rememberGLSurfaceState()
 
+    @OptIn(InternalMultimediaApi::class)
     val dwidth by player.property<Long>("width")
+
+    @OptIn(InternalMultimediaApi::class)
     val dheight by player.property<Long>("height")
     val fboSizeOverride = remember(dwidth, dheight) {
         dwidth?.let { w ->
@@ -117,24 +128,22 @@ fun VideoPlayer(
 
     Box(modifier = modifier) {
         GLSurfaceView(
-            state,
+            surfaceState,
             modifier = Modifier.fillMaxSize(),
             presentMode = GLSurfaceView.PresentMode.MAILBOX,
             swapChainSize = 3,
             draw = {
-                if (!initialized) {
-                    player.initializeGL(state)
-                    initialized = true
-                }
-                player.onRender()
-                redrawAfter(null)
+                player.onRender(surfaceState)
             },
-            cleanup = player::close,
             fboSizeOverride = fboSizeOverride,
         )
         if (showStats) {
-            Surface(modifier = Modifier.padding(6.dp).width(360.dp), shape = MaterialTheme.shapes.medium) {
-                PlayerStats(player, state)
+            Surface(
+                modifier = Modifier.padding(6.dp).width(360.dp),
+                shape = MaterialTheme.shapes.medium,
+                color = Color.Black.copy(alpha = 0.4f)
+            ) {
+                VideoPlayerStats(player, surfaceState)
             }
         }
     }

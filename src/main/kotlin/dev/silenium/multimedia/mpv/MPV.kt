@@ -213,14 +213,48 @@ class MPV : NativeCleanable, MPVAsyncListener {
         else -> error("Unsupported property type: ${E::class}")
     }
 
-    fun command(command: Collection<String>) = commandN(nativePointer.address, command.toTypedArray())
+    @Suppress("UNCHECKED_CAST")
+    suspend inline fun <reified T : Any> getPropertyAsync(name: String): Result<T?> = when (T::class) {
+        String::class -> getPropertyStringAsync(name)
+        Long::class -> getPropertyLongAsync(name)
+        Double::class -> getPropertyDoubleAsync(name)
+        Boolean::class -> getPropertyFlagAsync(name)
+        else -> error("Unsupported property type: ${T::class}")
+    } as Result<T?>
+
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified T : Any> getProperty(name: String): Result<T?> = when (T::class) {
+        String::class -> getPropertyString(name)
+        Long::class -> getPropertyLong(name)
+        Double::class -> getPropertyDouble(name)
+        Boolean::class -> getPropertyFlag(name)
+        else -> error("Unsupported property type: ${T::class}")
+    } as Result<T?>
+
+    suspend fun <T : Any> setPropertyAsync(name: String, value: T) = when (value) {
+        is String -> setPropertyAsync(name, value)
+        is Long -> setPropertyAsync(name, value)
+        is Double -> setPropertyAsync(name, value)
+        is Boolean -> setPropertyAsync(name, value)
+        else -> error("Unsupported property type: ${value::class}")
+    }
+
+    fun <T : Any> setProperty(name: String, value: T) = when (value) {
+        is String -> setProperty(name, value)
+        is Long -> setProperty(name, value)
+        is Double -> setProperty(name, value)
+        is Boolean -> setProperty(name, value)
+        else -> error("Unsupported property type: ${value::class}")
+    }
+
+    fun command(command: Array<String>) = commandN(nativePointer.address, command)
     fun command(command: String) = commandStringN(nativePointer.address, command)
-    suspend fun commandAsync(command: Collection<String>): Result<Unit> = suspendCancellableCoroutine { continuation ->
+    suspend fun commandAsync(command: Array<String>): Result<Unit> = suspendCancellableCoroutine { continuation ->
         val subscriptionId = commandReplyCallbackId.getAndIncrement()
         commandReplyCallbacks[subscriptionId] = { result ->
             continuation.resume(result)
         }
-        commandAsyncN(nativePointer.address, command.toTypedArray(), subscriptionId).onFailure {
+        commandAsyncN(nativePointer.address, command, subscriptionId).onFailure {
             commandReplyCallbacks.remove(subscriptionId)
             logger.error("Failed to execute command $command", it)
             continuation.resume(Result.failure(it))
