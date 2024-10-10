@@ -249,6 +249,9 @@ class MPV : NativeCleanable, MPVAsyncListener {
 
     fun command(command: Array<String>) = commandN(nativePointer.address, command)
     fun command(command: String) = commandStringN(nativePointer.address, command)
+
+    @JvmName("commandAsyncVararg")
+    suspend fun commandAsync(vararg command: String) = commandAsync(command.toList().toTypedArray())
     suspend fun commandAsync(command: Array<String>): Result<Unit> = suspendCancellableCoroutine { continuation ->
         val subscriptionId = commandReplyCallbackId.getAndIncrement()
         commandReplyCallbacks[subscriptionId] = { result ->

@@ -1,6 +1,6 @@
 package dev.silenium.multimedia.compose.player
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -16,6 +16,7 @@ import dev.silenium.multimedia.core.util.deferredFlowStateOf
 import dev.silenium.multimedia.core.util.mapState
 import dev.silenium.multimedia.mpv.MPV
 import org.lwjgl.opengl.GL30.*
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
@@ -38,7 +39,12 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
     inline fun <reified T : Any> property(name: String): State<T?> = deferredFlowStateOf { mpv.propertyFlow(name) }
 
     @InternalMultimediaApi
-    suspend fun command(command: Array<String>) = mpv.commandAsync(command)
+    suspend fun command(vararg command: String) = mpv.commandAsync(command.toList().toTypedArray())
+
+    suspend fun togglePause() = mpv.commandAsync("cycle", "pause")
+
+    suspend fun seekAbsolute(position: Duration) =
+        mpv.commandAsync(arrayOf("seek", position.inWholeMilliseconds.div(1000.0).toString(), "absolute"))
 
     private fun createMPV(hwdec: Boolean = true): MPV {
         val mpv = MPV()
@@ -53,29 +59,23 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
         return mpv
     }
 
-    context(GLDrawScope)
     private fun initialize(state: GLSurfaceState) {
         if (initialized) return
         render = mpv.createRender(advancedControl = true, state::requestUpdate)
         initialized = true
     }
 
-    context(GLDrawScope)
-    fun onRender(state: GLSurfaceState) {
+    fun onRender(scope: GLDrawScope, state: GLSurfaceState) {
         initialize(state)
 
         glClearColor(0f, 0f, 0f, 0f)
         glClear(GL_COLOR_BUFFER_BIT)
-        render?.render(fbo)?.getOrThrow()
-        redrawAfter(null)
-    }
-
-    fun stop() {
-        mpv.command("stop").getOrThrow()
+        render?.render(scope.fbo)?.getOrThrow()
+        scope.redrawAfter(null)
     }
 
     override fun close() {
-        stop()
+        mpv.command("stop")
         render?.close()
         mpv.close()
     }
@@ -110,6 +110,7 @@ fun VideoSurface(
     player: VideoPlayer,
     showStats: Boolean = false,
     modifier: Modifier = Modifier,
+    onInitialized: () -> Unit = {},
 ) {
     val surfaceState = rememberGLSurfaceState()
 
@@ -126,14 +127,19 @@ fun VideoSurface(
         }
     }
 
-    Box(modifier = modifier) {
+    BoxWithConstraints(modifier = modifier) {
+        var initialized by remember { mutableStateOf(false) }
         GLSurfaceView(
             surfaceState,
             modifier = Modifier.fillMaxSize(),
             presentMode = GLSurfaceView.PresentMode.MAILBOX,
             swapChainSize = 3,
             draw = {
-                player.onRender(surfaceState)
+                player.onRender(this, surfaceState)
+                if (!initialized) {
+                    initialized = true
+                    onInitialized()
+                }
             },
             fboSizeOverride = fboSizeOverride,
         )

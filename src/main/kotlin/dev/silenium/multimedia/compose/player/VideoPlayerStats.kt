@@ -23,7 +23,7 @@ fun VideoPlayerStats(player: VideoPlayer, state: GLSurfaceState, textColor: Colo
         Text("Duration: ${duration?.format() ?: "N/A"}", color = textColor)
 
         val display by state.displayStatistics.collectAsState()
-        Text("Display datapoints: ${display.frameTimes.values.size}")
+        Text("Display datapoints: ${display.frameTimes.values.size}", color = textColor)
         Text("Display frame time: ${display.frameTimes.median.inWholeMicroseconds / 1000.0} ms", color = textColor)
         Text(
             "Display frame time (99th): ${display.frameTimes.percentile(0.99).inWholeMicroseconds / 1000.0} ms",

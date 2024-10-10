@@ -40,6 +40,7 @@ dependencies {
         }
     }
 
+    testImplementation(compose.materialIconsExtended)
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)
     testImplementation(libs.logback.classic)
