@@ -9,5 +9,9 @@ updates:
     directories:
       - "/"
       - "native"
+    ignore:
+      - dependency-name: "org.jetbrains.compose"
+        versions:
+          - "1.8.0-dev+"
     schedule:
       interval: "weekly"
