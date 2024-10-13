@@ -24,7 +24,6 @@ dependencies {
     implementation(compose.material3)
     implementation(compose.materialIconsExtended)
     implementation("androidx.annotation:annotation-jvm:1.8.2")
-    implementation(libs.flow.graph)
     implementation(libs.compose.gl)
     implementation(libs.compose.gl.natives)
     implementation(libs.jni.utils)
