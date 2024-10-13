@@ -110,7 +110,6 @@ allprojects {
     version = findProperty("deploy.version") as String? ?: "0.0.0-SNAPSHOT"
 
     repositories {
-        maven("https://reposilite.silenium.dev/snapshots")
         maven("https://reposilite.silenium.dev/releases")
         mavenCentral()
         google()

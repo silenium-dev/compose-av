@@ -9,12 +9,7 @@ updates:
     directories:
       - "/"
       - "native"
-    allow:
-      - dependency-name: "compose-gl"
-        versions:
-          - "latest.release"
-      - dependency-name: "org.jetbrains.compose"
-        versions:
-          - "latest.release"
+    ignore:
+      - dependency-name: "org.jetbrains.compose" # Is updated manually
     schedule:
       interval: "weekly"
