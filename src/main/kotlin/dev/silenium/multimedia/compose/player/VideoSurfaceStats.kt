@@ -15,7 +15,7 @@ import dev.silenium.multimedia.compose.format.format
 import dev.silenium.multimedia.core.util.deferredFlowStateOf
 
 @Composable
-fun VideoPlayerStats(player: VideoPlayer, state: GLSurfaceState, textColor: Color = Color.White) {
+fun VideoSurfaceStats(player: VideoPlayer, state: GLSurfaceState, textColor: Color = Color.White) {
     Column(modifier = Modifier.padding(6.dp)) {
         val position by deferredFlowStateOf(player::position)
         val duration by deferredFlowStateOf(player::duration)
