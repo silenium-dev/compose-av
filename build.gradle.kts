@@ -21,6 +21,9 @@ dependencies {
     // (in a separate module for demo project and in testMain).
     // With compose.desktop.common you will also lose @Preview functionality
     implementation(compose.desktop.currentOs)
+    implementation(compose.material3)
+    implementation(compose.materialIconsExtended)
+    implementation("androidx.annotation:annotation-jvm:1.8.2")
     implementation(libs.flow.graph)
     implementation(libs.compose.gl)
     implementation(libs.compose.gl.natives)

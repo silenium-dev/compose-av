@@ -27,12 +27,15 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
     private var render: MPV.Render? = null
     suspend fun duration() = mpv.propertyFlow<Double>("duration").mapState { it?.seconds }
     suspend fun position() = mpv.propertyFlow<Double>("time-pos").mapState { it?.seconds }
+    suspend fun paused() = mpv.propertyFlow<Boolean>("pause")
+    suspend fun volume() = mpv.propertyFlow<Double>("volume")
+    suspend fun muted() = mpv.propertyFlow<Boolean>("mute")
 
     @InternalMultimediaApi
     suspend inline fun <reified T : Any> getProperty(name: String): Result<T?> = mpv.getPropertyAsync<T>(name)
 
     @InternalMultimediaApi
-    suspend fun <T : Any> setProperty(name: String, value: T) = mpv.setPropertyAsync(name, value)
+    suspend inline fun <reified T : Any> setProperty(name: String, value: T) = mpv.setPropertyAsync(name, value)
 
     @Composable
     @InternalMultimediaApi
@@ -42,9 +45,13 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
     suspend fun command(vararg command: String) = mpv.commandAsync(command.toList().toTypedArray())
 
     suspend fun togglePause() = mpv.commandAsync("cycle", "pause")
+    suspend fun toggleMute() = mpv.commandAsync("cycle", "mute")
+    suspend fun setVolume(volume: Long) = mpv.commandAsync("set", "volume", volume.toString())
 
     suspend fun seekAbsolute(position: Duration) =
         mpv.commandAsync(arrayOf("seek", position.inWholeMilliseconds.div(1000.0).toString(), "absolute"))
+    suspend fun seekRelative(by: Duration) =
+        mpv.commandAsync(arrayOf("seek", by.inWholeMilliseconds.div(1000.0).toString(), "relative"))
 
     private fun createMPV(hwdec: Boolean = true): MPV {
         val mpv = MPV()
@@ -56,6 +63,7 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
         mpv.initialize().getOrThrow()
         mpv.setProperty("loop", false).getOrThrow()
         mpv.setProperty("keep-open", "yes").getOrThrow()
+        mpv.setProperty("ao-volume", 100).getOrNull() // ignore errors
         return mpv
     }
 

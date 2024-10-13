@@ -1,8 +1,12 @@
 package dev.silenium.multimedia.compose
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.darkColors
+import androidx.compose.material.lightColors
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Window
@@ -22,7 +26,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(InternalMultimediaApi::class)
 @Composable
 fun App() {
-    MaterialTheme {
+    MaterialTheme(if (isSystemInDarkTheme()) darkColors() else lightColors()) {
         val file = remember {
             val videoFile = Files.createTempFile("video", ".webm")
             Thread.currentThread().contextClassLoader.getResourceAsStream("1080p.webm").use {
@@ -33,7 +37,7 @@ fun App() {
         val player = rememberVideoPlayer()
         var ready by remember { mutableStateOf(false) }
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background)
         ) {
             VideoSurfaceWithControls(
                 player, showStats = true, modifier = Modifier.fillMaxSize(),
