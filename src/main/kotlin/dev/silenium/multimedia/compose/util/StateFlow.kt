@@ -1,4 +1,4 @@
-package dev.silenium.multimedia.core.util
+package dev.silenium.multimedia.compose.util
 
 import androidx.compose.runtime.*
 import kotlinx.coroutines.CoroutineScope

@@ -1,7 +1,11 @@
-package dev.silenium.multimedia.mpv
+package dev.silenium.multimedia.core.mpv
 
 import dev.silenium.compose.gl.fbo.FBO
-import dev.silenium.multimedia.core.util.*
+import dev.silenium.multimedia.compose.util.mapState
+import dev.silenium.multimedia.core.util.NativeCleanable
+import dev.silenium.multimedia.core.util.NativePointer
+import dev.silenium.multimedia.core.util.Natives
+import dev.silenium.multimedia.core.util.asNativePointer
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.lwjgl.opengl.GL

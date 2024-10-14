@@ -3,7 +3,7 @@ package dev.silenium.multimedia.compose.player
 import androidx.compose.material.Slider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import dev.silenium.multimedia.core.util.deferredFlowStateOf
+import dev.silenium.multimedia.compose.util.deferredFlowStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds

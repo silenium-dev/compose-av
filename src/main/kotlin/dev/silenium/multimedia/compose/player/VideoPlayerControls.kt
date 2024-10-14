@@ -28,8 +28,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
+import dev.silenium.multimedia.compose.util.deferredFlowStateOf
 import dev.silenium.multimedia.core.annotation.InternalMultimediaApi
-import dev.silenium.multimedia.core.util.deferredFlowStateOf
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 

@@ -18,8 +18,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import dev.silenium.multimedia.compose.util.deferredFlowStateOf
 import dev.silenium.multimedia.core.annotation.InternalMultimediaApi
-import dev.silenium.multimedia.core.util.deferredFlowStateOf
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 

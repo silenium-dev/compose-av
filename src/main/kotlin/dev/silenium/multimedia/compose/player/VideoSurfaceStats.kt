@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import dev.silenium.compose.gl.surface.GLSurfaceState
 import dev.silenium.compose.gl.surface.Stats
 import dev.silenium.multimedia.compose.format.format
-import dev.silenium.multimedia.core.util.deferredFlowStateOf
+import dev.silenium.multimedia.compose.util.deferredFlowStateOf
 
 @Composable
 fun VideoSurfaceStats(player: VideoPlayer, state: GLSurfaceState, textColor: Color = Color.White) {

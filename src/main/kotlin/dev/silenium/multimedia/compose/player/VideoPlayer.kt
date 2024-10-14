@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import dev.silenium.compose.gl.surface.GLDrawScope
 import dev.silenium.compose.gl.surface.GLSurfaceState
+import dev.silenium.multimedia.compose.util.deferredFlowStateOf
+import dev.silenium.multimedia.compose.util.mapState
 import dev.silenium.multimedia.core.annotation.InternalMultimediaApi
-import dev.silenium.multimedia.core.util.deferredFlowStateOf
-import dev.silenium.multimedia.core.util.mapState
-import dev.silenium.multimedia.mpv.MPV
+import dev.silenium.multimedia.core.mpv.MPV
 import org.lwjgl.opengl.GL30.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
