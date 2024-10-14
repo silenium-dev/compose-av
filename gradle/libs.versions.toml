@@ -8,7 +8,7 @@ kotlinx-datetime = "0.6.1"
 compose = "1.7.0-rc01"
 compose-gl = "0.6.1"
 jni-utils = "0.1.5"
-skiko = "0.8.12-egl"
+skiko = "0.8.15-egl"
 jna = "5.15.0"
 
 slf4j = "2.0.16"
