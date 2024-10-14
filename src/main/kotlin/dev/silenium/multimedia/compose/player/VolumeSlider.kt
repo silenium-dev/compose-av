@@ -43,9 +43,7 @@ fun VolumeSlider(player: VideoPlayer, coroutineScope: CoroutineScope, modifier: 
         IconButton(
             onClick = {
                 coroutineScope.launch {
-                    player.toggleMute().onFailure {
-                        println("Failed to toggle mute: $it")
-                    }
+                    player.toggleMute()
                 }
             },
             modifier = Modifier.padding(horizontal = 4.dp),

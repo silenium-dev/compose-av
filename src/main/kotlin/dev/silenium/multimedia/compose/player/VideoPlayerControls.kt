@@ -48,9 +48,9 @@ fun VideoSurfaceControls(
     Box(modifier = modifier) {
         Box(
             modifier = Modifier.matchParentSize()
-                .handleInputs(player)
+                .handleInputs(player, focus)
                 .focusRequester(focus)
-                .focusable(enabled = true, interactionSource = MutableInteractionSource())
+                .focusable(enabled = true, interactionSource = remember { MutableInteractionSource() })
         )
         StateIndicatorIcon(player, Modifier.align(Alignment.Center))
         if (loading != false) {
@@ -109,7 +109,6 @@ fun VideoSurfaceControls(
                     onClick = {
                         coroutineScope.launch {
                             player.togglePause()
-                            println("Paused: ${player.getProperty<Boolean>("pause")}")
                         }
                     },
                     modifier = Modifier.padding(horizontal = 4.dp),

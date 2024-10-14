@@ -37,6 +37,7 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
     @InternalMultimediaApi
     suspend fun command(vararg command: String) = mpv.commandAsync(command.toList().toTypedArray())
 
+    suspend fun toggleFullscreen() = mpv.commandAsync("cycle", "fullscreen")
     suspend fun togglePause() = mpv.commandAsync("cycle", "pause")
     suspend fun toggleMute() = mpv.commandAsync("cycle", "mute")
     suspend fun setVolume(volume: Long) = mpv.commandAsync("set", "volume", volume.toString())
@@ -68,6 +69,8 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
 
     fun onRender(scope: GLDrawScope, state: GLSurfaceState) {
         initialize(state)
+
+        // TODO: fix render block if screen is disconnected and reconnected
 
         glClearColor(0f, 0f, 0f, 0f)
         glClear(GL_COLOR_BUFFER_BIT)
