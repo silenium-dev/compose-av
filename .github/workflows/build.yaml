@@ -19,6 +19,11 @@ jobs:
   linux-x86_64:
     runs-on: ubuntu-22.04
     steps:
+      - shell: bash
+        name: "Install mpv"
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libmpv-dev libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libavdevice-dev libavfilter-dev libswresample-dev libpostproc-dev
       - uses: silenium-dev/actions/jni-natives/ubuntu@main
         with:
           gradle-cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
