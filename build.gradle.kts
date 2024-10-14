@@ -131,8 +131,10 @@ allprojects {
 
 publishing {
     publications {
-        create<MavenPublication>("main") {
-            from(components["java"])
+        if (deployKotlin) {
+            create<MavenPublication>("main") {
+                from(components["java"])
+            }
         }
     }
 }

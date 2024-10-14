@@ -105,9 +105,11 @@ kotlin {
 
 publishing {
     publications {
-        create<MavenPublication>("natives${platform.capitalized}") {
-            from(components["java"])
-            artifactId = "$libName-natives-$platform"
+        if (deployNative) {
+            create<MavenPublication>("natives${platform.capitalized}") {
+                from(components["java"])
+                artifactId = "$libName-natives-$platform"
+            }
         }
     }
 }
