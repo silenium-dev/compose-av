@@ -37,7 +37,6 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
     @InternalMultimediaApi
     suspend fun command(vararg command: String) = mpv.commandAsync(command.toList().toTypedArray())
 
-    suspend fun toggleFullscreen() = mpv.commandAsync("cycle", "fullscreen")
     suspend fun togglePause() = mpv.commandAsync("cycle", "pause")
     suspend fun toggleMute() = mpv.commandAsync("cycle", "mute")
     suspend fun setVolume(volume: Long) = mpv.commandAsync("set", "volume", volume.toString())
@@ -55,9 +54,9 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
             mpv.setOption(it.key, it.value)
         }
         mpv.initialize().getOrThrow()
-        mpv.setProperty("loop", false).getOrThrow()
-        mpv.setProperty("keep-open", "yes").getOrThrow()
-        mpv.setProperty("ao-volume", 100).getOrNull() // ignore errors
+        initProperties.forEach {
+            mpv.setProperty(it.key, it.value).getOrNull() // ignore errors
+        }
         return mpv
     }
 
@@ -94,6 +93,7 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
         private val initProperties = mapOf(
             "loop" to "inf",
             "keep-open" to "yes",
+            "ao-volume" to "100",
         )
     }
 }
