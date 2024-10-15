@@ -4,13 +4,14 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
 data class NativePointer(val address: Long, val clean: (Long) -> Unit) : AutoCloseable {
-    private val closed = AtomicBoolean(false)
+    private val _closed = AtomicBoolean(false)
+    val closed get() = _closed.get()
     override fun close() {
         if (address == 0L) {
             logger.warn("Attempt to close NULL NativePointer")
             return
         }
-        if (closed.compareAndSet(false, true)) {
+        if (_closed.compareAndSet(false, true)) {
             clean(address)
         } else {
             logger.warn("Attempt to close already closed NativePointer: $this")

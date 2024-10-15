@@ -74,7 +74,7 @@ tasks {
         useJUnitPlatform()
     }
 
-    register<Copy>("generateTemplates") {
+    val generateTemplates = register<Copy>("generateTemplates") {
         from(templateSrc)
         into(templateDst)
         expand(templateProps)
@@ -82,6 +82,10 @@ tasks {
         inputs.dir(templateSrc)
         inputs.properties(templateProps)
         outputs.dir(templateDst)
+    }
+
+    withType<Jar> {
+        dependsOn(generateTemplates)
     }
 
     compileKotlin {
@@ -100,6 +104,11 @@ sourceSets.main {
     kotlin {
         srcDir(templateDst)
     }
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
 }
 
 allprojects {

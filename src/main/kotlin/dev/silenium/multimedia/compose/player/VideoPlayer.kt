@@ -78,7 +78,6 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
     }
 
     override fun close() {
-        mpv.command("stop")
         render?.close()
         mpv.close()
     }
