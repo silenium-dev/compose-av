@@ -17,7 +17,7 @@ permissions:
   contents: write
 jobs:
   linux-x86_64:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - shell: bash
         name: "Install mpv"
@@ -35,7 +35,7 @@ jobs:
           java-version: 11
           platform: ${{ github.job }}
   kotlin:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: silenium-dev/actions/kotlin@main
         with:
