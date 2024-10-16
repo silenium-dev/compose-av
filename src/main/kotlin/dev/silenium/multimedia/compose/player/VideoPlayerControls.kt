@@ -39,19 +39,15 @@ import kotlin.time.Duration.Companion.seconds
 fun VideoSurfaceControls(
     player: VideoPlayer,
     modifier: Modifier = Modifier,
+    focusRequester: FocusRequester? = null,
+    focusOnClick: Boolean = false,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val paused by deferredFlowStateOf(player::paused)
     val loading by player.property<Boolean>("seeking")
     val backgroundColor = MaterialTheme.colors.surface
-    val focus = remember { FocusRequester() }
+    val focus = remember(focusRequester) { focusRequester ?: FocusRequester() }
     Box(modifier = modifier) {
-        Box(
-            modifier = Modifier.matchParentSize()
-                .handleInputs(player, focus)
-                .focusRequester(focus)
-                .focusable(enabled = true, interactionSource = remember { MutableInteractionSource() })
-        )
         StateIndicatorIcon(player, Modifier.align(Alignment.Center))
         if (loading != false) {
             CircularProgressIndicator(
@@ -60,6 +56,12 @@ fun VideoSurfaceControls(
                 strokeCap = StrokeCap.Round,
             )
         }
+        Box(
+            modifier = Modifier.matchParentSize()
+                .handleInputs(player, focus.takeIf { focusOnClick })
+                .focusRequester(focus)
+                .focusable(enabled = true, interactionSource = remember { MutableInteractionSource() })
+        )
 
         BoxWithConstraints(
             modifier = Modifier
@@ -151,6 +153,8 @@ fun VideoSurfaceControls(
         }
     }
     LaunchedEffect(focus) {
-        focus.requestFocus()
+        if (focusRequester == null) { // only focus if we created the focus requester
+            focus.requestFocus()
+        }
     }
 }

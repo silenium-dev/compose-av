@@ -19,7 +19,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalComposeUiApi::class, InternalMultimediaApi::class)
 @Composable
-fun Modifier.handleInputs(player: VideoPlayer, focusRequester: FocusRequester): Modifier {
+fun Modifier.handleInputs(player: VideoPlayer, focusRequester: FocusRequester? = null): Modifier {
     val coroutineScope = rememberCoroutineScope()
     var setSpeedJob: Job? by remember { mutableStateOf(null) }
     var spedUp by remember { mutableStateOf(false) }
@@ -31,7 +31,7 @@ fun Modifier.handleInputs(player: VideoPlayer, focusRequester: FocusRequester): 
             while (true) {
                 val event = awaitPointerEvent()
                 if (event.button == PointerButton.Primary) {
-                    focusRequester.requestFocus()
+                    focusRequester?.requestFocus()
                     if (event.type == PointerEventType.Press) {
                         setSpeedJob = coroutineScope.launch {
                             delay(longPressTimeout)
