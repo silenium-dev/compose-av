@@ -153,6 +153,26 @@ void eventCallback(JNIEnv *env, const mpv_event *event, jobject callback) {
             }
             env->CallVoidMethod(callback, method, static_cast<jlong>(event->reply_userdata), value);
         }
+        case MPV_EVENT_SET_PROPERTY_REPLY: {
+            jobject value = nullptr;
+            if (event->error == MPV_ERROR_SUCCESS) {
+                value = resultSuccess(env);
+            } else {
+                value = mpvResultFailure(env, "mpv_event_property", event->error);
+            }
+
+            const auto clazz = env->FindClass("dev/silenium/multimedia/core/mpv/MPVListener");
+            if (clazz == nullptr) {
+                std::cerr << "Class not found" << std::endl;
+                return;
+            }
+            const auto method = env->GetMethodID(clazz, "onPropertySet", "(JLjava/lang/Object;)V");
+            if (method == nullptr) {
+                std::cerr << "Method not found: onPropertySet" << std::endl;
+                return;
+            }
+            env->CallVoidMethod(callback, method, static_cast<jlong>(event->reply_userdata), value);
+        }
         case MPV_EVENT_COMMAND_REPLY: {
             // const auto reply = static_cast<mpv_event_command *>(event->data);
             // TODO: Proper node conversions

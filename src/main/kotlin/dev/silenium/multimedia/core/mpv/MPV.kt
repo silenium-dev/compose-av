@@ -162,14 +162,14 @@ class MPV : NativeCleanable, MPVAsyncListener {
 
     private fun subscribe(name: String, type: KClass<*>, fn: (Long, String, Long) -> Result<Unit>): Result<Unit> =
         guard(Unit) {
-            if (propertySubscriptions.containsKey(name)) {
-                logger.debug("Property $name is already being observed")
-                return Result.success(Unit)
-            }
-            logger.debug("Observing property $name")
-            val subscriptionId = subscriptionId.getAndIncrement()
-            return fn(nativePointer.address, name, subscriptionId)
-                .map { propertySubscriptions[name] = subscriptionId to type }
+            runCatching {
+                propertySubscriptions.computeIfAbsent(name) {
+                    logger.debug("Observing property $name")
+                    val subscriptionId = subscriptionId.getAndIncrement()
+                    fn(nativePointer.address, name, subscriptionId)
+                        .map { subscriptionId to type }.getOrThrow()
+                }
+            }.map {}
         }
 
     fun observePropertyString(name: String) = subscribe(name, String::class, ::observePropertyStringN)
@@ -178,11 +178,13 @@ class MPV : NativeCleanable, MPVAsyncListener {
     fun observePropertyFlag(name: String) = subscribe(name, Boolean::class, ::observePropertyFlagN)
 
     fun unobserveProperty(name: String): Result<Unit> = guard(Unit) {
-        val (id, _) = propertySubscriptions[name] ?: run {
+        propertySubscriptions.remove(name)?.let { (id, _) ->
+            logger.debug("Unobserving property $name")
+            unobservePropertyN(nativePointer.address, id)
+        } ?: run {
             logger.debug("Property $name is not being observed")
-            return Result.success(Unit)
+            Result.success(Unit)
         }
-        return unobservePropertyN(nativePointer.address, id)
     }
 
     private class Sharing(
