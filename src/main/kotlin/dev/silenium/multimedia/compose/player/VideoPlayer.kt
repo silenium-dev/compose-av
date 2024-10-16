@@ -3,6 +3,7 @@ package dev.silenium.multimedia.compose.player
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import dev.silenium.compose.gl.surface.GLDrawScope
+import dev.silenium.compose.gl.surface.GLSurface
 import dev.silenium.compose.gl.surface.GLSurfaceState
 import dev.silenium.multimedia.compose.util.deferredFlowStateOf
 import dev.silenium.multimedia.compose.util.mapState
@@ -13,6 +14,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
+    internal var surface: GLSurface? = null
     private var initialized = false
 
     @PublishedApi
