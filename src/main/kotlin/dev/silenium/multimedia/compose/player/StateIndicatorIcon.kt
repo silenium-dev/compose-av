@@ -30,26 +30,30 @@ fun StateIndicatorIcon(player: VideoPlayer, modifier: Modifier = Modifier) {
     val loading by player.property<Boolean>("seeking")
     var icon: ImageVector? by remember { mutableStateOf(null) }
     LaunchedEffect(loading, paused) {
-        icon = if (loading == true) {
-            null
-        } else if (paused == true) {
+        icon = if (paused == true) {
             Icons.Default.Pause
-        } else if (icon != null) {
+        } else if (paused == false) {
             Icons.Default.PlayArrow
         } else {
             null
         }
     }
 
+    var initial by remember { mutableStateOf(true) }
+
     icon?.let {
         val duration = 640
         val easing = EaseOut
-        val alphaAnimator = remember { AnimationState(1f) }
-        val scaleAnimator = remember { AnimationState(1f) }
+        val alphaAnimator = remember { AnimationState(0f) }
+        val scaleAnimator = remember { AnimationState(1.5f) }
         val alpha by alphaAnimator.asFloatState()
         val scale by scaleAnimator.asFloatState()
 
         LaunchedEffect(icon) {
+            if (initial) {
+                initial = false
+                return@LaunchedEffect
+            }
             alphaAnimator.animateTo(1f, snap(0), sequentialAnimation = true)
             scaleAnimator.animateTo(1f, snap(0), sequentialAnimation = true)
             listOf(
