@@ -83,7 +83,7 @@ jobject eventDataToJava(JNIEnv *env, mpv_event_property *prop) {
             break;
         }
         case MPV_FORMAT_STRING:
-            value = env->NewStringUTF(static_cast<char *>(prop->data));
+            value = env->NewStringUTF(*static_cast<char **>(prop->data));
             break;
         case MPV_FORMAT_FLAG: {
             const auto clazz = env->FindClass("java/lang/Boolean");
