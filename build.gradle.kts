@@ -23,7 +23,7 @@ dependencies {
     implementation(compose.desktop.currentOs)
     implementation(compose.material3)
     implementation(compose.materialIconsExtended)
-    implementation("androidx.annotation:annotation-jvm:1.8.2")
+    implementation("androidx.annotation:annotation-jvm:1.9.0")
     implementation(libs.compose.gl)
     implementation(libs.compose.gl.natives)
     implementation(libs.jni.utils)
