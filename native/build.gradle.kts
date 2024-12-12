@@ -3,7 +3,6 @@ import dev.silenium.libs.jni.NativePlatform
 import dev.silenium.libs.jni.Platform
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.incremental.createDirectory
 
 buildscript {
     repositories {
