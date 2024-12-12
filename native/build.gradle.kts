@@ -31,7 +31,7 @@ val platform = platformString?.let { Platform(it, platformExtension) } ?: Native
 
 val cmakeExe = findProperty("cmake.executable") as? String ?: "cmake"
 val generateMakefile = tasks.register<Exec>("generateMakefile") {
-    workingDir = layout.buildDirectory.dir("cmake").get().asFile.apply { createDirectory() }
+    workingDir = layout.buildDirectory.dir("cmake").get().asFile.apply { mkdirs() }
     val additionalFlags = mutableListOf(
         "-DJAVA_HOME=${System.getProperty("java.home")}",
         "-DPROJECT_NAME=${libName}",
