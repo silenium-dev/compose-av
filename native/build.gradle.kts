@@ -3,7 +3,6 @@ import dev.silenium.libs.jni.NativePlatform
 import dev.silenium.libs.jni.Platform
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.incremental.createDirectory
 
 buildscript {
     repositories {
@@ -31,7 +30,7 @@ val platform = platformString?.let { Platform(it, platformExtension) } ?: Native
 
 val cmakeExe = findProperty("cmake.executable") as? String ?: "cmake"
 val generateMakefile = tasks.register<Exec>("generateMakefile") {
-    workingDir = layout.buildDirectory.dir("cmake").get().asFile.apply { createDirectory() }
+    workingDir = layout.buildDirectory.dir("cmake").get().asFile.apply { mkdirs() }
     val additionalFlags = mutableListOf(
         "-DJAVA_HOME=${System.getProperty("java.home")}",
         "-DPROJECT_NAME=${libName}",
