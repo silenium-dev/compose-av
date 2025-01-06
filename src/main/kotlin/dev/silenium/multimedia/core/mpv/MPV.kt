@@ -324,7 +324,7 @@ class MPV : NativeCleanable, MPVAsyncListener {
             }
             commandAsyncN(nativePointer.address, command, subscriptionId).onFailure {
                 commandReplyCallbacks.remove(subscriptionId)
-                logger.error("Failed to execute command $command", it)
+                logger.error("Failed to execute command ${command.joinToString()}", it)
                 continuation.resume(Result.failure(it))
             }
         }

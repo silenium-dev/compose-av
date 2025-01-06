@@ -56,7 +56,7 @@ fun VideoSurface(
     val surfaceState = rememberGLSurfaceState()
     BoxWithConstraints(modifier = modifier) {
         GLSurfaceView(
-            surface = player.surface ?: createGLSurface(player, surfaceState),
+            surface = player.surface!!,
             modifier = Modifier.matchParentSize(),
         )
         if (showStats) {
@@ -79,11 +79,10 @@ fun rememberVideoPlayer(
     val player = remember { VideoPlayer() }
     val surface = createGLSurface(player, surfaceState, onInitialized)
 
-    LaunchedEffect(player, surface) {
+    DisposableEffect(player, surface) {
         player.surface = surface
-    }
-    DisposableEffect(player) {
         onDispose {
+            player.surface = null
             player.close()
         }
     }

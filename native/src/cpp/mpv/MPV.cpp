@@ -580,17 +580,19 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
     }
     const auto object = env->NewGlobalRef(self);
 
-    const auto glProcMethod = env->GetMethodID(env->GetObjectClass(self), "getGlProc", "(Ljava/lang/String;)J");
-    if (glProcMethod == nullptr) {
-        std::cerr << "Method not found: getGlProc" << std::endl;
-        return mpvResultFailure(env, "GetMethodID", MPV_ERROR_GENERIC);
-    }
     mpv_opengl_init_params gl_params{
-            .get_proc_address = fnptr<void *(void *, const char *)>([=](void *ctx, const char *name) -> void * {
+            .get_proc_address = fnptr<void *(void *, const char *)>([object, jvm](void *ctx, const char *name) -> void * {
                 JNIEnv *jni_env;
                 const auto res = jvm->AttachCurrentThread(reinterpret_cast<void **>(&jni_env), nullptr);
                 if (res != JNI_OK) {
                     std::cerr << "Failed to attach current thread" << std::endl;
+                    return nullptr;
+                }
+
+                // TODO: Fix crash here during renderer disposal
+                const auto glProcMethod = jni_env->GetMethodID(jni_env->GetObjectClass(object), "getGlProc", "(Ljava/lang/String;)J");
+                if (glProcMethod == nullptr) {
+                    std::cerr << "Method not found: getGlProc" << std::endl;
                     return nullptr;
                 }
 
@@ -609,22 +611,24 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
 
     mpv_render_context *handle{nullptr};
     if (const auto ret = mpv_render_context_create(&handle, reinterpret_cast<mpv_handle *>(mpvHandle), params.data()); ret < 0) {
+        env->DeleteGlobalRef(object);
         return mpvResultFailure(env, "mpv_render_context_create", ret);
-    }
-    const auto updateMethod = env->GetMethodID(env->GetObjectClass(self), "requestUpdate", "()V");
-    if (updateMethod == nullptr) {
-        std::cerr << "Method not found: requestUpdate" << std::endl;
-        return mpvResultFailure(env, "GetMethodID", MPV_ERROR_GENERIC);
     }
     mpv_render_context_set_update_callback(
             handle,
-            fnptr<void(void *)>([=](void *) {
+            fnptr<void(void *)>([object, jvm](void *) {
                 JNIEnv *jni_env;
                 const auto res = jvm->AttachCurrentThread(reinterpret_cast<void **>(&jni_env), nullptr);
                 if (res != JNI_OK) {
                     std::cerr << "Failed to attach current thread" << std::endl;
                     return;
                 }
+                const auto updateMethod = jni_env->GetMethodID(jni_env->GetObjectClass(object), "requestUpdate", "()V");
+                if (updateMethod == nullptr) {
+                    std::cerr << "Method not found: requestUpdate" << std::endl;
+                    return;
+                }
+                std::cerr << "Requesting update: " << object << ", " << updateMethod << std::endl;
                 jni_env->CallVoidMethod(object, updateMethod);
                 jvm->DetachCurrentThread();
             }),
