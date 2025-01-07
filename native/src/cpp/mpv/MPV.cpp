@@ -632,7 +632,6 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
                     std::cerr << "Method not found: requestUpdate" << std::endl;
                     return;
                 }
-                std::cerr << "Requesting update: " << render_context->gref << ", " << updateMethod << std::endl;
                 jni_env->CallVoidMethod(render_context->gref, updateMethod);
                 jvm->DetachCurrentThread();
             }),
