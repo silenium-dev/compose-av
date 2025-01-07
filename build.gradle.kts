@@ -1,6 +1,7 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.TaskTriggersConfig
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin)
@@ -96,6 +97,7 @@ tasks {
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xcontext-receivers")
+        jvmTarget = JvmTarget.JVM_11
     }
     jvmToolchain(11)
 }

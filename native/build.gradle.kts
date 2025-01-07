@@ -1,8 +1,6 @@
 import dev.silenium.libs.jni.NativeLoader
 import dev.silenium.libs.jni.NativePlatform
 import dev.silenium.libs.jni.Platform
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 buildscript {
     repositories {
@@ -91,14 +89,6 @@ tasks.processResources {
         rename {
             NativeLoader.libPath(libName, platform = platform)
         }
-    }
-}
-
-kotlin {
-    jvmToolchain(8)
-    compilerOptions {
-        jvmTarget = JvmTarget.JVM_1_8
-        languageVersion = KotlinVersion.KOTLIN_1_7
     }
 }
 
