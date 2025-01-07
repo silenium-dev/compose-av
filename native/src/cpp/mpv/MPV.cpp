@@ -581,7 +581,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
     const auto object = env->NewGlobalRef(self);
 
     mpv_opengl_init_params gl_params{
-            .get_proc_address = fnptr<void *(void *, const char *)>([object, jvm](void *ctx, const char *name) -> void * {
+            .get_proc_address = fnptr<void *(void *, const char *)>([jvm](void *opaque, const char *name) -> void * {
+                const auto javaRender = static_cast<jobject>(opaque);
                 JNIEnv *jni_env;
                 const auto res = jvm->AttachCurrentThread(reinterpret_cast<void **>(&jni_env), nullptr);
                 if (res != JNI_OK) {
@@ -590,19 +591,20 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
                 }
 
                 // TODO: Fix crash here during renderer disposal
-                const auto glProcMethod = jni_env->GetMethodID(jni_env->GetObjectClass(object), "getGlProc", "(Ljava/lang/String;)J");
+                const auto glProcMethod = jni_env->GetMethodID(jni_env->GetObjectClass(javaRender), "getGlProc", "(Ljava/lang/String;)J");
                 if (glProcMethod == nullptr) {
                     std::cerr << "Method not found: getGlProc" << std::endl;
                     return nullptr;
                 }
 
                 const auto nameStr = jni_env->NewStringUTF(name);
-                const auto ret = jni_env->CallLongMethod(object, glProcMethod, nameStr);
+                const auto ret = jni_env->CallLongMethod(javaRender, glProcMethod, nameStr);
                 jni_env->DeleteLocalRef(nameStr);
                 jvm->DetachCurrentThread();
                 // const auto ret = glXGetProcAddress(reinterpret_cast<const GLubyte *>(name));
                 return reinterpret_cast<void *>(ret);
             }),
+            .get_proc_address_ctx = object,
     };
     params.emplace_back(MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_params);
     int advControl = advancedControl ? 1 : 0;
@@ -614,26 +616,27 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
         env->DeleteGlobalRef(object);
         return mpvResultFailure(env, "mpv_render_context_create", ret);
     }
+    const auto ctx = new RenderContext{handle, object, display};
     mpv_render_context_set_update_callback(
             handle,
-            fnptr<void(void *)>([object, jvm](void *) {
+            fnptr<void(void *)>([jvm](void *opaque) {
+                const auto render_context = static_cast<RenderContext *>(opaque);
                 JNIEnv *jni_env;
                 const auto res = jvm->AttachCurrentThread(reinterpret_cast<void **>(&jni_env), nullptr);
                 if (res != JNI_OK) {
                     std::cerr << "Failed to attach current thread" << std::endl;
                     return;
                 }
-                const auto updateMethod = jni_env->GetMethodID(jni_env->GetObjectClass(object), "requestUpdate", "()V");
+                const auto updateMethod = jni_env->GetMethodID(jni_env->GetObjectClass(render_context->gref), "requestUpdate", "()V");
                 if (updateMethod == nullptr) {
                     std::cerr << "Method not found: requestUpdate" << std::endl;
                     return;
                 }
-                std::cerr << "Requesting update: " << object << ", " << updateMethod << std::endl;
-                jni_env->CallVoidMethod(object, updateMethod);
+                std::cerr << "Requesting update: " << render_context->gref << ", " << updateMethod << std::endl;
+                jni_env->CallVoidMethod(render_context->gref, updateMethod);
                 jvm->DetachCurrentThread();
             }),
-            nullptr);
-    const auto ctx = new RenderContext{handle, object, display};
+            ctx);
     return resultSuccess(env, reinterpret_cast<jlong>(ctx));
 }
 
