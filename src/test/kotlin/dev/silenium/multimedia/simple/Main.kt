@@ -1,4 +1,4 @@
-package dev.silenium.multimedia.rewrite
+package dev.silenium.multimedia.simple
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.VerticalPager

@@ -1,4 +1,4 @@
-package dev.silenium.multimedia.rewrite
+package dev.silenium.multimedia.simple
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
