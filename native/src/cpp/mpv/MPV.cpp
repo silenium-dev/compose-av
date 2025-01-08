@@ -590,7 +590,6 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
                     return nullptr;
                 }
 
-                // TODO: Fix crash here during renderer disposal
                 const auto glProcMethod = jni_env->GetMethodID(jni_env->GetObjectClass(javaRender), "getGlProc", "(Ljava/lang/String;)J");
                 if (glProcMethod == nullptr) {
                     std::cerr << "Method not found: getGlProc" << std::endl;
@@ -601,7 +600,6 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
                 const auto ret = jni_env->CallLongMethod(javaRender, glProcMethod, nameStr);
                 jni_env->DeleteLocalRef(nameStr);
                 jvm->DetachCurrentThread();
-                // const auto ret = glXGetProcAddress(reinterpret_cast<const GLubyte *>(name));
                 return reinterpret_cast<void *>(ret);
             }),
             .get_proc_address_ctx = object,
