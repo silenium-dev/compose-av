@@ -35,7 +35,7 @@ kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime",
 compose-gl = { group = "dev.silenium.compose.gl", name = "compose-gl", version.ref = "compose-gl" }
 compose-gl-natives = { group = "dev.silenium.compose.gl", name = "compose-gl-natives-linux-x86_64", version.ref = "compose-gl" }
 ffmpeg-natives = { group = "dev.silenium.libs", name = "ffmpeg-natives", version = "7.1+0.2.0" }
-mpv-natives = { group = "dev.silenium.libs", name = "ffmpeg-natives", version = "0.39.0+0.1.0" }
+mpv-natives = { group = "dev.silenium.libs", name = "ffmpeg-natives", version = "0.39.0+0.1.2" }
 jni-utils = { group = "dev.silenium.libs.jni", name = "jni-utils", version.ref = "jni-utils" }
 jna = { group = "net.java.dev.jna", name = "jna", version.ref = "jna" }
 
