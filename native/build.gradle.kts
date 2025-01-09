@@ -32,9 +32,10 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     val additionalFlags = mutableListOf(
         "-DJAVA_HOME=${System.getProperty("java.home")}",
         "-DPROJECT_NAME=${libName}",
-        "-DFFMPEG_PLATFORM=${platform.osArch}",
+        "-DNATIVE_PLATFORM=${platform.osArch}",
         "-DFFMPEG_PLATFORM_EXTENSION=${platform.extension}",
         "-DFFMPEG_VERSION=${libs.ffmpeg.natives.get().version}",
+        "-DMPV_VERSION=${libs.mpv.natives.get().version}",
     )
     commandLine(
         cmakeExe,
@@ -46,9 +47,10 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     inputs.properties(
         "JAVA_HOME" to System.getProperty("java.home"),
         "PROJECT_NAME" to libName,
-        "FFMPEG_PLATFORM" to platform.osArch,
+        "NATIVE_PLATFORM" to platform.osArch,
         "FFMPEG_PLATFORM_EXTENSION" to platform.extension,
         "FFMPEG_VERSION" to libs.ffmpeg.natives.get().version,
+        "MPV_VERSION" to libs.mpv.natives.get().version,
     )
     outputs.dir(workingDir)
     standardOutput = System.out

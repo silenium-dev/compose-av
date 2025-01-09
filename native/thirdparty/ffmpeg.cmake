@@ -1,5 +1,5 @@
-set(FFMPEG_URL "https://reposilite.silenium.dev/releases/dev/silenium/libs/ffmpeg/ffmpeg-natives-${FFMPEG_PLATFORM}${FFMPEG_PLATFORM_EXTENSION}/${FFMPEG_VERSION}/ffmpeg-natives-${FFMPEG_PLATFORM}${FFMPEG_PLATFORM_EXTENSION}-${FFMPEG_VERSION}.zip")
-set(FFMPEG_URL_SHA256 "https://reposilite.silenium.dev/releases/dev/silenium/libs/ffmpeg/ffmpeg-natives-${FFMPEG_PLATFORM}${FFMPEG_PLATFORM_EXTENSION}/${FFMPEG_VERSION}/ffmpeg-natives-${FFMPEG_PLATFORM}${FFMPEG_PLATFORM_EXTENSION}-${FFMPEG_VERSION}.zip.sha256")
+set(FFMPEG_URL "https://reposilite.silenium.dev/releases/dev/silenium/libs/ffmpeg/ffmpeg-natives-${NATIVE_PLATFORM}${FFMPEG_PLATFORM_EXTENSION}/${FFMPEG_VERSION}/ffmpeg-natives-${NATIVE_PLATFORM}${FFMPEG_PLATFORM_EXTENSION}-${FFMPEG_VERSION}.zip")
+set(FFMPEG_URL_SHA256 "https://reposilite.silenium.dev/releases/dev/silenium/libs/ffmpeg/ffmpeg-natives-${NATIVE_PLATFORM}${FFMPEG_PLATFORM_EXTENSION}/${FFMPEG_VERSION}/ffmpeg-natives-${NATIVE_PLATFORM}${FFMPEG_PLATFORM_EXTENSION}-${FFMPEG_VERSION}.zip.sha256")
 set(FFMPEG_PREFIX "${CMAKE_BINARY_DIR}/ffmpeg")
 message(STATUS "Downloading ffmpeg from ${FFMPEG_URL}")
 
