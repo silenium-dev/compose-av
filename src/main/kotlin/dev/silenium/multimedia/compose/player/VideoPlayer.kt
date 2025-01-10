@@ -1,7 +1,6 @@
 package dev.silenium.multimedia.compose.player
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
+import androidx.compose.runtime.*
 import dev.silenium.compose.gl.surface.GLDrawScope
 import dev.silenium.compose.gl.surface.GLSurface
 import dev.silenium.compose.gl.surface.GLSurfaceState
@@ -14,6 +13,12 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
+    class Config(pixelPerfect: Boolean = false) {
+        var pixelPerfect by mutableStateOf(pixelPerfect)
+    }
+
+    val config: Config = Config()
+
     internal var surface: GLSurface? = null
     private var initialized = false
 
@@ -45,6 +50,7 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
 
     suspend fun seekAbsolute(position: Duration) =
         mpv.commandAsync(arrayOf("seek", position.inWholeMilliseconds.div(1000.0).toString(), "absolute"))
+
     suspend fun seekRelative(by: Duration) =
         mpv.commandAsync(arrayOf("seek", by.inWholeMilliseconds.div(1000.0).toString(), "relative"))
 
