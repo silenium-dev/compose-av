@@ -17,6 +17,7 @@ import org.jetbrains.skia.Paint
 private fun createGLSurface(
     player: VideoPlayer,
     surfaceState: GLSurfaceState = rememberGLSurfaceState(),
+    pixelPerfect: Boolean = false,
     onInitialized: () -> Unit = {},
 ): GLSurface {
     var initialized by remember { mutableStateOf(false) }
@@ -26,7 +27,8 @@ private fun createGLSurface(
 
     @OptIn(InternalMultimediaApi::class)
     val dheight by player.property<Long>("dheight")
-    val fboSizeOverride = remember(dwidth, dheight) {
+    val fboSizeOverride = remember(pixelPerfect, dwidth, dheight) {
+        if (!pixelPerfect) return@remember null
         dwidth?.let { w ->
             dheight?.let { h ->
                 FBOSizeOverride(w.toInt(), h.toInt())
@@ -77,10 +79,11 @@ fun VideoSurface(
 @Composable
 fun rememberVideoPlayer(
     surfaceState: GLSurfaceState = rememberGLSurfaceState(),
+    pixelPerfect: Boolean = false,
     onInitialized: () -> Unit = {},
 ): VideoPlayer {
     val player = remember { VideoPlayer() }
-    val surface = createGLSurface(player, surfaceState, onInitialized)
+    val surface = createGLSurface(player, surfaceState, pixelPerfect, onInitialized)
 
     DisposableEffect(player, surface) {
         player.surface = surface
