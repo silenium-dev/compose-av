@@ -7,16 +7,22 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 
-class FullscreenProvider {
-    var isFullscreen by mutableStateOf(false)
+interface FullscreenProvider {
+    val isFullscreen: Boolean
+    val windowState: WindowState
+    fun toggleFullscreen()
+}
+
+class DesktopFullscreenProvider : FullscreenProvider {
+    override var isFullscreen by mutableStateOf(false)
         private set
-    val windowState = WindowState()
+    override val windowState = WindowState()
 
     @Synchronized
-    fun toggleFullscreen() {
+    override fun toggleFullscreen() {
         isFullscreen = !isFullscreen
         windowState.placement = if (isFullscreen) WindowPlacement.Fullscreen else WindowPlacement.Floating
     }
 }
 
-val LocalFullscreenProvider = staticCompositionLocalOf { FullscreenProvider() }
+val LocalFullscreenProvider = staticCompositionLocalOf { DesktopFullscreenProvider() }
