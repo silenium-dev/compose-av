@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import org.jetbrains.skia.Paint
 
 @Composable
 fun VideoSurfaceWithControls(
@@ -13,6 +14,7 @@ fun VideoSurfaceWithControls(
     modifier: Modifier = Modifier,
     showStats: Boolean = false,
     controlFocusRequester: FocusRequester? = null,
+    paint: Paint = Paint(),
 ) {
     BoxWithConstraints(modifier) {
         VideoSurface(
@@ -23,6 +25,7 @@ fun VideoSurfaceWithControls(
                 maxWidth = maxWidth,
                 maxHeight = maxHeight,
             ),
+            paint = paint,
         )
         VideoSurfaceControls(player, Modifier.matchParentSize(), controlFocusRequester)
     }

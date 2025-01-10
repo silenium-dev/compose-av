@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.silenium.compose.gl.surface.*
 import dev.silenium.multimedia.core.annotation.InternalMultimediaApi
+import org.jetbrains.skia.Paint
 
 @Composable
 private fun createGLSurface(
@@ -52,12 +53,14 @@ fun VideoSurface(
     player: VideoPlayer,
     showStats: Boolean = false,
     modifier: Modifier = Modifier,
+    paint: Paint = Paint(),
 ) {
     val surfaceState = rememberGLSurfaceState()
     BoxWithConstraints(modifier = modifier) {
         GLSurfaceView(
             surface = player.surface!!,
             modifier = Modifier.matchParentSize(),
+            paint = paint,
         )
         if (showStats) {
             Surface(
