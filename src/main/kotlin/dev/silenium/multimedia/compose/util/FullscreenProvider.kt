@@ -1,9 +1,6 @@
 package dev.silenium.multimedia.compose.util
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.*
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 
@@ -25,4 +22,5 @@ class DesktopFullscreenProvider : FullscreenProvider {
     }
 }
 
-val LocalFullscreenProvider = staticCompositionLocalOf { DesktopFullscreenProvider() }
+val LocalFullscreenProvider: ProvidableCompositionLocal<FullscreenProvider> =
+    staticCompositionLocalOf { DesktopFullscreenProvider() }
