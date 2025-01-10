@@ -9,15 +9,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.FastRewind
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +22,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
+import dev.silenium.multimedia.compose.util.LocalFullscreenProvider
 import dev.silenium.multimedia.compose.util.deferredFlowStateOf
 import dev.silenium.multimedia.core.annotation.InternalMultimediaApi
 import kotlinx.coroutines.launch
@@ -47,6 +42,9 @@ fun VideoSurfaceControls(
     val loading by player.property<Boolean>("seeking")
     val backgroundColor = MaterialTheme.colors.surface
     val focus = remember(focusRequester) { focusRequester ?: FocusRequester() }
+    var menuOpen by remember { mutableStateOf(false) }
+    val fullscreenProvider = LocalFullscreenProvider.current
+
     Box(modifier = modifier) {
         StateIndicatorIcon(player, Modifier.align(Alignment.Center))
         if (loading != false) {
@@ -149,6 +147,52 @@ fun VideoSurfaceControls(
                 }
                 VolumeSlider(player, coroutineScope)
                 Spacer(modifier = Modifier.weight(1f))
+                Box(modifier = Modifier.padding(horizontal = 4.dp)) {
+                    IconButton(
+                        onClick = { menuOpen = !menuOpen },
+                    ) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = "Menu",
+                            tint = MaterialTheme.colors.onSurface,
+                        )
+                    }
+                    DropdownMenu(menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(onClick = { player.config.pixelPerfect = !player.config.pixelPerfect }) {
+                            Checkbox(
+                                player.config.pixelPerfect,
+                                onCheckedChange = {
+                                    player.config.pixelPerfect = it
+                                },
+                            )
+                            Text("Pixel-Perfect Rendering")
+                        }
+                    }
+                }
+                IconButton(
+                    onClick = {
+                        fullscreenProvider.toggleFullscreen()
+                    },
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                ) {
+                    AnimatedContent(fullscreenProvider.isFullscreen, transitionSpec = {
+                        ContentTransform(fadeIn(), fadeOut())
+                    }) { it ->
+                        if (it) {
+                            Icon(
+                                Icons.Default.FullscreenExit,
+                                contentDescription = "Exit Fullscreen",
+                                tint = MaterialTheme.colors.onSurface
+                            )
+                        } else {
+                            Icon(
+                                Icons.Default.Fullscreen,
+                                contentDescription = "Enter Fullscreen",
+                                tint = MaterialTheme.colors.onSurface
+                            )
+                        }
+                    }
+                }
             }
         }
     }
