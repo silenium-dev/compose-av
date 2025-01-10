@@ -71,7 +71,7 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND objcopy --localize-
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_definitions(${PROJECT_NAME} PRIVATE -D_LINUX)
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GL REQUIRED IMPORTED_TARGET egl libva libva-drm libdrm glx libva-glx)
+    pkg_check_modules(GL REQUIRED IMPORTED_TARGET egl glx)
     target_link_libraries(${PROJECT_NAME} PUBLIC PkgConfig::GL)
     target_include_directories(${PROJECT_NAME} PUBLIC "${JAVA_HOME}/include/linux")
     add_compile_options(-static -static-libstdc++ -static-libgcc)

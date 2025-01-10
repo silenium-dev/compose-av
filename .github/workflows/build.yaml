@@ -23,7 +23,7 @@ jobs:
         name: "Install mpv"
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y libmpv-dev libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libavdevice-dev libavfilter-dev libswresample-dev libpostproc-dev
+          sudo apt-get install -y libmpv-dev libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libavdevice-dev libavfilter-dev libswresample-dev libpostproc-dev libpipewire-0.3-dev
       - uses: silenium-dev/actions/jni-natives/ubuntu@main
         with:
           gradle-cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}

@@ -40,3 +40,7 @@ set_target_properties(mpv PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_D
 
 target_include_directories(mpv INTERFACE "${MPV_INCLUDE_DIR}")
 target_link_options(mpv INTERFACE "-Wl,-Bsymbolic")
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MPV_deps REQUIRED IMPORTED_TARGET libva libva-drm libdrm libva-glx libva-x11 libpipewire-0.3)
+target_link_libraries(mpv INTERFACE PkgConfig::MPV_deps)
