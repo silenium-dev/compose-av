@@ -15,7 +15,7 @@ slf4j = "2.0.16"
 logback = "1.5.16"
 
 kotest = "5.9.1"
-mockk = "1.13.14"
+mockk = "1.13.16"
 
 idea-ext = "1.1.9"
 
