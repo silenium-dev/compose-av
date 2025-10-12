@@ -20,10 +20,23 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - shell: bash
-        name: "Install mpv"
+        name: "Setup build environment"
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y libmpv-dev libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libavdevice-dev libavfilter-dev libswresample-dev libpostproc-dev libpipewire-0.3-dev
+          sudo apt-get update
+          sudo apt-get upgrade -y
+          sudo apt-get install -y build-essential git pkg-config cmake nasm clang curl python3-pip python3-wheel ninja-build
+          sudo apt-get install -y libfontconfig-dev libva-dev libdrm-dev libpipewire-0.3-dev libasound-dev libpulse-dev libgl-dev libglx-dev libegl-dev libssl-dev hwdata libsystemd-dev
+
+          sudo pip3 install meson
+
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sudo -i sh -s -- -y
+          sudo -i rustup default stable
+          sudo -i cargo install cargo-c
+
+          sudo rm -rf dovi_tool && git clone -b 2.3.1 https://github.com/quietvoid/dovi_tool.git
+          pushd dovi_tool/dolby_vision
+          sudo -i bash -c "cd $(pwd) && cargo cinstall --release --prefix /usr"
+          popd
       - uses: silenium-dev/actions/jni-natives/ubuntu@main
         with:
           gradle-cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
