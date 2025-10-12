@@ -44,11 +44,11 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     commandLine(
         mesonExe, "setup",
         targetDir.absolutePath,
-        "--force-fallback-for=ffmpeg,libjpeg,openal,libass,harfbuzz,expat,libplacebo,libpng,zlib",
+        "--force-fallback-for=mpv,ffmpeg,libjpeg,openal,libass,harfbuzz,expat,libplacebo,libpng,zlib",
         "-Ddefault_library=static",
         "-Dprefer_static=true",
-        "-Ddrm=enabled",
-        "-Dopenal=enabled",
+        "-Dmpv:drm=enabled",
+        "-Dmpv:openal=enabled",
     )
 
     inputs.file(layout.projectDirectory.file("meson.build"))
