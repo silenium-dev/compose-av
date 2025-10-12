@@ -90,9 +90,8 @@ tasks.processResources {
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xcontext-receivers")
-        jvmTarget = JvmTarget.JVM_17
+        jvmTarget = JvmTarget.JVM_11
     }
-    jvmToolchain(17)
 }
 
 java {
