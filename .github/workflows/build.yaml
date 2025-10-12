@@ -22,6 +22,7 @@ jobs:
       - shell: bash
         name: "Setup build environment"
         run: |
+          sudo rm -rf dovi_tool/ || true
           sudo apt-get update
           sudo apt-get install -y build-essential git pkg-config cmake nasm clang curl python3-pip python3-wheel ninja-build
           sudo apt-get install -y libva-dev libdrm-dev libpipewire-0.3-dev libasound-dev libpulse-dev libgl-dev libglx-dev libegl-dev libssl-dev hwdata libsystemd-dev
@@ -37,6 +38,7 @@ jobs:
           pushd dovi_tool/dolby_vision
           sudo -i bash -c "cd $(pwd) && cargo cinstall --release --prefix /usr"
           popd
+          sudo rm -rf dovi_tool/
       - uses: silenium-dev/actions/jni-natives/ubuntu@main
         with:
           gradle-cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
