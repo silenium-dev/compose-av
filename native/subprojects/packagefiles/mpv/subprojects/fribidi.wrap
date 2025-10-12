@@ -1,0 +1,4 @@
+[wrap-git]
+revision = v1.0.16
+url = https://github.com/fribidi/fribidi.git
+depth = 1
