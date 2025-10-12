@@ -2,3 +2,6 @@
 revision = VER-2-14-1
 url = https://gitlab.freedesktop.org/freetype/freetype.git
 depth = 1
+
+[provide]
+dependency_names = freetype2

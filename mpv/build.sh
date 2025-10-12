@@ -5,7 +5,7 @@ set -eo pipefail
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get install -y build-essential git pkg-config cmake nasm clang curl python3-pip python3-wheel ninja-build
-sudo apt-get install -y libfontconfig-dev libva-dev libdrm-dev libuchardet-dev libpipewire-0.3-dev libasound-dev libpulse-dev libgl-dev libglx-dev libegl-dev libssl-dev hwdata libsystemd-dev
+sudo apt-get install -y libfontconfig-dev libva-dev libdrm-dev libpipewire-0.3-dev libasound-dev libpulse-dev libgl-dev libglx-dev libegl-dev libssl-dev hwdata libsystemd-dev
 
 sudo pip3 install meson
 
