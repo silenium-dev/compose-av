@@ -2,16 +2,22 @@ project('compose-av',
         'cpp', 'java',
         default_options : {
             'cpp_std' : 'c++20',
+            'wrap_mode' : 'forcefallback',
         }
 )
 add_global_arguments('-fPIC', language : 'c')
 add_global_arguments('-fPIC', language : 'cpp')
+add_global_link_arguments(
+    '-static-libgcc',
+    '-static-libstdc++',
+    language : 'cpp',
+)
 mpv = subproject('mpv',
                  default_options : {
                      'libmpv' : true,
                      'drm' : 'enabled',
                      'openal' : 'enabled',
-                     'force_fallback_for' : ['expat', 'ffmpeg', 'libjpeg', 'libass', 'libplacebo', 'libpng', 'openal', 'zlib'],
+                     'wrap_mode' : 'forcefallback',
                      'default_library' : 'static',
                      'prefer_static' : true,
                  }
