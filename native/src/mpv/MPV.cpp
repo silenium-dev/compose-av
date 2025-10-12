@@ -566,11 +566,11 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
 
     Display *display{nullptr};
     if (const auto glxDisplay = glXGetCurrentDisplay(); glxDisplay != nullptr) {
-        params.emplace_back(MPV_RENDER_PARAM_X11_DISPLAY, glxDisplay);
+        params.push_back({MPV_RENDER_PARAM_X11_DISPLAY, glxDisplay});
     } else if (const auto eglDisplay = eglGetCurrentDisplay(); eglDisplay != EGL_NO_DISPLAY) {
         // Compose always runs on X11
         display = XOpenDisplay(nullptr);
-        params.emplace_back(MPV_RENDER_PARAM_X11_DISPLAY, display);
+        params.push_back({MPV_RENDER_PARAM_X11_DISPLAY, display});
     }
 
     JavaVM *jvm;
@@ -604,10 +604,10 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
             }),
             .get_proc_address_ctx = object,
     };
-    params.emplace_back(MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_params);
+    params.push_back({MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_params});
     int advControl = advancedControl ? 1 : 0;
-    params.emplace_back(MPV_RENDER_PARAM_ADVANCED_CONTROL, &advControl);
-    params.emplace_back(MPV_RENDER_PARAM_INVALID, nullptr);
+    params.push_back({MPV_RENDER_PARAM_ADVANCED_CONTROL, &advControl});
+    params.push_back({MPV_RENDER_PARAM_INVALID, nullptr});
 
     mpv_render_context *handle{nullptr};
     if (const auto ret = mpv_render_context_create(&handle, reinterpret_cast<mpv_handle *>(mpvHandle), params.data()); ret < 0) {

@@ -1,6 +1,7 @@
 import dev.silenium.libs.jni.NativeLoader
 import dev.silenium.libs.jni.NativePlatform
 import dev.silenium.libs.jni.Platform
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 buildscript {
     repositories {
@@ -26,55 +27,47 @@ val platformExtension = "-gpl".takeIf { withGPL }.orEmpty()
 val platformString = findProperty("ffmpeg.platform")?.toString()
 val platform = platformString?.let { Platform(it, platformExtension) } ?: NativePlatform.platform(platformExtension)
 
-val cmakeExe = findProperty("cmake.executable") as? String ?: "cmake"
+val mesonExe = findProperty("meson.executable") as? String ?: "meson"
+val targetDir = layout.buildDirectory.dir("meson").get().asFile.apply { mkdirs() }
 val generateMakefile = tasks.register<Exec>("generateMakefile") {
-    workingDir = layout.buildDirectory.dir("cmake").get().asFile.apply { mkdirs() }
-    val additionalFlags = mutableListOf(
-        "-DJAVA_HOME=${System.getProperty("java.home")}",
-        "-DPROJECT_NAME=${libName}",
-        "-DNATIVE_PLATFORM=${platform.osArch}",
-        "-DFFMPEG_PLATFORM_EXTENSION=${platform.extension}",
-        "-DFFMPEG_VERSION=${libs.ffmpeg.natives.get().version}",
-        "-DMPV_VERSION=${libs.mpv.natives.get().version}",
-    )
-    commandLine(
-        cmakeExe,
-        *additionalFlags.toTypedArray(),
-        layout.projectDirectory.asFile.absolutePath,
+    workingDir = layout.projectDirectory.asFile
+
+    doFirst {
+        delete(targetDir)
+    }
+
+    environment(
+        "CFLAGS" to "-fPIC",
+        "CXXFLAGS" to "-fPIC",
     )
 
-    inputs.file(layout.projectDirectory.file("CMakeLists.txt"))
-    inputs.properties(
-        "JAVA_HOME" to System.getProperty("java.home"),
-        "PROJECT_NAME" to libName,
-        "NATIVE_PLATFORM" to platform.osArch,
-        "FFMPEG_PLATFORM_EXTENSION" to platform.extension,
-        "FFMPEG_VERSION" to libs.ffmpeg.natives.get().version,
-        "MPV_VERSION" to libs.mpv.natives.get().version,
+    commandLine(
+        mesonExe, "setup",
+        targetDir.absolutePath,
+        "--force-fallback-for=ffmpeg,libjpeg,openal,libass,harfbuzz,expat,libplacebo,libpng,zlib",
     )
-    outputs.dir(workingDir)
+
+    inputs.file(layout.projectDirectory.file("meson.build"))
+    inputs.file(layout.projectDirectory.file("src/meson.build"))
+    outputs.dir(targetDir)
     standardOutput = System.out
 }
 
 val compileNative = tasks.register<Exec>("compileNative") {
-    workingDir = layout.buildDirectory.dir("cmake").get().asFile
-    commandLine(cmakeExe, "--build", ".", "-j", Runtime.getRuntime().availableProcessors().toString())
+    commandLine(mesonExe, "compile", "-C", targetDir)
     dependsOn(generateMakefile)
+
+    environment(
+        "CFLAGS" to "-fPIC",
+        "CXXFLAGS" to "-fPIC",
+    )
 
     standardOutput = System.out
     val fileNameTemplate = NativeLoader.fileNameTemplate(platform)
-    when (platform.os) {
-        Platform.OS.WINDOWS -> {
-            outputs.files(layout.buildDirectory.file("cmake/Debug/${fileNameTemplate.format(libName)}"))
-        }
-
-        Platform.OS.LINUX, Platform.OS.DARWIN -> {
-            outputs.files(layout.buildDirectory.file("cmake/${fileNameTemplate.format(libName)}"))
-        }
-    }
-    inputs.file(layout.buildDirectory.file("cmake/CMakeCache.txt"))
+    outputs.files(layout.buildDirectory.file("meson/src/${fileNameTemplate.format(libName)}"))
+    inputs.file(layout.buildDirectory.file("meson/build.ninja"))
     inputs.dir(layout.projectDirectory.dir("src"))
-    inputs.file(layout.projectDirectory.file("CMakeLists.txt"))
+    inputs.file(layout.projectDirectory.file("meson.build"))
     outputs.cacheIf { true }
 }
 
@@ -92,6 +85,19 @@ tasks.processResources {
             NativeLoader.libPath(libName, platform = platform)
         }
     }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-receivers")
+        jvmTarget = JvmTarget.JVM_11
+    }
+    jvmToolchain(11)
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
 }
 
 publishing {

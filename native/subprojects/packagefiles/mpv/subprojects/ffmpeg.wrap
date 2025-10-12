@@ -1,0 +1,9 @@
+[wrap-file]
+directory = ffmpeg-n8.0-latest-linux64-gpl-shared-8.0
+source_url = https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.0-latest-linux64-gpl-shared-8.0.tar.xz
+source_filename = ffmpeg-n8.0-latest-linux64-gpl-shared-8.0.tar.xz
+source_hash = 6e32fab45ad71841de03e796124b7c1c06a8b42a53860525a44aa007b28757a8
+patch_directory = ffmpeg
+
+[provide]
+dependency_names = libavcodec, libavfilter, libavformat, libavutil, libswresample, libswscale

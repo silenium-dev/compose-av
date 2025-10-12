@@ -1,0 +1,5 @@
+[wrap-git]
+revision = master
+url = https://github.com/mpv-player/mpv.git
+depth = 1
+patch_directory = mpv
