@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.TaskTriggersConfig
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -14,14 +13,9 @@ plugins {
 
 val deployNative = (findProperty("deploy.native") as String?)?.toBoolean() ?: true
 val deployKotlin = (findProperty("deploy.kotlin") as String?)?.toBoolean() ?: true
-val skikoEGL = (findProperty("skiko.egl") as String?)?.toBoolean() ?: false
 
 dependencies {
-    // Note, if you develop a library, you should use compose.desktop.common.
-    // compose.desktop.currentOs should be used in launcher-sourceSet
-    // (in a separate module for demo project and in testMain).
-    // With compose.desktop.common you will also lose @Preview functionality
-    implementation(compose.desktop.currentOs)
+    implementation(compose.desktop.common)
     implementation(compose.material3)
     implementation(compose.materialIconsExtended)
     implementation("androidx.annotation:annotation-jvm:1.9.1")
@@ -35,34 +29,12 @@ dependencies {
         implementation(project(":native"))
     }
     implementation(kotlin("reflect"))
-    if (skikoEGL) {
-        implementation(libs.bundles.skiko) {
-            version {
-                strictly(libs.skiko.awt.runtime.linux.x64.get().version!!)
-            }
-        }
-    }
 
+    testImplementation(compose.desktop.currentOs)
     testImplementation(compose.materialIconsExtended)
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)
     testImplementation(libs.logback.classic)
-}
-
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor(0, TimeUnit.SECONDS)
-}
-
-compose.desktop {
-    application {
-        mainClass = "MainKt"
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "gl-demo"
-            packageVersion = "1.0.0"
-        }
-    }
 }
 
 val templateSrc = layout.projectDirectory.dir("src/main/templates")
