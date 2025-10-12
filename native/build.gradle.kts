@@ -49,6 +49,7 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
         "-Dprefer_static=true",
         "-Dmpv:drm=enabled",
         "-Dmpv:openal=enabled",
+        "-Dmpv:vulkan=disabled",
     )
 
     inputs.file(layout.projectDirectory.file("meson.build"))
