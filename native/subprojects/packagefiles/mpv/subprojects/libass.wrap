@@ -2,3 +2,4 @@
 revision = master
 url = https://github.com/libass/libass
 depth = 1
+patch_directory = libass
