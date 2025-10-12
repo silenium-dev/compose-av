@@ -4,4 +4,4 @@ url = https://gitlab.freedesktop.org/fontconfig/fontconfig.git
 depth = 1
 
 [provide]
-dependency_names = fontconfig
+fontconfig = fontconfig_dep
