@@ -80,6 +80,9 @@ sourceSets.main {
 }
 
 java {
+    sourceCompatibility = kotlin.compilerOptions.jvmTarget.map { JavaVersion.toVersion(it.target) }.get()
+    targetCompatibility = sourceCompatibility
+
     withSourcesJar()
     withJavadocJar()
 }
