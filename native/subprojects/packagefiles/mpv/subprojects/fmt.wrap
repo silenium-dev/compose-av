@@ -5,4 +5,4 @@ depth = 1
 method = cmake
 
 [provide]
-fmt = libfmt.a
+fmt = fmt_dep
