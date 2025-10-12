@@ -1,0 +1,7 @@
+[wrap-git]
+revision = 0.0.8
+url = https://gitlab.freedesktop.org/uchardet/uchardet.git
+depth = 1
+
+[provide]
+uchardet = libuchardet_dep
