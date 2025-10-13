@@ -2,7 +2,7 @@
 *.iml
 cmake-build-*/
 /subprojects/*
-!/subprojects/*.wrap
+!/subprojects/mpv.wrap
 !/subprojects/packagefiles
 !/subprojects/packagefiles/*
 buildDir/

@@ -15,6 +15,7 @@ fun VideoSurfaceWithControls(
     showStats: Boolean = false,
     controlFocusRequester: FocusRequester? = null,
     paint: Paint = Paint(),
+    onInitialized: () -> Unit = {},
 ) {
     BoxWithConstraints(modifier) {
         VideoSurface(
@@ -26,6 +27,7 @@ fun VideoSurfaceWithControls(
                 maxHeight = maxHeight,
             ),
             paint = paint,
+            onInitialized = onInitialized,
         )
         VideoSurfaceControls(player, Modifier.matchParentSize(), controlFocusRequester)
     }

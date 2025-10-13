@@ -1,9 +1,8 @@
 package dev.silenium.multimedia.compose.player
 
 import androidx.compose.runtime.*
-import dev.silenium.compose.gl.surface.GLDrawScope
-import dev.silenium.compose.gl.surface.GLSurface
-import dev.silenium.compose.gl.surface.GLSurfaceState
+import dev.silenium.compose.gl.canvas.GLCanvasState
+import dev.silenium.compose.gl.canvas.GLDrawScope
 import dev.silenium.multimedia.compose.util.deferredFlowStateOf
 import dev.silenium.multimedia.compose.util.mapState
 import dev.silenium.multimedia.core.annotation.InternalMultimediaApi
@@ -19,7 +18,6 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
 
     val config: Config = Config()
 
-    internal var surface: GLSurface? = null
     private var initialized = false
 
     @PublishedApi
@@ -68,26 +66,31 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
         return mpv
     }
 
-    private fun initialize(state: GLSurfaceState) {
+    private fun initialize(state: GLCanvasState, onInitialized: () -> Unit) {
         if (initialized) return
         render = mpv.createRender(advancedControl = true, state::requestUpdate)
         initialized = true
+        onInitialized()
     }
 
-    fun onRender(scope: GLDrawScope, state: GLSurfaceState) {
-        initialize(state)
+    fun onRender(scope: GLDrawScope, state: GLCanvasState, onInitialized: () -> Unit = {}) {
+        initialize(state, onInitialized)
 
         // TODO: fix render block if screen is disconnected and reconnected
 
         glClearColor(0f, 0f, 0f, 0f)
         glClear(GL_COLOR_BUFFER_BIT)
         render?.render(scope.fbo)?.getOrThrow()
-        scope.redrawAfter(null)
     }
 
     override fun close() {
         render?.close()
         mpv.close()
+    }
+
+    fun onCanvasDispose() {
+        render?.close()
+        render = null
     }
 
     companion object {

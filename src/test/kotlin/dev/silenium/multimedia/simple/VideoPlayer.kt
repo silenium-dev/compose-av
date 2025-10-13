@@ -2,9 +2,8 @@ package dev.silenium.multimedia.simple
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import dev.silenium.compose.gl.surface.GLSurface
-import dev.silenium.compose.gl.surface.GLSurfaceView
-import dev.silenium.compose.gl.surface.rememberGLSurfaceState
+import dev.silenium.compose.gl.canvas.GLCanvas
+import dev.silenium.compose.gl.canvas.rememberGLCanvasState
 import dev.silenium.multimedia.core.mpv.MPV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -42,8 +41,8 @@ fun VideoPlayer(file: Path, suspend: Boolean = false, modifier: Modifier = Modif
             mpv.commandAsync("set", "pause", if (suspend) "yes" else "no").getOrThrow()
         }
     }
-    val state = rememberGLSurfaceState()
-    GLSurfaceView(state, modifier = modifier, presentMode = GLSurface.PresentMode.MAILBOX, swapChainSize = 3) {
+    val state = rememberGLCanvasState()
+    GLCanvas(state, modifier = modifier) {
         if (!ready) {
             render = mpv.createRender(advancedControl = true, state::requestUpdate)
             ready = true

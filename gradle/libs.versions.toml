@@ -6,7 +6,7 @@ kotlinx-serialization = "1.9.0"
 kotlinx-datetime = "0.6.1"
 
 compose = "1.10.0-alpha02"
-compose-gl = "0.8.0"
+compose-gl = "0.9.0"
 jni-utils = "0.1.6"
 jna = "5.16.0"
 
@@ -32,7 +32,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 compose-gl = { group = "dev.silenium.compose.gl", name = "compose-gl", version.ref = "compose-gl" }
-compose-gl-natives = { group = "dev.silenium.compose.gl", name = "compose-gl-natives-linux-x86_64", version.ref = "compose-gl" }
+compose-gl-natives = { group = "dev.silenium.compose.gl", name = "compose-gl-natives-all", version.ref = "compose-gl" }
 ffmpeg-natives = { group = "dev.silenium.libs", name = "ffmpeg-natives", version = "7.1+0.2.0" }
 mpv-natives = { group = "dev.silenium.libs", name = "ffmpeg-natives", version = "0.39.0+0.1.2" }
 jni-utils = { group = "dev.silenium.libs.jni", name = "jni-utils", version.ref = "jni-utils" }

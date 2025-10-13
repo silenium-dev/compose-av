@@ -13,11 +13,12 @@ import dev.silenium.multimedia.core.annotation.InternalMultimediaApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
-@OptIn(ExperimentalComposeUiApi::class, InternalMultimediaApi::class)
+@OptIn(ExperimentalComposeUiApi::class, InternalMultimediaApi::class, ExperimentalTime::class)
 @Composable
 fun Modifier.handleInputs(player: VideoPlayer, focusRequester: FocusRequester? = null): Modifier {
     val coroutineScope = rememberCoroutineScope()

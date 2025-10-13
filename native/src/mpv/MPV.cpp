@@ -220,6 +220,7 @@ void handle_mpv_events(void *ctx) {
 extern "C" {
 // Client
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createN(JNIEnv *env, jobject thiz) {
+    setlocale(LC_NUMERIC, "C");
     const auto handle = mpv_create();
     if (handle == nullptr) {
         return mpvResultFailure(env, "mpv_create", MPV_ERROR_NOMEM);

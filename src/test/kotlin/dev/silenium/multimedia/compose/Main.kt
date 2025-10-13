@@ -40,11 +40,7 @@ fun App() {
         }
         var ready by remember { mutableStateOf(false) }
         val coroutineScope = rememberCoroutineScope()
-        val player = rememberVideoPlayer(
-            onInitialized = {
-                ready = true
-            },
-        )
+        val player = rememberVideoPlayer()
         DisposableEffect(Unit) {
             onDispose {
                 ready = false
@@ -94,6 +90,9 @@ fun App() {
                             modifier = Modifier.fillParentMaxSize().animateItem(),
                             showStats = true,
                             controlFocusRequester = remember { FocusRequester() },
+                            onInitialized = {
+                                ready = true
+                            },
                         )
                         DisposableEffect(Unit) {
                             coroutineScope.launch {
