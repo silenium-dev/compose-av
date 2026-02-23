@@ -15,6 +15,9 @@
 #include <mpv/render.h>
 #include <mpv/render_gl.h>
 #include <vector>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
 
 #include <new>
 #include <optional>
@@ -28,7 +31,7 @@ auto fnptr_(Callable &&c, Ret (*)(Args...)) {
     if (used) {
         using type = decltype(storage);
         storage.~type();
-        new (&storage) type(std::forward<Callable>(c));
+        new(&storage) type(std::forward<Callable>(c));
     }
     used = true;
 
@@ -49,6 +52,12 @@ struct MpvContext {
     mpv_handle *handle;
     jobject object;
     jmethodID method;
+
+    std::thread eventLoop;
+    std::mutex mtx;
+    std::condition_variable cv;
+    std::atomic<bool> wakeup{false};
+    std::atomic<bool> running{true};
 };
 
 jobject eventDataToJava(JNIEnv *env, mpv_event_property *prop) {
@@ -126,6 +135,7 @@ void eventCallback(JNIEnv *env, const mpv_event *event, jobject callback) {
                 return;
             }
             env->CallVoidMethod(callback, method, name, value);
+            break;
         }
         case MPV_EVENT_GET_PROPERTY_REPLY: {
             const auto prop = static_cast<mpv_event_property *>(event->data);
@@ -152,6 +162,7 @@ void eventCallback(JNIEnv *env, const mpv_event *event, jobject callback) {
                 return;
             }
             env->CallVoidMethod(callback, method, static_cast<jlong>(event->reply_userdata), value);
+            break;
         }
         case MPV_EVENT_SET_PROPERTY_REPLY: {
             jobject value = nullptr;
@@ -172,6 +183,7 @@ void eventCallback(JNIEnv *env, const mpv_event *event, jobject callback) {
                 return;
             }
             env->CallVoidMethod(callback, method, static_cast<jlong>(event->reply_userdata), value);
+            break;
         }
         case MPV_EVENT_COMMAND_REPLY: {
             // const auto reply = static_cast<mpv_event_command *>(event->data);
@@ -193,26 +205,60 @@ void eventCallback(JNIEnv *env, const mpv_event *event, jobject callback) {
                 return;
             }
             env->CallVoidMethod(callback, method, static_cast<jlong>(event->reply_userdata), value);
+            break;
         }
         default:
             break;
     }
 }
 
-void handle_mpv_events(void *ctx) {
+// void handle_mpv_events(void *ctx) {
+//     const auto context = static_cast<MpvContext *>(ctx);
+//     JNIEnv *env;
+//     const auto res = context->jvm->AttachCurrentThread(reinterpret_cast<void **>(&env), nullptr);
+//     if (res != JNI_OK) {
+//         std::cerr << "Failed to attach current thread" << std::endl;
+//         return;
+//     }
+//     while (true) {
+//         const auto event = mpv_wait_event(context->handle, 0);
+//         if (event->event_id == MPV_EVENT_NONE) {
+//             break;
+//         }
+//         eventCallback(env, event, context->object);
+//     }
+//     context->jvm->DetachCurrentThread();
+// }
+
+void handle_mpv_wakeup(void *ctx) {
     const auto context = static_cast<MpvContext *>(ctx);
+    {
+        std::lock_guard lock(context->mtx);
+        context->wakeup = true;
+    }
+    context->cv.notify_one();
+}
+
+void mpv_event_loop(MpvContext *context) {
     JNIEnv *env;
     const auto res = context->jvm->AttachCurrentThread(reinterpret_cast<void **>(&env), nullptr);
     if (res != JNI_OK) {
         std::cerr << "Failed to attach current thread" << std::endl;
         return;
     }
-    while (true) {
-        const auto event = mpv_wait_event(context->handle, 0);
-        if (event->event_id == MPV_EVENT_NONE) {
-            break;
+    while (context->running) {
+        std::unique_lock lock(context->mtx);
+        context->cv.wait(lock, [&] { return context->wakeup.load() || !context->running.load(); });
+        context->wakeup = false;
+        lock.unlock();
+
+        if (!context->running.load()) break;
+
+        while (context->running) {
+            const auto event = mpv_wait_event(context->handle, 0);
+            if (event->event_id == MPV_EVENT_NONE) break;
+            eventCallback(env, event, context->object);
         }
-        eventCallback(env, event, context->object);
     }
     context->jvm->DetachCurrentThread();
 }
@@ -228,11 +274,13 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createN(JN
     return resultSuccess(env, reinterpret_cast<long>(handle));
 }
 
-JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_destroyN(JNIEnv *env, jobject thiz, const jlong handle) {
+JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_destroyN(
+    JNIEnv *env, jobject thiz, const jlong handle) {
     mpv_terminate_destroy(reinterpret_cast<mpv_handle *>(handle));
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setOptionStringN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, jstring value) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setOptionStringN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, jstring value) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
     const char *valueStr = env->GetStringUTFChars(value, nullptr);
     const auto ret = mpv_set_option_string(reinterpret_cast<mpv_handle *>(handle), nameStr, valueStr);
@@ -244,7 +292,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setOptionS
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setCallbackN(JNIEnv *env, jobject thiz, const jlong handle_, jobject callback) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setCallbackN(
+    JNIEnv *env, jobject thiz, const jlong handle_, jobject callback) {
     const auto handle = reinterpret_cast<mpv_handle *>(handle_);
     JavaVM *jvm;
     if (const auto ret = env->GetJavaVM(&jvm); ret != JNI_OK) {
@@ -252,18 +301,27 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setCallbac
         return mpvResultFailure(env, "GetJavaVM", MPV_ERROR_GENERIC);
     }
     const auto ctx = new MpvContext{jvm, handle, env->NewGlobalRef(callback)};
-    mpv_set_wakeup_callback(handle, handle_mpv_events, ctx);
+    mpv_set_wakeup_callback(handle, handle_mpv_wakeup, ctx);
+    // mpv_set_wakeup_callback(handle, handle_mpv_events, ctx);
+
+    std::thread eventLoopThread{mpv_event_loop, ctx};
+    ctx->eventLoop = std::move(eventLoopThread);
     return resultSuccess(env, reinterpret_cast<long>(ctx));
 }
 
-JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_unsetCallbackN(JNIEnv *env, jobject thiz, const jlong ctx) {
+JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_unsetCallbackN(
+    JNIEnv *env, jobject thiz, const jlong ctx) {
     const auto context = reinterpret_cast<MpvContext *>(ctx);
+    context->running = false;
+    context->cv.notify_all();
+    context->eventLoop.join();
     mpv_set_wakeup_callback(context->handle, nullptr, nullptr);
     env->DeleteGlobalRef(context->object);
     delete context;
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandAsyncN(JNIEnv *env, jobject thiz, const jlong handle, jobjectArray args, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandAsyncN(
+    JNIEnv *env, jobject thiz, const jlong handle, jobjectArray args, const jlong replyUserdata) {
     const auto size = env->GetArrayLength(args);
     std::vector<const char *> argv(size + 1);
     for (auto i = 0; i < size; i++) {
@@ -283,7 +341,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandAsy
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandN(JNIEnv *env, jobject thiz, const jlong handle, jobjectArray args) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandN(
+    JNIEnv *env, jobject thiz, const jlong handle, jobjectArray args) {
     const auto size = env->GetArrayLength(args);
     std::vector<const char *> argv(size + 1);
     for (auto i = 0; i < size; i++) {
@@ -306,7 +365,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandN(J
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandStringN(JNIEnv *env, jobject thiz, const jlong handle, jstring command) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandStringN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring command) {
     const char *commandStr = env->GetStringUTFChars(command, nullptr);
     const auto ret = mpv_command_string(reinterpret_cast<mpv_handle *>(handle), commandStr);
     env->ReleaseStringUTFChars(command, commandStr);
@@ -316,9 +376,11 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandStr
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyStringAsyncN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyStringAsyncN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    const auto ret = mpv_get_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_STRING);
+    const auto ret = mpv_get_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr,
+                                            MPV_FORMAT_STRING);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_get_property_async string", ret);
@@ -326,9 +388,11 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropert
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyLongAsyncN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyLongAsyncN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    const auto ret = mpv_get_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_INT64);
+    const auto ret = mpv_get_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr,
+                                            MPV_FORMAT_INT64);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_get_property_async int64", ret);
@@ -336,9 +400,11 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropert
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyDoubleAsyncN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyDoubleAsyncN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    const auto ret = mpv_get_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_DOUBLE);
+    const auto ret = mpv_get_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr,
+                                            MPV_FORMAT_DOUBLE);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_get_property_async double", ret);
@@ -346,9 +412,11 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropert
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyFlagAsyncN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyFlagAsyncN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    const auto ret = mpv_get_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_FLAG);
+    const auto ret = mpv_get_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr,
+                                            MPV_FORMAT_FLAG);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_get_property_async flag", ret);
@@ -357,7 +425,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropert
 }
 
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyStringN(JNIEnv *env, jobject thiz, const jlong handle, jstring name) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyStringN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
     char *value;
     const auto ret = mpv_get_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_STRING, &value);
@@ -373,7 +442,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropert
     return result;
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyLongN(JNIEnv *env, jobject thiz, const jlong handle, jstring name) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyLongN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
     long value;
     const auto ret = mpv_get_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_INT64, &value);
@@ -387,7 +457,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropert
     return resultSuccess(env, value);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyDoubleN(JNIEnv *env, jobject thiz, const jlong handle, jstring name) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyDoubleN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
     double value;
     const auto ret = mpv_get_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_DOUBLE, &value);
@@ -401,7 +472,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropert
     return resultSuccess(env, value);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyFlagN(JNIEnv *env, jobject thiz, const jlong handle, jstring name) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyFlagN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
     bool value;
     const auto ret = mpv_get_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_FLAG, &value);
@@ -415,10 +487,12 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropert
     return resultSuccess(env, value);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyStringAsyncN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, jstring value, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyStringAsyncN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, jstring value, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
     auto valueStr = const_cast<char *>(env->GetStringUTFChars(value, nullptr));
-    const auto ret = mpv_set_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_STRING, &valueStr);
+    const auto ret = mpv_set_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr,
+                                            MPV_FORMAT_STRING, &valueStr);
     env->ReleaseStringUTFChars(name, nameStr);
     env->ReleaseStringUTFChars(value, valueStr);
     if (ret < 0) {
@@ -427,9 +501,11 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropert
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyLongAsyncN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, jlong value, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyLongAsyncN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, jlong value, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    const auto ret = mpv_set_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_INT64, &value);
+    const auto ret = mpv_set_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr,
+                                            MPV_FORMAT_INT64, &value);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_set_property_async int64", ret);
@@ -437,9 +513,11 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropert
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyDoubleAsyncN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, jdouble value, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyDoubleAsyncN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, jdouble value, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    const auto ret = mpv_set_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_DOUBLE, &value);
+    const auto ret = mpv_set_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr,
+                                            MPV_FORMAT_DOUBLE, &value);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_set_property_async double", ret);
@@ -447,9 +525,11 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropert
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyFlagAsyncN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, jboolean value, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyFlagAsyncN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, jboolean value, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    const auto ret = mpv_set_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_FLAG, &value);
+    const auto ret = mpv_set_property_async(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr,
+                                            MPV_FORMAT_FLAG, &value);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_set_property_async flag", ret);
@@ -457,7 +537,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropert
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyStringN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, jstring value) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyStringN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, jstring value) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
     const char *valueStr = env->GetStringUTFChars(value, nullptr);
     const auto ret = mpv_set_property_string(reinterpret_cast<mpv_handle *>(handle), nameStr, valueStr);
@@ -469,7 +550,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropert
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyLongN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, jlong value) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyLongN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, jlong value) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
     const auto ret = mpv_set_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_INT64, &value);
     env->ReleaseStringUTFChars(name, nameStr);
@@ -479,7 +561,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropert
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyDoubleN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, jdouble value) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyDoubleN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, jdouble value) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
     const auto ret = mpv_set_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_DOUBLE, &value);
     env->ReleaseStringUTFChars(name, nameStr);
@@ -489,7 +572,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropert
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyFlagN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, jboolean value) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyFlagN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, jboolean value) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
     const auto ret = mpv_set_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_FLAG, &value);
     env->ReleaseStringUTFChars(name, nameStr);
@@ -499,9 +583,11 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropert
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePropertyStringN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePropertyStringN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    const auto ret = mpv_observe_property(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_STRING);
+    const auto ret = mpv_observe_property(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr,
+                                          MPV_FORMAT_STRING);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_observe_property", ret);
@@ -509,9 +595,11 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePro
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePropertyLongN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePropertyLongN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    const auto ret = mpv_observe_property(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_INT64);
+    const auto ret = mpv_observe_property(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr,
+                                          MPV_FORMAT_INT64);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_observe_property", ret);
@@ -519,9 +607,11 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePro
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePropertyDoubleN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePropertyDoubleN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    const auto ret = mpv_observe_property(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_DOUBLE);
+    const auto ret = mpv_observe_property(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr,
+                                          MPV_FORMAT_DOUBLE);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_observe_property", ret);
@@ -529,9 +619,11 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePro
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePropertyFlagN(JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePropertyFlagN(
+    JNIEnv *env, jobject thiz, const jlong handle, jstring name, const jlong replyUserdata) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    const auto ret = mpv_observe_property(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr, MPV_FORMAT_FLAG);
+    const auto ret = mpv_observe_property(reinterpret_cast<mpv_handle *>(handle), replyUserdata, nameStr,
+                                          MPV_FORMAT_FLAG);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret < 0) {
         return mpvResultFailure(env, "mpv_observe_property", ret);
@@ -539,14 +631,16 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePro
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_unobservePropertyN(JNIEnv *env, jobject thiz, const jlong handle, const jlong replyUserdata) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_unobservePropertyN(
+    JNIEnv *env, jobject thiz, const jlong handle, const jlong replyUserdata) {
     if (const auto ret = mpv_unobserve_property(reinterpret_cast<mpv_handle *>(handle), replyUserdata); ret < 0) {
         return mpvResultFailure(env, "mpv_unobserve_property", ret);
     }
     return resultSuccess(env);
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_initializeN(JNIEnv *env, jobject thiz, const jlong handle) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_initializeN(
+    JNIEnv *env, jobject thiz, const jlong handle) {
     if (const auto ret = mpv_initialize(reinterpret_cast<mpv_handle *>(handle)); ret < 0) {
         return mpvResultFailure(env, "mpv_initialize", ret);
     }
@@ -560,18 +654,24 @@ struct RenderContext {
 };
 
 // Rendering
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRenderN(JNIEnv *env, jobject thiz, const jlong mpvHandle, jobject self, const jboolean advancedControl) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRenderN(
+    JNIEnv *env, jobject thiz, const jlong mpvHandle, jobject self, const jboolean advancedControl) {
     std::vector<mpv_render_param> params{
-            {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
+        {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
     };
+
+    const auto test = 12323;
+    std::cerr << "Creating render context" << test << std::endl;
 
     Display *display{nullptr};
     if (const auto glxDisplay = glXGetCurrentDisplay(); glxDisplay != nullptr) {
         params.push_back({MPV_RENDER_PARAM_X11_DISPLAY, glxDisplay});
+        std::cerr << "Using GLX display" << reinterpret_cast<uintptr_t>(display) << std::endl;
     } else if (const auto eglDisplay = eglGetCurrentDisplay(); eglDisplay != EGL_NO_DISPLAY) {
         // Compose always runs on X11
         display = XOpenDisplay(nullptr);
         params.push_back({MPV_RENDER_PARAM_X11_DISPLAY, display});
+        std::cerr << "Using X11 display" << reinterpret_cast<uintptr_t>(display) << std::endl;
     }
 
     JavaVM *jvm;
@@ -582,28 +682,29 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
     const auto object = env->NewGlobalRef(self);
 
     mpv_opengl_init_params gl_params{
-            .get_proc_address = fnptr<void *(void *, const char *)>([jvm](void *opaque, const char *name) -> void * {
-                const auto javaRender = static_cast<jobject>(opaque);
-                JNIEnv *jni_env;
-                const auto res = jvm->AttachCurrentThread(reinterpret_cast<void **>(&jni_env), nullptr);
-                if (res != JNI_OK) {
-                    std::cerr << "Failed to attach current thread" << std::endl;
-                    return nullptr;
-                }
+        .get_proc_address = fnptr<void *(void *, const char *)>([jvm](void *opaque, const char *name) -> void * {
+            const auto javaRender = static_cast<jobject>(opaque);
+            JNIEnv *jni_env;
+            const auto res = jvm->AttachCurrentThread(reinterpret_cast<void **>(&jni_env), nullptr);
+            if (res != JNI_OK) {
+                std::cerr << "Failed to attach current thread" << std::endl;
+                return nullptr;
+            }
 
-                const auto glProcMethod = jni_env->GetMethodID(jni_env->GetObjectClass(javaRender), "getGlProc", "(Ljava/lang/String;)J");
-                if (glProcMethod == nullptr) {
-                    std::cerr << "Method not found: getGlProc" << std::endl;
-                    return nullptr;
-                }
+            const auto glProcMethod = jni_env->GetMethodID(jni_env->GetObjectClass(javaRender), "getGlProc",
+                                                           "(Ljava/lang/String;)J");
+            if (glProcMethod == nullptr) {
+                std::cerr << "Method not found: getGlProc" << std::endl;
+                return nullptr;
+            }
 
-                const auto nameStr = jni_env->NewStringUTF(name);
-                const auto ret = jni_env->CallLongMethod(javaRender, glProcMethod, nameStr);
-                jni_env->DeleteLocalRef(nameStr);
-                jvm->DetachCurrentThread();
-                return reinterpret_cast<void *>(ret);
-            }),
-            .get_proc_address_ctx = object,
+            const auto nameStr = jni_env->NewStringUTF(name);
+            const auto ret = jni_env->CallLongMethod(javaRender, glProcMethod, nameStr);
+            jni_env->DeleteLocalRef(nameStr);
+            jvm->DetachCurrentThread();
+            return reinterpret_cast<void *>(ret);
+        }),
+        .get_proc_address_ctx = object,
     };
     params.push_back({MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_params});
     int advControl = advancedControl ? 1 : 0;
@@ -611,34 +712,37 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
     params.push_back({MPV_RENDER_PARAM_INVALID, nullptr});
 
     mpv_render_context *handle{nullptr};
-    if (const auto ret = mpv_render_context_create(&handle, reinterpret_cast<mpv_handle *>(mpvHandle), params.data()); ret < 0) {
+    if (const auto ret = mpv_render_context_create(&handle, reinterpret_cast<mpv_handle *>(mpvHandle), params.data());
+        ret < 0) {
         env->DeleteGlobalRef(object);
         return mpvResultFailure(env, "mpv_render_context_create", ret);
     }
     const auto ctx = new RenderContext{handle, object, display};
     mpv_render_context_set_update_callback(
-            handle,
-            fnptr<void(void *)>([jvm](void *opaque) {
-                const auto render_context = static_cast<RenderContext *>(opaque);
-                JNIEnv *jni_env;
-                const auto res = jvm->AttachCurrentThread(reinterpret_cast<void **>(&jni_env), nullptr);
-                if (res != JNI_OK) {
-                    std::cerr << "Failed to attach current thread" << std::endl;
-                    return;
-                }
-                const auto updateMethod = jni_env->GetMethodID(jni_env->GetObjectClass(render_context->gref), "requestUpdate", "()V");
-                if (updateMethod == nullptr) {
-                    std::cerr << "Method not found: requestUpdate" << std::endl;
-                    return;
-                }
-                jni_env->CallVoidMethod(render_context->gref, updateMethod);
-                jvm->DetachCurrentThread();
-            }),
-            ctx);
+        handle,
+        fnptr<void(void *)>([jvm](void *opaque) {
+            const auto render_context = static_cast<RenderContext *>(opaque);
+            JNIEnv *jni_env;
+            const auto res = jvm->AttachCurrentThread(reinterpret_cast<void **>(&jni_env), nullptr);
+            if (res != JNI_OK) {
+                std::cerr << "Failed to attach current thread" << std::endl;
+                return;
+            }
+            const auto updateMethod = jni_env->GetMethodID(jni_env->GetObjectClass(render_context->gref),
+                                                           "requestUpdate", "()V");
+            if (updateMethod == nullptr) {
+                std::cerr << "Method not found: requestUpdate" << std::endl;
+                return;
+            }
+            jni_env->CallVoidMethod(render_context->gref, updateMethod);
+            jvm->DetachCurrentThread();
+        }),
+        ctx);
     return resultSuccess(env, reinterpret_cast<jlong>(ctx));
 }
 
-JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_destroyRenderN(JNIEnv *env, jobject thiz, const jlong handle) {
+JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_destroyRenderN(
+    JNIEnv *env, jobject thiz, const jlong handle) {
     const auto context = reinterpret_cast<RenderContext *>(handle);
     mpv_render_context_free(context->handle);
     env->DeleteGlobalRef(context->gref);
@@ -648,21 +752,23 @@ JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_destroyRender
     delete context;
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_renderN(JNIEnv *env, jobject thiz, const jlong handle, const GLint fbo, const jint width, const jint height, const jint glInternalFormat) {
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_renderN(
+    JNIEnv *env, jobject thiz, const jlong handle, const GLint fbo, const jint width, const jint height,
+    const jint glInternalFormat) {
     const auto context = reinterpret_cast<RenderContext *>(handle);
     const auto flags = mpv_render_context_update(context->handle);
     if (flags & MPV_RENDER_UPDATE_FRAME) {
         mpv_opengl_fbo fboData{
-                .fbo = fbo,
-                .w = width,
-                .h = height,
-                .internal_format = glInternalFormat,
+            .fbo = fbo,
+            .w = width,
+            .h = height,
+            .internal_format = glInternalFormat,
         };
         int flipY{0};
         mpv_render_param params[]{
-                {MPV_RENDER_PARAM_OPENGL_FBO, &fboData},
-                {MPV_RENDER_PARAM_FLIP_Y, &flipY},
-                {MPV_RENDER_PARAM_INVALID, nullptr},
+            {MPV_RENDER_PARAM_OPENGL_FBO, &fboData},
+            {MPV_RENDER_PARAM_FLIP_Y, &flipY},
+            {MPV_RENDER_PARAM_INVALID, nullptr},
         };
         if (const auto ret = mpv_render_context_render(context->handle, params); ret < 0) {
             return mpvResultFailure(env, "mpv_render_context_render", ret);

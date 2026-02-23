@@ -1,8 +1,8 @@
 [wrap-file]
-directory = ffmpeg-n8.0-19-gdd00a614e1-linux64-gpl-shared-8.0
-source_url = https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2025-10-12-13-57/ffmpeg-n8.0-19-gdd00a614e1-linux64-gpl-shared-8.0.tar.xz
-source_filename = ffmpeg-n8.0-19-gdd00a614e1-linux64-gpl-shared-8.0.tar.xz
-source_hash = bc4f302c7d063434eb1089f34f004e2683a96eaea7b81012ba8d408c273c15e6
+directory = ffmpeg-n8.0-latest-linux64-gpl-shared-8.0
+source_url = https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.0-latest-linux64-gpl-shared-8.0.tar.xz
+source_filename = ffmpeg-n8.0-latest-linux64-gpl-shared-8.0.tar.xz
+source_hash = 3d7825a52264635213daf92601d368a04e688f364c1d67f69482ba094fd98e75
 patch_directory = ffmpeg
 
 [provide]

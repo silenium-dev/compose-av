@@ -8,8 +8,6 @@ project('compose-av',
 add_global_arguments('-fPIC', language : 'c')
 add_global_arguments('-fPIC', language : 'cpp')
 add_global_link_arguments(
-    '-static-libgcc',
-    '-static-libstdc++',
     language : 'cpp',
 )
 mpv = subproject('mpv',

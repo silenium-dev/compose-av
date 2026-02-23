@@ -400,6 +400,7 @@ class MPV : NativeCleanable, MPVAsyncListener {
     }
 
     override fun close() {
+        callback?.let(::unsetCallbackN)
         initialized.set(false)
         super.close()
     }

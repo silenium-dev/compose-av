@@ -27,6 +27,8 @@ val platformExtension = "-gpl".takeIf { withGPL }.orEmpty()
 val platformString = findProperty("ffmpeg.platform")?.toString()
 val platform = platformString?.let { Platform(it, platformExtension) } ?: NativePlatform.platform(platformExtension)
 
+val javac = tasks.withType<JavaCompile>().first().javaCompiler.map(JavaCompiler::getExecutablePath)
+val javaHome = javac.map { it.asFile.parentFile.parentFile.absolutePath }
 val mesonExe = findProperty("meson.executable") as? String ?: "meson"
 val targetDir = layout.buildDirectory.dir("meson").get().asFile.apply { mkdirs() }
 val generateMakefile = tasks.register<Exec>("generateMakefile") {
@@ -39,7 +41,9 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     environment(
         "CFLAGS" to "-fPIC",
         "CXXFLAGS" to "-fPIC",
+        "JAVA_HOME" to javaHome.get(),
     )
+    logger.lifecycle("JAVA_HOME: ${javaHome.get()}")
 
     commandLine(
         mesonExe, "setup",
@@ -65,6 +69,7 @@ val compileNative = tasks.register<Exec>("compileNative") {
     environment(
         "CFLAGS" to "-fPIC",
         "CXXFLAGS" to "-fPIC",
+        "JAVA_HOME" to javaHome.get(),
     )
 
     standardOutput = System.out
