@@ -15,10 +15,10 @@ val deployNative = (findProperty("deploy.native") as String?)?.toBoolean() ?: tr
 val deployKotlin = (findProperty("deploy.kotlin") as String?)?.toBoolean() ?: true
 
 dependencies {
-    implementation(compose.desktop.common)
-    implementation(compose.material3)
-    implementation(compose.materialIconsExtended)
-    implementation("androidx.annotation:annotation-jvm:1.9.1")
+    implementation(libs.compose.desktop.common)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.extended)
+    implementation(libs.androidx.annotation)
     implementation(libs.compose.gl)
     implementation(libs.compose.gl.natives)
     implementation(libs.jni.utils)
@@ -31,7 +31,7 @@ dependencies {
     implementation(kotlin("reflect"))
 
     testImplementation(compose.desktop.currentOs)
-    testImplementation(compose.materialIconsExtended)
+    testImplementation(libs.compose.material.icons.extended)
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)
     testImplementation(libs.logback.classic)
