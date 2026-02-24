@@ -660,18 +660,13 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
         {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
     };
 
-    const auto test = 12323;
-    std::cerr << "Creating render context" << test << std::endl;
-
     Display *display{nullptr};
     if (const auto glxDisplay = glXGetCurrentDisplay(); glxDisplay != nullptr) {
         params.push_back({MPV_RENDER_PARAM_X11_DISPLAY, glxDisplay});
-        std::cerr << "Using GLX display" << reinterpret_cast<uintptr_t>(display) << std::endl;
     } else if (const auto eglDisplay = eglGetCurrentDisplay(); eglDisplay != EGL_NO_DISPLAY) {
         // Compose always runs on X11
         display = XOpenDisplay(nullptr);
         params.push_back({MPV_RENDER_PARAM_X11_DISPLAY, display});
-        std::cerr << "Using X11 display" << reinterpret_cast<uintptr_t>(display) << std::endl;
     }
 
     JavaVM *jvm;
