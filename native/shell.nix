@@ -27,7 +27,6 @@ pkgs.mkShell {
     hwdata
     libx11
     libva
-    mesa
   ];
 
   shellHook = ''

@@ -2,6 +2,7 @@ import dev.silenium.libs.jni.NativeLoader
 import dev.silenium.libs.jni.NativePlatform
 import dev.silenium.libs.jni.Platform
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.io.Serializable
 
 buildscript {
     repositories {
@@ -31,6 +32,21 @@ val javac = tasks.withType<JavaCompile>().first().javaCompiler.map(JavaCompiler:
 val javaHome = javac.map { it.asFile.parentFile.parentFile.absolutePath }
 val mesonExe = findProperty("meson.executable") as? String ?: "meson"
 val targetDir = layout.buildDirectory.dir("meson").get().asFile.apply { mkdirs() }
+
+val cleanSubprojects = tasks.register("cleanSubprojects") {
+    val excludes = setOf("mpv.wrap", "packagefiles")
+    val subprojectsDir = layout.projectDirectory.dir("subprojects")
+    doFirst {
+        val entries = subprojectsDir.asFile.listFiles { it.name !in excludes } ?: emptyArray()
+        delete(entries)
+        didWork = entries.isNotEmpty()
+    }
+}
+
+tasks.clean {
+    dependsOn(cleanSubprojects)
+}
+
 val generateMakefile = tasks.register<Exec>("generateMakefile") {
     workingDir = layout.projectDirectory.asFile
 
@@ -39,13 +55,12 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
     }
 
     environment(
-        "CFLAGS" to "-fPIC",
-        "CXXFLAGS" to "-fPIC",
         "JAVA_HOME" to javaHome.get(),
     )
     logger.lifecycle("JAVA_HOME: ${javaHome.get()}")
+    logger.lifecycle("Meson: $mesonExe")
 
-    commandLine(
+    val mesonCommand = arrayOf<Serializable>(
         mesonExe, "setup",
         targetDir.absolutePath,
         "-Dwrap_mode=forcefallback",
@@ -55,20 +70,25 @@ val generateMakefile = tasks.register<Exec>("generateMakefile") {
         "-Dmpv:openal=enabled",
         "-Dmpv:vulkan=disabled",
     )
+    commandLine("nix", "develop", "--ignore-env", "--keep-env-var", "JAVA_HOME", "--command", *mesonCommand)
 
-    inputs.file(layout.projectDirectory.file("meson.build"))
-    inputs.file(layout.projectDirectory.file("src/meson.build"))
+    inputs.files("meson.build", "src/main/cpp/meson.build")
+    inputs.files("flake.nix", "flake.lock", "shell.nix")
     outputs.dir(targetDir)
     standardOutput = System.out
 }
 
 val compileNative = tasks.register<Exec>("compileNative") {
-    commandLine(mesonExe, "compile", "-C", targetDir)
+    val mesonCommand = arrayOf<Serializable>(
+        mesonExe,
+        "compile",
+        "-C",
+        targetDir,
+    )
+    commandLine("nix", "develop", "--ignore-env", "--keep-env-var", "JAVA_HOME", "--command", *mesonCommand)
     dependsOn(generateMakefile)
 
     environment(
-        "CFLAGS" to "-fPIC",
-        "CXXFLAGS" to "-fPIC",
         "JAVA_HOME" to javaHome.get(),
     )
 
