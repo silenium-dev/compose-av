@@ -27,6 +27,18 @@ pkgs.mkShell {
     hwdata
     libx11
     libva
+    dovi-tool
+    libdovi
+    libdrm
+    libva
+    pipewire.lib
+    alsa-lib
+    libpulseaudio
+    libGL
+    egl-wayland
+    openssl
+    hwdata
+    systemdLibs
   ];
 
   shellHook = ''
