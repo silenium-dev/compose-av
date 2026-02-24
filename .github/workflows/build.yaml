@@ -19,6 +19,7 @@ jobs:
   linux-x86_64:
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v6
       - shell: bash
         name: "Setup build environment"
         run: |
@@ -52,6 +53,7 @@ jobs:
   kotlin:
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v6
       - uses: silenium-dev/actions/kotlin@main
         with:
           gradle-cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
