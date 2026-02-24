@@ -20,9 +20,6 @@ suspend fun main() = awaitApplication {
     }
 
     Window(onCloseRequest = this::exitApplication) {
-        val state = rememberPagerState { 1000 }
-        VerticalPager(state = state, modifier = Modifier.fillMaxSize(), beyondViewportPageCount = 2) {
-            VideoPlayer(file = file, suspend = state.currentPage != it, modifier = Modifier.fillMaxSize())
-        }
+        VideoPlayer(file = file, modifier = Modifier.fillMaxSize())
     }
 }
