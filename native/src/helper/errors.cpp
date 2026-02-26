@@ -8,25 +8,25 @@
 #include <GL/gl.h>
 #include <iostream>
 
-jobject boxedLong(JNIEnv *env, const long value) {
+jobject boxedLong(JNIEnv *env, const jlong value) {
     const auto boxedClass = env->FindClass("java/lang/Long");
     const auto constructor = env->GetMethodID(boxedClass, "<init>", "(J)V");
     return env->NewObject(boxedClass, constructor, value);
 }
 
-jobject boxedDouble(JNIEnv *env, const double value) {
+jobject boxedDouble(JNIEnv *env, const jdouble value) {
     const auto boxedClass = env->FindClass("java/lang/Double");
     const auto constructor = env->GetMethodID(boxedClass, "<init>", "(D)V");
     return env->NewObject(boxedClass, constructor, value);
 }
 
-jobject boxedBool(JNIEnv *env, const bool value) {
+jobject boxedBool(JNIEnv *env, const jboolean value) {
     const auto boxedClass = env->FindClass("java/lang/Boolean");
     const auto constructor = env->GetMethodID(boxedClass, "<init>", "(Z)V");
     return env->NewObject(boxedClass, constructor, value);
 }
 
-jobject boxedInt(JNIEnv *env, const int value) {
+jobject boxedInt(JNIEnv *env, const jint value) {
     const auto boxedClass = env->FindClass("java/lang/Integer");
     const auto constructor = env->GetMethodID(boxedClass, "<init>", "(I)V");
     return env->NewObject(boxedClass, constructor, value);
@@ -38,13 +38,13 @@ jobject pair(JNIEnv *env, jobject first, jobject second) {
     return env->NewObject(pairClass, constructor, first, second);
 }
 
-jobject resultSuccess(JNIEnv *env, const long value, const long secondValue) {
+jobject resultSuccess(JNIEnv *env, const jlong value, const jlong secondValue) {
     const auto boxed = boxedLong(env, value);
     const auto boxed2 = boxedLong(env, secondValue);
     return pair(env, boxed, boxed2);
 }
 
-jobject resultSuccess(JNIEnv *env, const long value) {
+jobject resultSuccess(JNIEnv *env, const jlong value) {
     const auto boxed = boxedLong(env, value);
     return boxed;
 }
@@ -53,12 +53,12 @@ jobject resultSuccess(JNIEnv *env, const char *value) {
     return env->NewStringUTF(value);
 }
 
-jobject resultSuccess(JNIEnv *env, const double value) {
+jobject resultSuccess(JNIEnv *env, const jdouble value) {
     const auto boxed = boxedDouble(env, value);
     return boxed;
 }
 
-jobject resultSuccess(JNIEnv *env, const bool value) {
+jobject resultSuccess(JNIEnv *env, const jboolean value) {
     const auto boxed = boxedBool(env, value);
     return boxed;
 }

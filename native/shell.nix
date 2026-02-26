@@ -9,6 +9,12 @@ pkgs.mkShell {
 
     # C/C++ Build Toolchain
     cmake
+    gcc
+    gdb
+    binutils-unwrapped
+    pkgsCross.mingwW64.gcc
+    pkgsCross.mingwW64.gdb
+    pkgsCross.mingwW64.binutils-unwrapped
     pkgsCross.aarch64-multiplatform.gcc
     pkgsCross.aarch64-multiplatform.binutils-unwrapped
     ninja
@@ -18,27 +24,29 @@ pkgs.mkShell {
     # Additional utilities
     git
     python3
+    wineWow64Packages.staging
+    qemu-user
+    perl
   ];
   buildInputs = with pkgs; [
     # Libraries
     libGL
     mesa-gl-headers
     libdrm
-    hwdata
     libx11
     libva
     dovi-tool
     libdovi
     libdrm
     libva
-    pipewire.lib
+    pipewire
     alsa-lib
     libpulseaudio
     libGL
     egl-wayland
     openssl
-    hwdata
     systemdLibs
+    hwdata
   ];
 
   shellHook = ''
@@ -52,5 +60,6 @@ pkgs.mkShell {
 
   # Set environment variables
   JAVA_HOME = "${pkgs.jdk21}";
+  HWDATA_PATH = "${pkgs.hwdata}";
   CMAKE_GENERATOR = "Ninja";
 }

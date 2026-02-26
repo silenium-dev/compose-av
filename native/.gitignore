@@ -1,8 +1,5 @@
 .idea/
 *.iml
 cmake-build-*/
-/subprojects/*
-!/subprojects/mpv.wrap
-!/subprojects/packagefiles
-!/subprojects/packagefiles/*
+/subprojects
 buildDir/

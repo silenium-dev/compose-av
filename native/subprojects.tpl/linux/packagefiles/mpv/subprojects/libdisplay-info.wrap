@@ -2,3 +2,4 @@
 revision = 0.3.0
 url = https://gitlab.freedesktop.org/emersion/libdisplay-info.git
 depth = 1
+diff_files = libdisplay-info/hwdata.patch

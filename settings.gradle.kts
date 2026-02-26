@@ -1,3 +1,17 @@
+import org.gradle.kotlin.dsl.mavenCentral
+import org.gradle.kotlin.dsl.repositories
+
+pluginManagement {
+    repositories {
+        maven("https://reposilite.silenium.dev/releases") {
+            name = "silenium-releases"
+        }
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
 }
@@ -10,3 +24,5 @@ if (deployNative) {
 }
 
 rootProject.name = "compose-av"
+
+includeBuild("build-logic")

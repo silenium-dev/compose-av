@@ -7,7 +7,7 @@ kotlinx-datetime = "0.7.1"
 
 compose = "1.11.0-alpha02"
 compose-gl = "0.9.1"
-jni-utils = "0.1.7"
+jni-utils = "0.1.8"
 jna = "5.18.1"
 
 slf4j = "2.0.17"
@@ -53,6 +53,12 @@ kotest-assertions-json = { group = "io.kotest", name = "kotest-assertions-json",
 
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 
+compose-gradle-plugin = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "compose" }
+kotlin-jvm-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-compose-gradle-plugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
+kotlin-serialization-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-serialization", version.ref = "kotlin" }
+idea-ext = { group = "org.jetbrains.gradle.plugin.idea-ext", name = "org.jetbrains.gradle.plugin.idea-ext.gradle.plugin", version.ref = "idea-ext" }
+
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
@@ -78,4 +84,14 @@ kotest = [
     "kotest-property",
     "kotest-assertions-core",
     "kotest-assertions-json",
+]
+
+kotlin-plugins = [
+    "kotlin-jvm-gradle-plugin",
+    "kotlin-compose-gradle-plugin",
+    "kotlin-serialization-gradle-plugin",
+]
+gradle-plugins = [
+    "compose-gradle-plugin",
+    "idea-ext",
 ]

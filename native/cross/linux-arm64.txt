@@ -1,0 +1,13 @@
+[binaries]
+c = 'aarch64-unknown-linux-gcc'
+cpp = 'aarch64-unknown-linux-g++'
+ar = 'aarch64-unknown-linux-gnu-ar'
+windres = 'aarch64-unknown-linux-gnu-windres'
+strip = 'aarch64-unknown-linux-gnu-strip'
+exe_wrapper = 'qemu-aarch64'
+
+[host_machine]
+system = 'linux'
+cpu_family = 'aarch64'
+cpu = 'aarch64'
+endian = 'little'

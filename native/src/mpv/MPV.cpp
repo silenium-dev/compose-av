@@ -3,12 +3,9 @@
 //
 
 #include "helper/errors.hpp"
+#include "mpv_platform.hpp"
 
-
-#include <EGL/egl.h>
 #include <GL/gl.h>
-#include <GL/glx.h>
-#include <cstring>
 #include <iostream>
 #include <jni.h>
 #include <mpv/client.h>
@@ -20,7 +17,6 @@
 #include <atomic>
 
 #include <new>
-#include <optional>
 #include <type_traits>
 #include <utility>
 
@@ -271,7 +267,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createN(JN
     if (handle == nullptr) {
         return mpvResultFailure(env, "mpv_create", MPV_ERROR_NOMEM);
     }
-    return resultSuccess(env, reinterpret_cast<long>(handle));
+    return resultSuccess(env, reinterpret_cast<jlong>(handle));
 }
 
 JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_destroyN(
@@ -306,7 +302,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setCallbac
 
     std::thread eventLoopThread{mpv_event_loop, ctx};
     ctx->eventLoop = std::move(eventLoopThread);
-    return resultSuccess(env, reinterpret_cast<long>(ctx));
+    return resultSuccess(env, reinterpret_cast<jlong>(ctx));
 }
 
 JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_unsetCallbackN(
@@ -445,7 +441,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropert
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyLongN(
     JNIEnv *env, jobject thiz, const jlong handle, jstring name) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    long value;
+    jlong value;
     const auto ret = mpv_get_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_INT64, &value);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret == MPV_ERROR_PROPERTY_UNAVAILABLE) {
@@ -475,7 +471,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropert
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyFlagN(
     JNIEnv *env, jobject thiz, const jlong handle, jstring name) {
     const char *nameStr = env->GetStringUTFChars(name, nullptr);
-    bool value;
+    jboolean value;
     const auto ret = mpv_get_property(reinterpret_cast<mpv_handle *>(handle), nameStr, MPV_FORMAT_FLAG, &value);
     env->ReleaseStringUTFChars(name, nameStr);
     if (ret == MPV_ERROR_PROPERTY_UNAVAILABLE) {
@@ -650,7 +646,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_initialize
 struct RenderContext {
     mpv_render_context *handle;
     jobject gref;
-    Display *display;
+    std::shared_ptr<MpvPlatformContext> platformContext;
 };
 
 // Rendering
@@ -660,14 +656,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
         {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
     };
 
-    Display *display{nullptr};
-    if (const auto glxDisplay = glXGetCurrentDisplay(); glxDisplay != nullptr) {
-        params.push_back({MPV_RENDER_PARAM_X11_DISPLAY, glxDisplay});
-    } else if (const auto eglDisplay = eglGetCurrentDisplay(); eglDisplay != EGL_NO_DISPLAY) {
-        // Compose always runs on X11
-        display = XOpenDisplay(nullptr);
-        params.push_back({MPV_RENDER_PARAM_X11_DISPLAY, display});
-    }
+    const auto platformContext = populatePlatformMpvParams(env, params);
 
     JavaVM *jvm;
     if (const auto ret = env->GetJavaVM(&jvm); ret != JNI_OK) {
@@ -712,7 +701,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createRend
         env->DeleteGlobalRef(object);
         return mpvResultFailure(env, "mpv_render_context_create", ret);
     }
-    const auto ctx = new RenderContext{handle, object, display};
+    const auto ctx = new RenderContext{handle, object, std::move(platformContext)};
     mpv_render_context_set_update_callback(
         handle,
         fnptr<void(void *)>([jvm](void *opaque) {
@@ -741,9 +730,7 @@ JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_destroyRender
     const auto context = reinterpret_cast<RenderContext *>(handle);
     mpv_render_context_free(context->handle);
     env->DeleteGlobalRef(context->gref);
-    if (context->display != nullptr) {
-        XCloseDisplay(context->display);
-    }
+    context->platformContext.reset();
     delete context;
 }
 
