@@ -11,8 +11,14 @@ permissions:
   pull-requests: write
   contents: write
 jobs:
-  linux-x86_64:
+  natives:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        platform:
+          - 'linux-x86_64'
+          - 'linux-arm64'
+          - 'windows-x86_64'
     steps:
       - uses: actions/checkout@v6
       - uses: cachix/install-nix-action@v31
@@ -28,7 +34,7 @@ jobs:
           repo-password: ${{ secrets.REPOSILITE_PASSWORD }}
           tests: false
           java-version: 17
-          platform: ${{ github.job }}
+          platform: ${{ matrix.platform }}
   kotlin:
     runs-on: ubuntu-24.04
     steps:
