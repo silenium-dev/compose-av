@@ -8,6 +8,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.kotlin.dsl.expand
 import org.gradle.process.ExecOperations
 import org.jetbrains.kotlin.org.apache.commons.codec.digest.DigestUtils
 import java.net.URI
@@ -70,7 +71,7 @@ abstract class PrepareSubprojectsTask : DefaultTask() {
             }
 
             Platform.OS.LINUX -> {
-                copySubprojects(platform.get())
+                copyLinuxSubprojects(platform.get())
             }
 
             else -> Unit
@@ -79,11 +80,24 @@ abstract class PrepareSubprojectsTask : DefaultTask() {
         Files.createSymbolicLink(cacheLink, packageCacheDir.get().asFile.toPath().relativeTo(cacheLink.parent))
     }
 
-    private fun copySubprojects(platform: Platform) {
-        // TODO: Template url and hash for linux
+    private fun copyLinuxSubprojects(platform: Platform) {
+        val ffmpegWrap = "packagefiles/mpv/subprojects/ffmpeg.wrap"
+        val meta = ffmpegLinux[platform.arch] ?: error("Unsupported platform: ${platform.osArch}")
         fsOps.copy {
-            from(subprojectTplDir.dir(platform.os.toString()))
+            from(subprojectTplDir.dir(platform.os.toString())) {
+                exclude(ffmpegWrap)
+            }
             into(subprojectDir)
+        }
+        fsOps.copy {
+            from(subprojectTplDir.file("${platform.os}/${ffmpegWrap}"))
+            into(subprojectDir.file(ffmpegWrap.substringBeforeLast("/")))
+            expand(
+                "ffmpeg_source_url" to meta.uri.toString(),
+                "ffmpeg_source_hash" to meta.fileHash,
+                "ffmpeg_source_filename" to meta.uri.path.substringAfterLast('/'),
+                "ffmpeg_directory" to meta.uri.path.substringAfterLast('/').removeSuffix(".tar.xz"),
+            )
         }
     }
 
@@ -135,16 +149,16 @@ internal val mpvWindows = mapOf(
     ),
 )
 
-internal data class MpvLinuxMetadata(val arch: String, val fileHash: String) {
+internal data class FFmpegLinuxMetadata(val arch: String, val fileHash: String) {
     val uri: URI by lazy { URI.create("https://repoflow.silenium.dev/api/universal/personal/github-releases/BtbN/FFmpeg-Builds/autobuild-2026-02-25-13-05/ffmpeg-n8.0.1-64-g15504610b0-${arch}-gpl-shared-8.0.tar.xz") }
 }
 
-internal val mpvLinux = mapOf(
-    Platform.Arch.X86_64 to MpvLinuxMetadata(
+internal val ffmpegLinux = mapOf(
+    Platform.Arch.X86_64 to FFmpegLinuxMetadata(
         "linux64",
         "bb09d1cad8016c92e3ce323481144f18bef41ffd5de81efa41a1d071dbcbb52f"
     ),
-    Platform.Arch.ARM64 to MpvLinuxMetadata(
+    Platform.Arch.ARM64 to FFmpegLinuxMetadata(
         "linuxarm64",
         "b4ad73f547a77da7b9d94661962a6d5d312a945f4bcb3f82c790b2730ce2c52f"
     ),

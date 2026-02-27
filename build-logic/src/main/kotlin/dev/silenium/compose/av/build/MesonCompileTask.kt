@@ -57,7 +57,7 @@ abstract class MesonCompileTask : Exec() {
             "JAVA_HOME" to javaHome.get().absolutePath,
         )
         commandLine(
-            "nix", "develop", "--ignore-env", "--keep-env-var", "JAVA_HOME", "--command",
+            "nix", "develop", ".#${platform.get().osArch}", "--ignore-env", "--keep-env-var", "JAVA_HOME", "--command",
             "meson", "compile", "-C", targetDir.get().absolutePath, libName.get(),
         )
         super.exec()

@@ -52,7 +52,7 @@ abstract class MesonSetupTask : Exec() {
         val crossArgs = arrayOf("--cross-file", "cross/${platform.get().osArch}.txt")
 
         val mesonCommand = arrayOf<Serializable>(
-            "nix", "develop", "--ignore-env", "--keep-env-var", "JAVA_HOME", "--command",
+            "nix", "develop", ".#${platform.get().osArch}", "--ignore-env", "--keep-env-var", "JAVA_HOME", "--command",
             "meson", "setup",
             "--wipe",
             targetDir.get().absolutePath,

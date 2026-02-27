@@ -1,5 +1,4 @@
-{ pkgs ? import <nixpkgs> { } }:
-
+{ pkgs, buildTools, buildDeps }:
 pkgs.mkShell {
   strictDeps = true;
   nativeBuildInputs = with pkgs; [
@@ -9,17 +8,7 @@ pkgs.mkShell {
 
     # C/C++ Build Toolchain
     cmake
-    gcc
-    gdb
-    binutils-unwrapped
-    pkgsCross.mingwW64.gcc
-    pkgsCross.mingwW64.gdb
-    pkgsCross.mingwW64.binutils-unwrapped
-    pkgsCross.aarch64-multiplatform.gcc
-    pkgsCross.aarch64-multiplatform.binutils-unwrapped
-    pkgsCross.aarch64-multiplatform.pkg-config
     ninja
-    pkg-config
     meson
 
     # Additional utilities
@@ -28,27 +17,9 @@ pkgs.mkShell {
     wineWow64Packages.staging
     qemu-user
     perl
-  ];
-  buildInputs = with pkgs; [
-    # Libraries
-    libGL
-    mesa-gl-headers
-    libdrm
-    libx11
-    libva
-    dovi-tool
-    libdovi
-    libdrm
-    libva
-    pipewire
-    alsa-lib
-    libpulseaudio
-    libGL
-    egl-wayland
-    openssl
-    systemdLibs
-    hwdata
-  ];
+  ] ++ (buildTools pkgs.pkgsCross.aarch64-multiplatform);
+
+  buildInputs = (buildDeps pkgs.pkgsCross.aarch64-multiplatform);
 
   shellHook = ''
     echo "Development environment loaded"

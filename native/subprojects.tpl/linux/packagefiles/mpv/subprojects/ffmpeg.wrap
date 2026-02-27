@@ -1,8 +1,8 @@
 [wrap-file]
-directory = ffmpeg-n8.0.1-64-g15504610b0-linux64-gpl-shared-8.0
-source_url = https://repoflow.silenium.dev/api/universal/personal/github-releases/BtbN/FFmpeg-Builds/autobuild-2026-02-25-13-05/ffmpeg-n8.0.1-64-g15504610b0-linux64-gpl-shared-8.0.tar.xz
-source_filename = ffmpeg-n8.0.1-64-g15504610b0-linux64-gpl-shared-8.0.tar.xz
-source_hash = bb09d1cad8016c92e3ce323481144f18bef41ffd5de81efa41a1d071dbcbb52f
+directory = ${ffmpeg_directory}
+source_url = ${ffmpeg_source_url}
+source_filename = ${ffmpeg_source_filename}
+source_hash = ${ffmpeg_source_hash}
 patch_directory = ffmpeg
 
 [provide]

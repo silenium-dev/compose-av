@@ -24,7 +24,7 @@ abstract class MesonCleanTask : Exec() {
         }
 
         val mesonCommand = arrayOf<Serializable>(
-            "nix", "develop", "--ignore-env", "--keep-env-var", "JAVA_HOME", "--command",
+            "nix", "develop", ".#${platform.get().osArch}", "--ignore-env", "--keep-env-var", "JAVA_HOME", "--command",
             "ninja",
             "-C", targetDir.get().absolutePath,
             "clean",

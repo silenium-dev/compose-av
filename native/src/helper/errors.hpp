@@ -24,7 +24,10 @@ jobject resultSuccess(JNIEnv *env, jboolean value);
 jobject resultSuccess(JNIEnv *env);
 jobject resultSuccessNull();
 
+#ifdef TARGET_LINUX
 jobject eglResultFailure(JNIEnv *env, const char *operation, long returnCode);
+#endif
+
 jobject glResultFailure(JNIEnv *env, const char *operation, GLenum returnCode);
 
 jobject vaResultFailure(JNIEnv *env, const char *operation, int returnCode);

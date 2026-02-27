@@ -27,8 +27,10 @@ JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_core_util_ErrorsKt_glErro
             return env->NewStringUTF("GL_INVALID_VALUE");
         case GL_INVALID_OPERATION:
             return env->NewStringUTF("GL_INVALID_OPERATION");
+#ifdef GL_INVALID_FRAMEBUFFER_OPERATION
         case GL_INVALID_FRAMEBUFFER_OPERATION:
             return env->NewStringUTF("GL_INVALID_FRAMEBUFFER_OPERATION");
+#endif
         case GL_OUT_OF_MEMORY:
             return env->NewStringUTF("GL_OUT_OF_MEMORY");
         case GL_STACK_UNDERFLOW:

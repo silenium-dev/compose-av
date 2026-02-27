@@ -4,7 +4,10 @@
 
 #include "errors.hpp"
 
+#ifdef TARGET_LINUX
 #include <EGL/egl.h>
+#endif
+
 #include <GL/gl.h>
 #include <iostream>
 
@@ -75,6 +78,7 @@ jobject resultSuccessNull() {
     return nullptr;
 }
 
+#ifdef TARGET_LINUX
 jobject eglResultFailure(JNIEnv *env, const char *operation, const long returnCode) {
     const auto resultClass = env->FindClass("kotlin/Result$Failure");
     const auto errorClass = env->FindClass("dev/silenium/multimedia/core/util/EGLException");
@@ -90,6 +94,7 @@ jobject eglResultFailure(JNIEnv *env, const char *operation, const long returnCo
     const auto errorResult = env->NewObject(resultClass, resultConstructor, error);
     return errorResult;
 }
+#endif
 
 jobject glResultFailure(JNIEnv *env, const char *operation, const GLenum returnCode) {
     const auto resultClass = env->FindClass("kotlin/Result$Failure");
@@ -106,6 +111,7 @@ jobject glResultFailure(JNIEnv *env, const char *operation, const GLenum returnC
     const auto errorResult = env->NewObject(resultClass, resultConstructor, error);
     return errorResult;
 }
+
 jobject vaResultFailure(JNIEnv *env, const char *operation, const int returnCode) {
     const auto resultClass = env->FindClass("kotlin/Result$Failure");
     const auto errorClass = env->FindClass("dev/silenium/multimedia/core/util/VAException");

@@ -19,11 +19,13 @@ if os == 'linux'
   x11 = dependency('x11')
   deps += [egl, glx, x11]
   sources += ['mpv/mpv_linux.cpp']
+  add_project_arguments('-DTARGET_LINUX', language: 'cpp')
 elif os == 'windows'
   sources += ['mpv/mpv_windows.cpp']
   cc = meson.get_compiler('cpp')
   gl = cc.find_library('opengl32')
   deps += [gl]
+  add_project_arguments('-DTARGET_WINDOWS', language: 'cpp')
 endif
 
 shared_library(
