@@ -31,9 +31,9 @@
           ];
         in
         {
-          devShells.linux-arm64 = import ./shell-linux-arm64.nix { inherit pkgs; inherit buildTools; inherit buildDeps; };
-          devShells.linux-x86_64 = import ./shell-linux-x86_64.nix { inherit pkgs; inherit buildTools; inherit buildDeps; };
-          devShells.windows-x86_64 = import ./shell-windows-x86_64.nix { inherit pkgs; inherit buildTools; inherit buildDeps; };
+          devShells.linux-arm64 = import ./shells/linux-arm64.nix { inherit pkgs; inherit buildTools; inherit buildDeps; };
+          devShells.linux-x86_64 = import ./shells/linux-x86_64.nix { inherit pkgs; inherit buildTools; inherit buildDeps; };
+          devShells.windows-x86_64 = import ./shells/windows-x86_64.nix { inherit pkgs; inherit buildTools; inherit buildDeps; };
         }
       );
 }
