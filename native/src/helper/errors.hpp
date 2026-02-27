@@ -12,7 +12,9 @@
 std::string avErrorString(int error);
 
 jobject boxedLong(JNIEnv *env, jlong value);
+jobject boxedDouble(JNIEnv *env, jdouble value);
 
+jobject boxedBool(JNIEnv *env, jboolean value);
 jobject boxedInt(JNIEnv *env, jint value);
 
 jobject pair(JNIEnv *env, jobject first, jobject second);

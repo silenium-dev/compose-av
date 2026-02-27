@@ -17,7 +17,8 @@ if os == 'linux'
   egl = dependency('egl')
   glx = dependency('glx')
   x11 = dependency('x11')
-  deps += [egl, glx, x11]
+  va = dependency('libva')
+  deps += [egl, glx, x11, va]
   sources += ['mpv/mpv_linux.cpp']
   add_project_arguments('-DTARGET_LINUX', language: 'cpp')
 elif os == 'windows'
