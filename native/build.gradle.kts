@@ -5,9 +5,24 @@ plugins {
     id("av-natives")
 }
 
+val deployNative = (findProperty("deploy.native") as String?)?.toBoolean() ?: true
+
 natives {
-    libName = "compose-av"
+    libName = rootProject.name
     platform = providers.gradleProperty("deploy.platform")
         .map(Platform.Companion::invoke)
         .orElse(NativePlatform.platform())
+}
+
+publishing {
+    publications {
+        if (deployNative) {
+            val platform = natives.platform.get()
+            val libName = rootProject.name
+            create<MavenPublication>("natives${platform.capitalized}") {
+                from(components["java"])
+                artifactId = "$libName-natives-$platform"
+            }
+        }
+    }
 }
