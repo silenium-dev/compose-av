@@ -27,11 +27,23 @@ class NativesPlugin : Plugin<Project> {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
         }
+
         val ext = target.extensions.create("natives", NativesExtension::class.java)
         ext.platform.convention(target.provider(NativePlatform::platform))
         val tmpDir = target.layout.buildDirectory.dir("tmp/natives")
         val targetDir = target.layout.buildDirectory.dir("natives")
+
+        val mesonClean = target.tasks.register<MesonCleanTask>("mesonClean") {
+            this.targetDir.set(targetDir.map(Directory::getAsFile))
+            this.platform.set(ext.platform)
+        }
+        target.tasks.named("clean") {
+            dependsOn(mesonClean)
+        }
+
         val prepareSubprojects = target.tasks.register<PrepareSubprojectsTask>("prepareSubprojects") {
+            mustRunAfter(mesonClean)
+
             doFirst {
                 tmpDir.get().asFile.deleteRecursively()
                 tmpDir.get().asFile.mkdirs()
@@ -44,6 +56,8 @@ class NativesPlugin : Plugin<Project> {
         val javaHome = javac.map { it.asFile.parentFile.parentFile }
         val mesonSetup = target.tasks.register<MesonSetupTask>("mesonSetup") {
             dependsOn(prepareSubprojects)
+            mustRunAfter(mesonClean)
+
             this.targetDir.set(targetDir.map(Directory::getAsFile))
             this.platform.set(ext.platform)
             this.javaHome.set(javaHome)
@@ -53,6 +67,8 @@ class NativesPlugin : Plugin<Project> {
 
         val mesonCompile = target.tasks.register<MesonCompileTask>("mesonCompile") {
             dependsOn(mesonSetup)
+            mustRunAfter(mesonClean)
+
             this.targetDir.set(targetDir.map(Directory::getAsFile))
             this.platform.set(ext.platform)
             this.libName.set(ext.libName)
