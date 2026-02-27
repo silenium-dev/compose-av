@@ -21,7 +21,8 @@ if os == 'linux'
   sources += ['mpv/mpv_linux.cpp']
 elif os == 'windows'
   sources += ['mpv/mpv_windows.cpp']
-  gl = dependency('OpenGL32')
+  cc = meson.get_compiler('cpp')
+  gl = cc.find_library('opengl32')
   deps += [gl]
 endif
 
