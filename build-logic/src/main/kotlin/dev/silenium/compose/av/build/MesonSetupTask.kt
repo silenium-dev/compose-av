@@ -45,7 +45,7 @@ abstract class MesonSetupTask : Exec() {
         )
 
         val platformFile = targetDir.get().resolve("platform.txt")
-        if (platformFile.exists() && platformFile.readText() != platform.get().full) {
+        if (!platformFile.exists() || platformFile.readText() != platform.get().full) {
             targetDir.get().deleteRecursively()
         }
 
@@ -59,8 +59,6 @@ abstract class MesonSetupTask : Exec() {
             *crossArgs,
         )
         commandLine(*mesonCommand)
-
-        logger.lifecycle("Executing Meson setup: ${commandLine.joinToString()}")
 
         super.exec()
 
