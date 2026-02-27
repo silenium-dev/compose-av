@@ -7,7 +7,7 @@ plugins {
 
 natives {
     libName = "compose-av"
-    platform = providers.gradleProperty("native.platform")
+    platform = providers.gradleProperty("deploy.platform")
         .map(Platform.Companion::invoke)
         .orElse(NativePlatform.platform())
 }
