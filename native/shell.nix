@@ -17,6 +17,7 @@ pkgs.mkShell {
     pkgsCross.mingwW64.binutils-unwrapped
     pkgsCross.aarch64-multiplatform.gcc
     pkgsCross.aarch64-multiplatform.binutils-unwrapped
+    pkgsCross.aarch64-multiplatform.pkg-config
     ninja
     pkg-config
     meson
