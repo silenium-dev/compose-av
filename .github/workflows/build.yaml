@@ -3,11 +3,6 @@ on:
   push:
     branches:
       - '*'
-    tags-ignore:
-      - '*'
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
   pull_request:
   workflow_dispatch:
   release:
