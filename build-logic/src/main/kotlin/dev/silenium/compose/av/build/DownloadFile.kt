@@ -45,6 +45,7 @@ fun downloadFile(progressLogger: ProgressLogger, logger: Logger, uri: URI, outpu
         logger.lifecycle("${progressLogger.description}: ${downloaded.toMB()} MB / ${size.toMB()} MB (${downloaded partOf size}%)")
     } catch (e: Exception) {
         progressLogger.completed(e.message ?: "Unknown error", true)
+        throw e
     }
 }
 
