@@ -49,7 +49,6 @@ abstract class MesonCompileTask : Exec() {
             ) { targetDir, path -> targetDir.resolve(path) }
                 .map(fileFactory::file))
         inputs.file(targetDir.map { it.resolve("build.ninja") })
-        outputs.file(libPath)
     }
 
     override fun exec() {
