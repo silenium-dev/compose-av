@@ -21,11 +21,11 @@ class NativesPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         target.apply<KotlinPluginWrapper>()
         target.configure<KotlinJvmExtension> {
-            compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
+            compilerOptions.jvmTarget.set(JvmTarget.JVM_11)
         }
         target.configure<JavaPluginExtension> {
-            sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = JavaVersion.VERSION_17
+            sourceCompatibility = JavaVersion.VERSION_11
+            targetCompatibility = JavaVersion.VERSION_11
         }
 
         val ext = target.extensions.create("natives", NativesExtension::class.java)
