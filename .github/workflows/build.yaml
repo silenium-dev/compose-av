@@ -28,10 +28,10 @@ jobs:
       - uses: silenium-dev/actions/jni-natives/ubuntu@main
         with:
           gradle-cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
-          snapshot-repo-url: "https://reposilite.silenium.dev/snapshots"
-          release-repo-url: "https://reposilite.silenium.dev/releases"
-          repo-username: ${{ secrets.REPOSILITE_USERNAME }}
-          repo-password: ${{ secrets.REPOSILITE_PASSWORD }}
+          snapshot-repo-url: "https://repoflow.silenium.dev/api/maven/public/maven-snapshots"
+          release-repo-url: "https://repoflow.silenium.dev/api/maven/public/maven-releases"
+          repo-username: ${{ secrets.REPOFLOW_USERNAME }}
+          repo-password: ${{ secrets.REPOFLOW_PASSWORD }}
           tests: false
           java-version: 17
           platform: ${{ matrix.platform }}
@@ -46,9 +46,9 @@ jobs:
       - uses: silenium-dev/actions/kotlin@main
         with:
           gradle-cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
-          snapshot-repo-url: "https://reposilite.silenium.dev/snapshots"
-          release-repo-url: "https://reposilite.silenium.dev/releases"
-          repo-username: ${{ secrets.REPOSILITE_USERNAME }}
-          repo-password: ${{ secrets.REPOSILITE_PASSWORD }}
+          snapshot-repo-url: "https://repoflow.silenium.dev/api/maven/public/maven-snapshots"
+          release-repo-url: "https://repoflow.silenium.dev/api/maven/public/maven-releases"
+          repo-username: ${{ secrets.REPOFLOW_USERNAME }}
+          repo-password: ${{ secrets.REPOFLOW_PASSWORD }}
           tests: false
           java-version: 17
