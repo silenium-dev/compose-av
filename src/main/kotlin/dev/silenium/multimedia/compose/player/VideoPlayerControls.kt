@@ -113,7 +113,7 @@ fun VideoSurfaceControls(
                 ) {
                     AnimatedContent(paused, transitionSpec = {
                         ContentTransform(fadeIn(), fadeOut())
-                    }) { it ->
+                    }) {
                         if (it != false) {
                             Icon(
                                 Icons.Default.PlayArrow,
@@ -175,7 +175,7 @@ fun VideoSurfaceControls(
                 ) {
                     AnimatedContent(fullscreenProvider.isFullscreen, transitionSpec = {
                         ContentTransform(fadeIn(), fadeOut())
-                    }) { it ->
+                    }) {
                         if (it) {
                             Icon(
                                 Icons.Default.FullscreenExit,

@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 
+@Suppress("unused") // used as plugin entrypoint
 class NativesPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         target.apply<KotlinPluginWrapper>()
