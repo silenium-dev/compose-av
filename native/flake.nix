@@ -137,7 +137,7 @@
 
           runHook postUnpack
         '';
-        postUnpackPhase = targetSystem : ''
+        postUnpackPhase = targetSystem: ''
           shopt -s globstar
           case "${targetSystem}" in
             *-windows)
@@ -182,6 +182,17 @@
           sourceRoot="$(pwd)/compose-av"
           echo "changing source root: $sourceRoot"
           cd "$sourceRoot"
+        '';
+
+        postInstallPhase = targetSystem: ''
+          case "${targetSystem}" in
+            *-linux)
+              cp -d subprojects/ffmpeg/lib/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libswresample,libswscale}.so* $out/lib
+              ;;
+            *-windows)
+              cp subprojects/mpv/libmpv-2.dll $out/lib
+              ;;
+          esac
         '';
       };
     };
