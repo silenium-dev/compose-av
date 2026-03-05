@@ -9,20 +9,30 @@
   outputs = { nixpkgs, jni-utils, ... }:
     let
       pkgs = nixpkgs.legacyPackages."x86_64-linux";
+      fs = nixpkgs.lib.fileset;
     in
-    rec {
+    {
       packages."x86_64-linux" = jni-utils.lib.buildJNILib {
         name = "compose-av";
+        version = "0.1.0";
         mesonTarget = "compose-av";
         buildType = "release";
         libName = "compose-av";
         libDir = "src";
 
-        additionalNativeInputs = [ pkgs.p7zip pkgs.curl pkgs.cacert pkgs.python3 ];
+        additionalNativeInputs = targetSystem: pkgs: [ pkgs.p7zip pkgs.curl pkgs.cacert pkgs.python3 ];
+        additionalInputs = targetSystem: pkgs:
+          if targetSystem == "x86_64-windows" then [ ]
+          else [ pkgs.libxcb pkgs.libxau pkgs.libxdmcp ];
         sources = targetSystem:
           let
             mpv = import ./nix/mpv-config.nix { inherit pkgs; };
             ffmpeg = import ./nix/ffmpeg-config.nix { inherit pkgs; };
+            sourceFiles = fs.unions [
+              ./src
+              ./meson.build
+              ./subprojects.tpl
+            ];
           in
           (if targetSystem == "x86_64-windows" then
             [
@@ -41,7 +51,10 @@
             })
           ]) ++ [
             (builtins.path {
-              path = ./.;
+              path = fs.toSource {
+                root = ./.;
+                fileset = sourceFiles;
+              };
               name = "compose-av";
             })
           ];

@@ -1,15 +1,16 @@
 package dev.silenium.compose.av.build
 
 import dev.silenium.libs.jni.NativeLoader
-import dev.silenium.libs.jni.NativePlatform
+import dev.silenium.libs.jni.Platform
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.Directory
 import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.jvm.toolchain.JavaCompiler
-import org.gradle.kotlin.dsl.*
+import org.gradle.api.tasks.Delete
+import org.gradle.kotlin.dsl.apply
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.register
 import org.gradle.language.jvm.tasks.ProcessResources
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmExtension
@@ -27,58 +28,55 @@ class NativesPlugin : Plugin<Project> {
         }
 
         val ext = target.extensions.create("natives", NativesExtension::class.java)
-        ext.platform.convention(target.provider(NativePlatform::platform))
-        val tmpDir = target.layout.buildDirectory.dir("tmp/natives")
-        val targetDir = target.layout.buildDirectory.dir("natives")
+        ext.libVersion.convention(target.version.toString())
+        ext.libName.convention(target.name)
+        ext.nixFlakeLock.convention(target.layout.file(ext.nixFlake.map { it.asFile.resolveSibling("flake.lock") }))
+        val nixResultDir = target.layout.buildDirectory.dir("nix-result")
 
-        val mesonClean = target.tasks.register<MesonCleanTask>("mesonClean") {
-            this.targetDir.set(targetDir.map(Directory::getAsFile))
-            this.platform.set(ext.platform)
+        val nixClean = target.tasks.register<Delete>("nixClean") {
+            delete(nixResultDir)
         }
-        target.tasks.named("clean") {
-            dependsOn(mesonClean)
+        target.tasks.named("clean").configure {
+            dependsOn(nixClean)
         }
 
-        val prepareSubprojects = target.tasks.register<PrepareSubprojectsTask>("prepareSubprojects") {
-            mustRunAfter(mesonClean)
-
+        val nixBuild = target.tasks.register<NixBuildTask>("nixBuild") {
             doFirst {
-                tmpDir.get().asFile.deleteRecursively()
-                tmpDir.get().asFile.mkdirs()
+                nixResultDir.get().asFile.deleteRecursively()
             }
-            downloadDir.set(tmpDir)
-            platform.set(ext.platform)
-        }
-
-        val javac = target.tasks.withType<JavaCompile>().first().javaCompiler.map(JavaCompiler::getExecutablePath)
-        val javaHome = javac.map { it.asFile.parentFile.parentFile }
-        val mesonSetup = target.tasks.register<MesonSetupTask>("mesonSetup") {
-            dependsOn(prepareSubprojects)
-            mustRunAfter(mesonClean)
-
-            this.targetDir.set(targetDir.map(Directory::getAsFile))
-            this.platform.set(ext.platform)
-            this.javaHome.set(javaHome)
-
-            inputs.dir(target.layout.projectDirectory.dir("subprojects.tpl"))
-        }
-
-        val mesonCompile = target.tasks.register<MesonCompileTask>("mesonCompile") {
-            dependsOn(mesonSetup)
-            mustRunAfter(mesonClean)
-
-            this.targetDir.set(targetDir.map(Directory::getAsFile))
-            this.platform.set(ext.platform)
-            this.libName.set(ext.libName)
-            this.javaHome.set(javaHome)
-            this.sourceDir.set(target.layout.projectDirectory.dir("src"))
+            group = "build"
+            inputs.files(ext.sourceFiles)
+            inputs.files(ext.nixFlake, ext.nixFlakeLock)
+            libName.set(ext.libName)
+            resultDir.set(nixResultDir)
         }
 
         target.afterEvaluate {
             tasks.named<ProcessResources>("processResources") {
-                from(mesonCompile.map { it.outputs.files }) {
-                    rename {
-                        NativeLoader.libPath(ext.libName.get(), platform = ext.platform.get())
+                val out = nixBuild.flatMap { it.resultDir.asFile }
+                val targets = mapOf(
+                    Platform(Platform.OS.LINUX, Platform.Arch.X86_64) to "x86_64-linux",
+                    Platform(Platform.OS.LINUX, Platform.Arch.ARM64) to "aarch64-linux",
+                    Platform(Platform.OS.WINDOWS, Platform.Arch.X86_64) to "x86_64-windows",
+                )
+                targets.forEach { (platform, target) ->
+                    val src = out.map { out ->
+                        out.resolve("${ext.libName.get()}-${target}-${ext.libVersion.get()}").resolve("lib")
+                    }
+                    val platformFormat = NativeLoader.fileNameTemplate(platform)
+                    from(src) {
+                        include("*.so")
+                        include("*.dll")
+                        include("*.dylib")
+                        rename {
+                            val matches = platformFormat
+                                .replace(".", "\\.")
+                                .replace("%s", "(.*)")
+                                .toRegex()
+                                .find(it) ?: error("library name does not match platform pattern: $it")
+
+                            NativeLoader.libPath(matches.groupValues[1], platform = platform)
+                        }
                     }
                 }
             }

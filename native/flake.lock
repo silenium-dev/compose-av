@@ -24,11 +24,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1772742428,
-        "narHash": "sha256-V2Lf4VLYIB38iCSpaQ8+uMcV6sS5WZ9XBDLEr7OT5uc=",
+        "lastModified": 1772752807,
+        "narHash": "sha256-/j59dcF9R1pwmBLTnODWx88kS+sp+92fnAb7InVYMEM=",
         "owner": "silenium-dev",
         "repo": "jni-utils",
-        "rev": "210e6380d2fa35201477f4e6244dafbcb9fe52f4",
+        "rev": "a7698b4c08eaa05bc2f490c911bc9b1f111e4d2c",
         "type": "github"
       },
       "original": {
