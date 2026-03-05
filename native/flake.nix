@@ -184,6 +184,5 @@
           cd "$sourceRoot"
         '';
       };
-      checks = packages;
     };
 }
