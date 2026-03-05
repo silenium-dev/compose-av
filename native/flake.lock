@@ -24,11 +24,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1772573394,
-        "narHash": "sha256-SyV26rgUNGGkYF7dD9KWz13hiPwMIDisQRY0rgDR8as=",
+        "lastModified": 1772739475,
+        "narHash": "sha256-tjBJd0irZOg6zsDgqaVdp+o7MFb2gCrdVYgMtG7fqyc=",
         "owner": "silenium-dev",
         "repo": "jni-utils",
-        "rev": "9776168d34656fc5460227cf5dd7632083efa1f5",
+        "rev": "8be0e61d0a2ec9ac6af731a4004740e017bf5c99",
         "type": "github"
       },
       "original": {
@@ -71,11 +71,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1772542754,
-        "narHash": "sha256-WGV2hy+VIeQsYXpsLjdr4GvHv5eECMISX1zKLTedhdg=",
+        "lastModified": 1772624091,
+        "narHash": "sha256-QKyJ0QGWBn6r0invrMAK8dmJoBYWoOWy7lN+UHzW1jc=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "8c809a146a140c5c8806f13399592dbcb1bb5dc4",
+        "rev": "80bdc1e5ce51f56b19791b52b2901187931f5353",
         "type": "github"
       },
       "original": {

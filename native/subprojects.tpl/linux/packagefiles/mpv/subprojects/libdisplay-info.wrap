@@ -1,5 +1,4 @@
-[wrap-git]
-revision = 0.3.0
-url = https://gitlab.freedesktop.org/emersion/libdisplay-info.git
-depth = 1
+[wrap-file]
+source_filename = libdisplay-info.tar
+lead_directory_missing = true
 diff_files = libdisplay-info/hwdata.patch

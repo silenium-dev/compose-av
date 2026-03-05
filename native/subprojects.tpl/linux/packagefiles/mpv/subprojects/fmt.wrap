@@ -1,9 +1,9 @@
-[wrap-git]
-url = https://github.com/fmtlib/fmt.git
-revision = 12.0.0
-depth = 1
+[wrap-file]
+directory = fmt
+source_filename = fmt.tar
 method = cmake
 diff_files = fmt/pic.patch
+lead_directory_missing = true
 
 [provide]
 fmt = fmt_dep
