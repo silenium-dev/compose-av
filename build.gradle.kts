@@ -68,7 +68,6 @@ tasks {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.add("-Xcontext-receivers")
         jvmTarget = JvmTarget.JVM_17
     }
 }
