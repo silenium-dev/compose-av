@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL30.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+@Stable
 class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
     class Config(pixelPerfect: Boolean = false) {
         var pixelPerfect by mutableStateOf(pixelPerfect)
