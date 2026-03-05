@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.awaitApplication
+import androidx.compose.ui.window.application
 import dev.silenium.multimedia.compose.player.VideoSurfaceWithControls
 import dev.silenium.multimedia.compose.player.rememberVideoPlayer
 import dev.silenium.multimedia.compose.util.LocalFullscreenProvider
@@ -25,7 +25,6 @@ import java.nio.file.Files
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.outputStream
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(InternalMultimediaApi::class)
 @Composable
@@ -59,12 +58,12 @@ fun App() {
         ) {
             var visible by remember { mutableStateOf(true) }
             var wasPaused by remember { mutableStateOf("no") }
-            LaunchedEffect(Unit) {
-                while (isActive) {
-                    delay(2.seconds)
-                    visible = !visible
-                }
-            }
+//            LaunchedEffect(Unit) {
+//                while (isActive) {
+//                    delay(2.seconds)
+//                    visible = !visible
+//                }
+//            }
             val modifier = when {
                 fullscreen -> Modifier.size(
                     this@BoxWithConstraints.maxWidth,
@@ -146,7 +145,7 @@ fun App() {
     }
 }
 
-suspend fun main(): Unit = awaitApplication {
+fun main(): Unit = application {
     val state = LocalFullscreenProvider.current.windowState
     Window(state = state, onCloseRequest = ::exitApplication) {
         App()
