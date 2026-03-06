@@ -24,7 +24,7 @@ dependencies {
     implementation(libs.jna)
     implementation(libs.bundles.kotlinx)
     implementation(libs.slf4j.api)  // for logging
-    implementation(project(":native"))
+    implementation(project(":natives"))
     implementation(kotlin("reflect"))
 
     testImplementation(compose.desktop.currentOs)

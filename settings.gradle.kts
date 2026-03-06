@@ -24,5 +24,5 @@ develocity {
 
 rootProject.name = "compose-av"
 
-include(":native")
+include(":natives")
 includeBuild("build-logic")
