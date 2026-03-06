@@ -11,15 +11,18 @@ pluginManagement {
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+    id("com.gradle.develocity") version "4.3.2"
 }
 
-val deployKotlin = if (extra.has("deploy.kotlin")) {
-    extra.get("deploy.kotlin")?.toString()?.toBoolean() ?: true
-} else true
-if (deployKotlin) {
-    include(":native")
+develocity {
+    buildScan {
+        termsOfUseUrl.set("https://gradle.com/help/legal-terms-of-use")
+        termsOfUseAgree.set("yes")
+        publishing.onlyIf { false }
+    }
 }
 
 rootProject.name = "compose-av"
 
+include(":native")
 includeBuild("build-logic")

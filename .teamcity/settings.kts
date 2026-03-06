@@ -89,6 +89,7 @@ abstract class Build(
                 |-Pdeploy.repo-url=%deploy.repo-url%
                 |-Pdeploy.username=%deploy.username%
                 |-Pdeploy.password=%deploy.password%
+                |--scan
             """.trimMargin()
             incremental = true
         }
