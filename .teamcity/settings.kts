@@ -71,7 +71,8 @@ abstract class Build(
 
         commitStatusPublisher {
             publisher = github {
-                vcsRoot()
+                githubUrl = "https://api.github.com"
+                authType = vcsRoot()
             }
         }
     }
