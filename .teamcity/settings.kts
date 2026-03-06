@@ -52,9 +52,7 @@ abstract class Build(
     }
 
     triggers {
-        vcs {
-            branchFilter = "+:refs/heads/*"
-        }
+        vcs(trigger)
     }
 
     features {
