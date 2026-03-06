@@ -72,15 +72,21 @@ abstract class Build(
     }
 
     params {
-        text("env.MAVEN_REPO_URL", publishRepository, display = ParameterDisplay.HIDDEN, readOnly = true)
-        text("env.MAVEN_REPO_USERNAME", publishUsername, display = ParameterDisplay.HIDDEN, readOnly = true)
-        password("env.MAVEN_REPO_PASSWORD", publishPassword, display = ParameterDisplay.HIDDEN, readOnly = true)
+        text("deploy.repo-url", publishRepository, display = ParameterDisplay.HIDDEN, readOnly = true)
+        text("deploy.username", publishUsername, display = ParameterDisplay.HIDDEN, readOnly = true)
+        password("deploy.password", publishPassword, display = ParameterDisplay.HIDDEN, readOnly = true)
     }
 
     steps {
         gradle {
             tasks = "build publish"
-            gradleParams = "-Pdeploy.version=${publishVersion} -Pdeploy.kotlin=true"
+            gradleParams = """
+                |-Pdeploy.version=${publishVersion}
+                |-Pdeploy.kotlin=true
+                |-Pdeploy.repo-url=%deploy.repo-url%
+                |-Pdeploy.username=%deploy.username%
+                |-Pdeploy.password=%deploy.password%
+            """.trimMargin()
             incremental = true
         }
     }

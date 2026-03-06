@@ -98,12 +98,14 @@ allprojects {
 
     publishing {
         repositories {
-            val url = System.getenv("MAVEN_REPO_URL") ?: return@repositories
-            maven(url) {
-                name = "reposilite"
-                credentials {
-                    username = System.getenv("MAVEN_REPO_USERNAME") ?: ""
-                    password = System.getenv("MAVEN_REPO_PASSWORD") ?: ""
+            if (deployKotlin) {
+                val url = findProperty("deploy.repo-url") as? String ?: error("No deploy.repo-url specified")
+                maven(url) {
+                    name = "reposilite"
+                    credentials {
+                        username = findProperty("deploy.username") as? String ?: ""
+                        password = findProperty("deploy.password") as? String ?: ""
+                    }
                 }
             }
         }
