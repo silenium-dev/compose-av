@@ -92,7 +92,7 @@ object BuildSnapshot : Build(
     buildTypeName = "Build Snapshot",
     publishRepository = "https://repoflow.silenium.dev/api/maven/public/maven-snapshots",
     publishUsername = "teamcitypublic",
-    publishPassword = "credentialsJSON:c8524851-3a17-4ea4-ac26-49a99c5c387c",
+    publishPassword = "credentialsJSON:4f61365b-e397-46e3-8c84-d48c2c91b687",
     publishVersion = "%build.vcs.number%",
     trigger = {
         branchFilter = "+:refs/heads/*"
@@ -103,7 +103,7 @@ object BuildRelease : Build(
     buildTypeName = "Build Release",
     publishRepository = "https://repoflow.silenium.dev/api/maven/public/maven-releases",
     publishUsername = "teamcitypublic",
-    publishPassword = "credentialsJSON:c8524851-3a17-4ea4-ac26-49a99c5c387c",
+    publishPassword = "credentialsJSON:4f61365b-e397-46e3-8c84-d48c2c91b687",
     publishVersion = "%build.vcs.number%",
     trigger = {
         branchFilter = "+:refs/tags/*"
