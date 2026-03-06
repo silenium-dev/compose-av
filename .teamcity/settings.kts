@@ -4,7 +4,9 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.project
+import jetbrains.buildServer.configs.kotlin.projectFeatures.UntrustedBuildsSettings
 import jetbrains.buildServer.configs.kotlin.projectFeatures.githubConnection
+import jetbrains.buildServer.configs.kotlin.projectFeatures.untrustedBuildsSettings
 import jetbrains.buildServer.configs.kotlin.triggers.VcsTrigger
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.version
@@ -21,6 +23,11 @@ project {
             displayName = "GitHub.com"
             clientId = "Ov23liT97vPVEYmQSgyV"
             clientSecret = "credentialsJSON:caa167f1-c169-4bab-add1-445d1770fe1d"
+        }
+
+        untrustedBuildsSettings {
+            manualRunsApproved = true
+            defaultAction = UntrustedBuildsSettings.DefaultAction.APPROVE
         }
     }
 }
