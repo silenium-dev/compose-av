@@ -29,6 +29,9 @@ project {
             enableLog = true
             manualRunsApproved = true
             defaultAction = UntrustedBuildsSettings.DefaultAction.APPROVE
+            approvalRules = """
+                groups:MAINTAINERS:1
+            """.trimIndent()
         }
     }
 }
