@@ -90,6 +90,7 @@ abstract class Build(
                 |-Pdeploy.username=%deploy.username%
                 |-Pdeploy.password=%deploy.password%
                 |--scan
+                |--info
             """.trimMargin().replace("\n", " ")
             incremental = true
         }
