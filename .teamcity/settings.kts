@@ -1,5 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
+import jetbrains.buildServer.configs.kotlin.projectFeatures.githubConnection
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 
 /*
@@ -29,6 +30,15 @@ version = "2025.11"
 project {
 
     buildType(Build)
+
+    features {
+        githubConnection {
+            id = "PROJECT_EXT_9"
+            displayName = "GitHub.com"
+            clientId = "Ov23liT97vPVEYmQSgyV"
+            clientSecret = "credentialsJSON:caa167f1-c169-4bab-add1-445d1770fe1d"
+        }
+    }
 }
 
 object Build : BuildType({
