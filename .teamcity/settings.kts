@@ -82,7 +82,7 @@ abstract class Build(
             tasks = """
                 |build
                 |publish
-            """.trimMargin()
+            """.trimMargin().replace("\n", " ")
             gradleParams = """
                 |-Pdeploy.version=${publishVersion}
                 |-Pdeploy.enabled=true
@@ -90,7 +90,7 @@ abstract class Build(
                 |-Pdeploy.username=%deploy.username%
                 |-Pdeploy.password=%deploy.password%
                 |--scan
-            """.trimMargin()
+            """.trimMargin().replace("\n", " ")
             incremental = true
         }
     }
