@@ -26,6 +26,7 @@ project {
         }
 
         untrustedBuildsSettings {
+            enableLog = true
             manualRunsApproved = true
             defaultAction = UntrustedBuildsSettings.DefaultAction.APPROVE
         }
