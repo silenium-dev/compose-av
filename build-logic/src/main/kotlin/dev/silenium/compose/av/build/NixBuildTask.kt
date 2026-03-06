@@ -12,11 +12,15 @@ abstract class NixBuildTask : Exec() {
     @get:Input
     abstract val libName: Property<String>
 
+    @get:Input
+    abstract val showLogs: Property<Boolean>
+
     @get:OutputDirectory
     abstract val resultDir: DirectoryProperty
 
     override fun exec() {
-        commandLine("nix", "build", "-o", resultDir.get().asFile.absolutePath, ".#${libName.get()}")
+        val logArgs = arrayOf("--print-build-logs").takeIf { showLogs.get() } ?: arrayOf()
+        commandLine("nix", "build", "-o", resultDir.get().asFile.absolutePath, *logArgs, ".#${libName.get()}")
         standardOutput = System.out
         errorOutput = System.out
         super.exec()

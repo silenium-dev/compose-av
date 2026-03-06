@@ -11,4 +11,5 @@ interface NativesExtension {
 
     val nixFlake: RegularFileProperty
     val nixFlakeLock: RegularFileProperty
+    val showLogs: Property<Boolean>
 }
