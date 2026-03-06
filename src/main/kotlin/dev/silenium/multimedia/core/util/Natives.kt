@@ -9,18 +9,16 @@ object Natives {
     private var loaded = false
 
     private val platformDeps = mapOf(
-        Platform.OS.LINUX to setOf(
-            "avcodec",
-            "avdevice",
-            "avfilter",
-            "avformat",
+        Platform.OS.LINUX to listOf(
             "avutil",
-            "compose-av",
             "swresample",
             "swscale",
+            "avcodec",
+            "avformat",
+            "avfilter",
+            "avdevice",
         ),
-        Platform.OS.WINDOWS to setOf(
-            "compose-av",
+        Platform.OS.WINDOWS to listOf(
             "libmpv-2",
         ),
     )
