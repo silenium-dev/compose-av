@@ -1,5 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.DslContext
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
@@ -30,7 +31,7 @@ project {
             manualRunsApproved = true
             defaultAction = UntrustedBuildsSettings.DefaultAction.APPROVE
             approvalRules = """
-                groups:MAINTAINERS:1
+                (groups:MAINTAINERS):1
             """.trimIndent()
         }
     }
@@ -72,14 +73,17 @@ abstract class Build(
         exists("system.nix.store")
     }
 
+    params {
+        text("env.MAVEN_REPO_URL", publishRepository, display = ParameterDisplay.HIDDEN, readOnly = true)
+        text("env.MAVEN_REPO_USERNAME", publishUsername, display = ParameterDisplay.HIDDEN, readOnly = true)
+        password("env.MAVEN_REPO_PASSWORD", publishPassword, display = ParameterDisplay.HIDDEN, readOnly = true)
+    }
+
     steps {
         gradle {
             tasks = "build publish"
             gradleParams = "-Pdeploy.version=${publishVersion} -Pdeploy.kotlin=true"
             incremental = true
-            param("env.MAVEN_REPO_URL", publishRepository)
-            param("env.MAVEN_REPO_USERNAME", publishUsername)
-            param("env.MAVEN_REPO_PASSWORD", publishPassword)
         }
     }
 })
