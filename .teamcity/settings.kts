@@ -1,6 +1,7 @@
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.DslContext
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
@@ -63,6 +64,12 @@ abstract class Build(
             provider = github {
                 authType = vcsRoot()
                 ignoreDrafts = true
+            }
+        }
+
+        commitStatusPublisher {
+            github {
+                vcsRoot()
             }
         }
     }
