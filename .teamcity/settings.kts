@@ -25,13 +25,14 @@ project {
 }
 
 abstract class Build(
+    val buildTypeName: String,
     val publishRepository: String,
     val publishUsername: String,
     val publishPassword: String,
     val publishVersion: String,
     val trigger: VcsTrigger.() -> Unit,
 ) : BuildType({
-    name = "Build and Publish"
+    name = buildTypeName
 
     triggers {
         vcs {
@@ -68,6 +69,7 @@ abstract class Build(
 })
 
 object BuildSnapshot : Build(
+    buildTypeName = "Build Snapshot",
     publishRepository = "https://repoflow.silenium.dev/api/maven/public/maven-snapshots",
     publishUsername = "teamcitypublic",
     publishPassword = "credentialsJSON:c8524851-3a17-4ea4-ac26-49a99c5c387c",
@@ -78,6 +80,7 @@ object BuildSnapshot : Build(
 )
 
 object BuildRelease : Build(
+    buildTypeName = "Build Release",
     publishRepository = "https://repoflow.silenium.dev/api/maven/public/maven-releases",
     publishUsername = "teamcitypublic",
     publishPassword = "credentialsJSON:c8524851-3a17-4ea4-ac26-49a99c5c387c",
