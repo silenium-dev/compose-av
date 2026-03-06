@@ -2,7 +2,7 @@ plugins {
     id("av-natives")
 }
 
-val deployNative = (findProperty("deploy.native") as String?)?.toBoolean() ?: true
+val deployKotlin = (findProperty("deploy.kotlin") as String?)?.toBoolean() ?: true
 
 natives {
     libName = rootProject.name
@@ -13,7 +13,7 @@ natives {
 
 publishing {
     publications {
-        if (deployNative) {
+        if (deployKotlin) {
             create<MavenPublication>("maven") {
                 from(components["kotlin"])
             }

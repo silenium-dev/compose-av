@@ -11,7 +11,6 @@ plugins {
     `maven-publish`
 }
 
-val deployNative = (findProperty("deploy.native") as String?)?.toBoolean() ?: true
 val deployKotlin = (findProperty("deploy.kotlin") as String?)?.toBoolean() ?: true
 
 dependencies {
@@ -25,9 +24,7 @@ dependencies {
     implementation(libs.jna)
     implementation(libs.bundles.kotlinx)
     implementation(libs.slf4j.api)  // for logging
-    if (deployNative) {
-        implementation(project(":native"))
-    }
+    implementation(project(":native"))
     implementation(kotlin("reflect"))
 
     testImplementation(compose.desktop.currentOs)
