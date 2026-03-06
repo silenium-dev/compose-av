@@ -79,10 +79,13 @@ abstract class Build(
 
     steps {
         gradle {
-            tasks = "build publish"
+            tasks = """
+                |build
+                |publish
+            """.trimMargin()
             gradleParams = """
                 |-Pdeploy.version=${publishVersion}
-                |-Pdeploy.kotlin=true
+                |-Pdeploy.enabled=true
                 |-Pdeploy.repo-url=%deploy.repo-url%
                 |-Pdeploy.username=%deploy.username%
                 |-Pdeploy.password=%deploy.password%

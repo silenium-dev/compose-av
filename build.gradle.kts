@@ -11,7 +11,7 @@ plugins {
     `maven-publish`
 }
 
-val deployKotlin = (findProperty("deploy.kotlin") as String?)?.toBoolean() ?: true
+val deployEnabled = (findProperty("deploy.enabled") as String?)?.toBoolean() ?: false
 
 dependencies {
     implementation(libs.compose.desktop.common)
@@ -98,7 +98,7 @@ allprojects {
 
     publishing {
         repositories {
-            if (deployKotlin) {
+            if (deployEnabled) {
                 val url = findProperty("deploy.repo-url") as? String ?: error("No deploy.repo-url specified")
                 maven(url) {
                     name = "reposilite"
@@ -114,10 +114,8 @@ allprojects {
 
 publishing {
     publications {
-        if (deployKotlin) {
-            create<MavenPublication>("main") {
-                from(components["java"])
-            }
+        create<MavenPublication>("main") {
+            from(components["java"])
         }
     }
 }
