@@ -9,13 +9,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import dev.silenium.compose.gl.surface.GLSurfaceState
-import dev.silenium.compose.gl.surface.Stats
+import dev.silenium.compose.gl.canvas.GLCanvasState
+import dev.silenium.compose.gl.canvas.Stats
 import dev.silenium.multimedia.compose.format.format
 import dev.silenium.multimedia.compose.util.deferredFlowStateOf
 
 @Composable
-fun VideoSurfaceStats(player: VideoPlayer, state: GLSurfaceState, textColor: Color = Color.White) {
+fun VideoSurfaceStats(player: VideoPlayer, state: GLCanvasState, textColor: Color = Color.White) {
     Column(modifier = Modifier.padding(6.dp)) {
         val position by deferredFlowStateOf(player::position)
         val duration by deferredFlowStateOf(player::duration)

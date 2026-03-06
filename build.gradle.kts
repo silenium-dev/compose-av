@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.TaskTriggersConfig
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -12,57 +11,27 @@ plugins {
     `maven-publish`
 }
 
-val deployNative = (findProperty("deploy.native") as String?)?.toBoolean() ?: true
 val deployKotlin = (findProperty("deploy.kotlin") as String?)?.toBoolean() ?: true
-val skikoEGL = (findProperty("skiko.egl") as String?)?.toBoolean() ?: false
 
 dependencies {
-    // Note, if you develop a library, you should use compose.desktop.common.
-    // compose.desktop.currentOs should be used in launcher-sourceSet
-    // (in a separate module for demo project and in testMain).
-    // With compose.desktop.common you will also lose @Preview functionality
-    implementation(compose.desktop.currentOs)
-    implementation(compose.material3)
-    implementation(compose.materialIconsExtended)
-    implementation("androidx.annotation:annotation-jvm:1.9.1")
+    implementation(libs.compose.desktop.common)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.extended)
+    implementation(libs.androidx.annotation)
     implementation(libs.compose.gl)
     implementation(libs.compose.gl.natives)
     implementation(libs.jni.utils)
     implementation(libs.jna)
     implementation(libs.bundles.kotlinx)
     implementation(libs.slf4j.api)  // for logging
-    if (deployNative) {
-        implementation(project(":native"))
-    }
+    implementation(project(":native"))
     implementation(kotlin("reflect"))
-    if (skikoEGL) {
-        implementation(libs.bundles.skiko) {
-            version {
-                strictly(libs.skiko.awt.runtime.linux.x64.get().version!!)
-            }
-        }
-    }
 
-    testImplementation(compose.materialIconsExtended)
+    testImplementation(compose.desktop.currentOs)
+    testImplementation(libs.compose.material.icons.extended)
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.mockk)
     testImplementation(libs.logback.classic)
-}
-
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor(0, TimeUnit.SECONDS)
-}
-
-compose.desktop {
-    application {
-        mainClass = "MainKt"
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "gl-demo"
-            packageVersion = "1.0.0"
-        }
-    }
 }
 
 val templateSrc = layout.projectDirectory.dir("src/main/templates")
@@ -96,10 +65,8 @@ tasks {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.add("-Xcontext-receivers")
-        jvmTarget = JvmTarget.JVM_11
+        jvmTarget = JvmTarget.JVM_17
     }
-    jvmToolchain(11)
 }
 
 sourceSets.main {
@@ -109,6 +76,9 @@ sourceSets.main {
 }
 
 java {
+    sourceCompatibility = kotlin.compilerOptions.jvmTarget.map { JavaVersion.toVersion(it.target) }.get()
+    targetCompatibility = sourceCompatibility
+
     withSourcesJar()
     withJavadocJar()
 }

@@ -1,13 +1,6 @@
 name: "Build and Test"
 on:
   push:
-    branches:
-      - '*'
-    tags-ignore:
-      - '*'
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
   pull_request:
   workflow_dispatch:
   release:
@@ -16,33 +9,42 @@ permissions:
   pull-requests: write
   contents: write
 jobs:
-  linux-x86_64:
+  build-publish:
     runs-on: ubuntu-24.04
     steps:
-      - shell: bash
-        name: "Install mpv"
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y libmpv-dev libavformat-dev libavcodec-dev libavutil-dev libswscale-dev libavdevice-dev libavfilter-dev libswresample-dev libpostproc-dev libpipewire-0.3-dev
-      - uses: silenium-dev/actions/jni-natives/ubuntu@main
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@v31
         with:
-          gradle-cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
-          snapshot-repo-url: "https://reposilite.silenium.dev/snapshots"
-          release-repo-url: "https://reposilite.silenium.dev/releases"
-          repo-username: ${{ secrets.REPOSILITE_USERNAME }}
-          repo-password: ${{ secrets.REPOSILITE_PASSWORD }}
-          tests: true
-          java-version: 11
-          platform: ${{ github.job }}
-  kotlin:
-    runs-on: ubuntu-24.04
-    steps:
+          nix_path: nixpkgs=channel:nixos-unstable
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Restore and save Nix store
+        uses: nix-community/cache-nix-action@v7
+        with:
+          # restore and save a cache using this key
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          # if there's no cache hit, restore a cache by this prefix
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          # collect garbage until the Nix store size (in bytes) is at most this number
+          # before trying to save a new cache
+          # 1G = 1073741824
+          gc-max-store-size-linux: 4G
+          # do purge caches
+          purge: true
+          # purge all versions of the cache
+          purge-prefixes: nix-${{ runner.os }}-
+          # created more than this number of seconds ago
+          purge-created: 0
+          # or last accessed this duration (ISO 8601 duration format)
+          # before the start of the `Post Restore and save Nix store` phase
+          purge-last-accessed: P7D
+          # except any version with the key that is the same as the `primary-key`
+          purge-primary-key: never
       - uses: silenium-dev/actions/kotlin@main
         with:
           gradle-cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
-          snapshot-repo-url: "https://reposilite.silenium.dev/snapshots"
-          release-repo-url: "https://reposilite.silenium.dev/releases"
-          repo-username: ${{ secrets.REPOSILITE_USERNAME }}
-          repo-password: ${{ secrets.REPOSILITE_PASSWORD }}
+          snapshot-repo-url: "https://repoflow.silenium.dev/api/maven/public/maven-snapshots"
+          release-repo-url: "https://repoflow.silenium.dev/api/maven/public/maven-releases"
+          repo-username: ${{ secrets.REPOFLOW_USERNAME }}
+          repo-password: ${{ secrets.REPOFLOW_PASSWORD }}
           tests: false
-          java-version: 11
+          java-version: 17
