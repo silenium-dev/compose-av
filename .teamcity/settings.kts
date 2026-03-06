@@ -1,5 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
+import jetbrains.buildServer.configs.kotlin.projectFeatures.gitlabConnection
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 
 /*
@@ -29,6 +30,15 @@ version = "2025.11"
 project {
 
     buildType(Build)
+
+    features {
+        gitlabConnection {
+            id = "PROJECT_EXT_8"
+            displayName = "GitLab.com"
+            applicationId = "Ov23liT97vPVEYmQSgyV"
+            clientSecret = "credentialsJSON:caa167f1-c169-4bab-add1-445d1770fe1d"
+        }
+    }
 }
 
 object Build : BuildType({
