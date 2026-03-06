@@ -50,6 +50,7 @@ class NativesPlugin : Plugin<Project> {
             inputs.files(ext.nixFlake, ext.nixFlakeLock)
             libName.set(ext.libName)
             resultDir.set(nixResultDir)
+            showLogs.set(ext.showLogs)
         }
 
         target.afterEvaluate {
