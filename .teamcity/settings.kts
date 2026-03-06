@@ -1,4 +1,5 @@
 import jetbrains.buildServer.configs.kotlin.BuildType
+import jetbrains.buildServer.configs.kotlin.DslContext
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
@@ -33,6 +34,10 @@ abstract class Build(
     val trigger: VcsTrigger.() -> Unit,
 ) : BuildType({
     name = buildTypeName
+
+    vcs {
+        root(DslContext.settingsRoot)
+    }
 
     triggers {
         vcs {
