@@ -102,7 +102,7 @@ object BuildSnapshot : Build(
     publishRepository = "https://repoflow.silenium.dev/api/maven/public/maven-snapshots",
     publishUsername = "teamcitypublic",
     publishPassword = "credentialsJSON:4f61365b-e397-46e3-8c84-d48c2c91b687",
-    publishVersion = "%build.vcs.number%",
+    publishVersion = "dev-%build.vcs.number%",
     trigger = {
         branchFilter = "+:refs/heads/*"
     }
