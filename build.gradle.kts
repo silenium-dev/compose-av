@@ -101,7 +101,7 @@ allprojects {
             if (deployEnabled) {
                 val url = findProperty("deploy.repo-url") as? String ?: error("No deploy.repo-url specified")
                 maven(url) {
-                    name = "reposilite"
+                    name = "nexus"
                     credentials {
                         username = findProperty("deploy.username") as? String ?: ""
                         password = findProperty("deploy.password") as? String ?: ""
