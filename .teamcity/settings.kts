@@ -181,7 +181,7 @@ object BuildSnapshot : BuildType({
                 |publish
             """.trimMargin().replace("\n", " ")
             gradleParams = """
-                |-Pdeploy.version=%release.version%
+                |-Pdeploy.version=0.0.0-%build.vcs.number%-dev
                 |-Pdeploy.enabled=true
                 |-Pdeploy.repo-url=%deploy.repo-url%
                 |-Pdeploy.username=%deploy.username%
