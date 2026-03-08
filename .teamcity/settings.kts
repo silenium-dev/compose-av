@@ -57,7 +57,7 @@ object BuildRelease : BuildType({
 
         vcsLabeling {
             vcsRootId = "${DslContext.settingsRoot.id}"
-            labelingPattern = "v%release.version%"
+            labelingPattern = "%release.version%"
             successfulOnly = true
         }
     }
