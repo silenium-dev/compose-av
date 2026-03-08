@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    jni-utils.url = "github:silenium-dev/jni-utils?ref=nix-base";
+    jni-utils.url = "github:silenium-dev/jni-utils";
   };
 
   outputs = { nixpkgs, jni-utils, ... }:
