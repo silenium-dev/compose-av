@@ -11,6 +11,21 @@ plugins {
     `maven-publish`
 }
 
+group = "dev.silenium.compose.av"
+val gitVersionProvider = providers.gradleProperty("ci").flatMap {
+    if (it.toBoolean()) {
+        providers.exec {
+            commandLine("git", "describe", "--tags")
+            workingDir = layout.projectDirectory.asFile
+        }.standardOutput.asText
+    } else null
+}
+version = providers
+    .gradleProperty("deploy.version")
+    .orElse(gitVersionProvider)
+    .orElse("0.0.0-SNAPSHOT")
+    .get()
+
 val deployEnabled = (findProperty("deploy.enabled") as String?)?.toBoolean() ?: false
 
 dependencies {
@@ -86,9 +101,6 @@ java {
 allprojects {
     apply<MavenPublishPlugin>()
     apply<BasePlugin>()
-
-    group = "dev.silenium.compose.av"
-    version = findProperty("deploy.version") as String? ?: "0.0.0-SNAPSHOT"
 
     repositories {
         maven("https://reposilite.silenium.dev/releases")
