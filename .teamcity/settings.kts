@@ -2,6 +2,7 @@ import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.DslContext
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.PublishMode
+import jetbrains.buildServer.configs.kotlin.VcsSettings
 import jetbrains.buildServer.configs.kotlin.buildFeatures.CommitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
@@ -47,6 +48,7 @@ abstract class Build(
     val publishPassword: String,
     val publishVersion: String,
     val trigger: VcsTrigger.() -> Unit,
+    val vcsSettings: VcsSettings.() -> Unit,
 ) : BuildType({
     name = buildTypeName
 
@@ -56,17 +58,11 @@ abstract class Build(
 
     triggers {
         vcs(trigger)
+        vcsSettings()
     }
 
     features {
         perfmon {
-        }
-
-        pullRequests {
-            provider = github {
-                authType = vcsRoot()
-                ignoreDrafts = true
-            }
         }
 
         commitStatusPublisher {
@@ -115,7 +111,10 @@ object BuildSnapshot : Build(
     publishVersion = "0.2.0-SNAPSHOT", // TODO: Proper version resolution, maybe move to gradle and use git in build
     trigger = {
         branchFilter = "+:refs/heads/*"
-    }
+    },
+    vcsSettings = {
+        branchFilter = "+:refs/heads/*"
+    },
 )
 
 object BuildRelease : Build(
@@ -126,5 +125,8 @@ object BuildRelease : Build(
     publishVersion = "%build.vcs.number%",
     trigger = {
         branchFilter = "+:refs/tags/*"
-    }
+    },
+    vcsSettings = {
+        branchFilter = "+:refs/tags/*"
+    },
 )
