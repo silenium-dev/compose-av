@@ -12,8 +12,8 @@ It is based on [libmpv](https://github.com/mpv-player/mpv) and
 
 ## Platforms
 
-- [x] Linux
-- [ ] Windows
+- [x] Linux (x86-64, arm64)
+- [x] Windows (x86-64)
 - [ ] Android
 
 *Note: macOS/iOS support won't be implemented because of lack of development hardware.
@@ -25,22 +25,14 @@ Gradle:
 
 ```kotlin
 repositories {
-    maven {
-        name = "silenium-dev releases"
-        url = uri("https://reposilite.silenium.dev/releases")
+    maven("https://nexus.silenium.dev/repository/maven-releases") {
+        name = "silenium-dev-nexus"
     }
 }
 
 dependencies {
     implementation("dev.silenium.compose.av:compose-av:0.1.0")
 }
-```
-
-The library currently requires the `libmpv` shared library to be installed on the system.
-On Linux, you can install it using your package manager, e.g. on Ubuntu:
-
-```shell
-sudo apt install libmpv2
 ```
 
 ### Example

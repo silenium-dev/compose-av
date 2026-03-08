@@ -103,7 +103,9 @@ allprojects {
         .get()
 
     repositories {
-        maven("https://reposilite.silenium.dev/releases")
+        maven("https://nexus.silenium.dev/repository/maven-releases") {
+            name = "nexus"
+        }
         mavenCentral()
         google()
     }

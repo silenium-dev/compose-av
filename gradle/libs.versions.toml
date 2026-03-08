@@ -6,8 +6,8 @@ kotlinx-serialization = "1.10.0"
 kotlinx-datetime = "0.7.1"
 
 compose = "1.11.0-alpha02"
-compose-gl = "0.9.1"
-jni-utils = "0.1.8"
+compose-gl = "0.10.0"
+jni-utils = "0.3.0"
 jna = "5.18.1"
 
 slf4j = "2.0.17"
