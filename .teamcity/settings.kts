@@ -4,10 +4,13 @@ import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.PublishMode
 import jetbrains.buildServer.configs.kotlin.VcsSettings
 import jetbrains.buildServer.configs.kotlin.buildFeatures.CommitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
+import jetbrains.buildServer.configs.kotlin.buildFeatures.vcsLabeling
 import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.project
 import jetbrains.buildServer.configs.kotlin.projectFeatures.UntrustedBuildsSettings
 import jetbrains.buildServer.configs.kotlin.projectFeatures.githubConnection
@@ -41,24 +44,97 @@ project {
     }
 }
 
-abstract class Build(
-    val buildTypeName: String,
-    val publishRepository: String,
-    val publishUsername: String,
-    val publishPassword: String,
-    val publishVersion: String,
-    val trigger: VcsTrigger.() -> Unit,
-    val vcsSettings: VcsSettings.() -> Unit,
-) : BuildType({
-    name = buildTypeName
+object BuildRelease : BuildType({
+    name = "Build Release"
 
     vcs {
         root(DslContext.settingsRoot)
-        vcsSettings()
+        branchFilter = """
+            +:<default>
+        """.trimMargin()
+    }
+
+    features {
+        perfmon {
+        }
+
+        vcsLabeling {
+            vcsRootId = "${DslContext.settingsRoot.id}"
+            labelingPattern = "v%release.version%"
+            successfulOnly = true
+        }
+    }
+
+    requirements {
+        exists("system.nix.store")
+    }
+
+    params {
+        text(
+            "release.version",
+            "",
+            description = "Version to release",
+            display = ParameterDisplay.PROMPT,
+            allowEmpty = false
+        )
+        text(
+            "deploy.repo-url",
+            "https://nexus.silenium.dev/repository/maven-releases",
+            display = ParameterDisplay.HIDDEN,
+            readOnly = true
+        )
+        text(
+            "deploy.username",
+            "teamcity-ci",
+            display = ParameterDisplay.HIDDEN,
+            readOnly = true
+        )
+        password(
+            "deploy.password",
+            "credentialsJSON:149ec97d-3f03-4588-b740-38f933c0d1e2",
+            display = ParameterDisplay.HIDDEN,
+            readOnly = true
+        )
+    }
+
+    steps {
+        gradle {
+            tasks = """
+                |build
+                |publish
+            """.trimMargin().replace("\n", " ")
+            gradleParams = """
+                |-Pdeploy.version=%release.version%
+                |-Pdeploy.enabled=true
+                |-Pdeploy.repo-url=%deploy.repo-url%
+                |-Pdeploy.username=%deploy.username%
+                |-Pdeploy.password=%deploy.password%
+                |--scan
+                |--info
+            """.trimMargin().replace("\n", " ")
+            incremental = true
+        }
+    }
+})
+
+object BuildSnapshot : BuildType({
+    name = "Build Snapshot"
+
+    vcs {
+        root(DslContext.settingsRoot)
+        branchFilter = """
+            |+:<default>
+            |+:refs/heads/*
+        """.trimMargin()
     }
 
     triggers {
-        vcs(trigger)
+        vcs {
+            branchFilter = """
+                |+:<default>
+                |+:refs/heads/*
+            """.trimMargin()
+        }
     }
 
     features {
@@ -78,9 +154,24 @@ abstract class Build(
     }
 
     params {
-        text("deploy.repo-url", publishRepository, display = ParameterDisplay.HIDDEN, readOnly = true)
-        text("deploy.username", publishUsername, display = ParameterDisplay.HIDDEN, readOnly = true)
-        password("deploy.password", publishPassword, display = ParameterDisplay.HIDDEN, readOnly = true)
+        text(
+            "deploy.repo-url",
+            "https://nexus.silenium.dev/repository/maven-snapshots",
+            display = ParameterDisplay.HIDDEN,
+            readOnly = true
+        )
+        text(
+            "deploy.username",
+            "teamcity-ci",
+            display = ParameterDisplay.HIDDEN,
+            readOnly = true
+        )
+        password(
+            "deploy.password",
+            "credentialsJSON:149ec97d-3f03-4588-b740-38f933c0d1e2",
+            display = ParameterDisplay.HIDDEN,
+            readOnly = true
+        )
     }
 
     steps {
@@ -90,7 +181,7 @@ abstract class Build(
                 |publish
             """.trimMargin().replace("\n", " ")
             gradleParams = """
-                |-Pdeploy.version=${publishVersion}
+                |-Pdeploy.version=%release.version%
                 |-Pdeploy.enabled=true
                 |-Pdeploy.repo-url=%deploy.repo-url%
                 |-Pdeploy.username=%deploy.username%
@@ -103,38 +194,49 @@ abstract class Build(
     }
 })
 
-object BuildSnapshot : Build(
-    buildTypeName = "Build Snapshot",
-    publishRepository = "https://nexus.silenium.dev/repository/maven-snapshots",
-    publishUsername = "teamcity-ci",
-    publishPassword = "credentialsJSON:149ec97d-3f03-4588-b740-38f933c0d1e2",
-    publishVersion = "0.2.0-SNAPSHOT", // TODO: Proper version resolution, maybe move to gradle and use git in build
-    trigger = {
-        branchFilter = """
-            |+:*
-        """.trimMargin()
-    },
-    vcsSettings = {
-        branchFilter = """
-            |+:*
-        """.trimMargin()
-    },
-)
+object BuildPR : BuildType({
+    name = "Build Pull Request"
 
-object BuildRelease : Build(
-    buildTypeName = "Build Release",
-    publishRepository = "https://nexus.silenium.dev/repository/maven-releases",
-    publishUsername = "teamcity-ci",
-    publishPassword = "credentialsJSON:149ec97d-3f03-4588-b740-38f933c0d1e2",
-    publishVersion = "%build.vcs.number%",
-    trigger = {
-        branchFilter = """
-            |+:refs/tags/*
-        """.trimMargin()
-    },
-    vcsSettings = {
-        branchFilter = """
-            |+:refs/tags/*
-        """.trimMargin()
-    },
-)
+    vcs {
+        root(DslContext.settingsRoot)
+    }
+
+    features {
+        perfmon {
+        }
+
+        pullRequests {
+            vcsRootExtId = "${DslContext.settingsRoot.id}"
+            provider = github {
+                authType = vcsRoot()
+                ignoreDrafts = true
+            }
+        }
+
+        commitStatusPublisher {
+            publisher = github {
+                githubUrl = "https://api.github.com"
+                authType = vcsRoot()
+            }
+        }
+    }
+
+    requirements {
+        exists("system.nix.store")
+    }
+
+    steps {
+        gradle {
+            tasks = """
+                |build
+                |publish
+            """.trimMargin().replace("\n", " ")
+            gradleParams = """
+                |-Pdeploy.enabled=false
+                |--scan
+                |--info
+            """.trimMargin().replace("\n", " ")
+            incremental = true
+        }
+    }
+})
