@@ -54,11 +54,11 @@ abstract class Build(
 
     vcs {
         root(DslContext.settingsRoot)
+        vcsSettings()
     }
 
     triggers {
         vcs(trigger)
-        vcsSettings()
     }
 
     features {
