@@ -49,9 +49,6 @@ object BuildRelease : BuildType({
 
     vcs {
         root(DslContext.settingsRoot)
-        branchFilter = """
-            +:<default>
-        """.trimMargin()
     }
 
     features {
