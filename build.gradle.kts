@@ -17,7 +17,7 @@ val gitVersionProvider = providers.gradleProperty("ci").flatMap {
         providers.exec {
             commandLine("git", "describe", "--tags")
             workingDir = layout.projectDirectory.asFile
-        }.standardOutput.asText
+        }.standardOutput.asText.map(String::trim)
     } else null
 }
 version = providers
