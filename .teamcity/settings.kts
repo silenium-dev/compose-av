@@ -110,10 +110,14 @@ object BuildSnapshot : Build(
     publishPassword = "credentialsJSON:149ec97d-3f03-4588-b740-38f933c0d1e2",
     publishVersion = "0.2.0-SNAPSHOT", // TODO: Proper version resolution, maybe move to gradle and use git in build
     trigger = {
-        branchFilter = "+:refs/heads/*"
+        branchFilter = """
+            |+:*
+        """.trimMargin()
     },
     vcsSettings = {
-        branchFilter = "+:refs/heads/*"
+        branchFilter = """
+            |+:*
+        """.trimMargin()
     },
 )
 
@@ -124,9 +128,13 @@ object BuildRelease : Build(
     publishPassword = "credentialsJSON:149ec97d-3f03-4588-b740-38f933c0d1e2",
     publishVersion = "%build.vcs.number%",
     trigger = {
-        branchFilter = "+:refs/tags/*"
+        branchFilter = """
+            |+:refs/tags/*
+        """.trimMargin()
     },
     vcsSettings = {
-        branchFilter = "+:refs/tags/*"
+        branchFilter = """
+            |+:refs/tags/*
+        """.trimMargin()
     },
 )
