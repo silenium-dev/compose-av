@@ -7,6 +7,10 @@
 
 #include <jni.h>
 #include <string>
+#ifdef TARGET_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
 #include <GL/gl.h>
 
 std::string avErrorString(int error);

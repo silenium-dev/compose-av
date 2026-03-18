@@ -2,6 +2,10 @@
 // Created by silenium-dev on 7/21/24.
 //
 
+#ifdef TARGET_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
 #include <GL/gl.h>
 #include <jni.h>
 #include <mpv/client.h>
