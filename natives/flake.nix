@@ -2,7 +2,7 @@
   description = "jni build environment";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs?ref=fe416aaedd397cacb33a610b33d60ff2b431b127";
     jni-utils.url = "github:silenium-dev/jni-utils";
   };
 
@@ -20,10 +20,11 @@
         libName = "compose-av";
         libDir = "src";
 
-        additionalNativeInputs = targetSystem: pkgs: [ pkgs.p7zip pkgs.curl pkgs.cacert pkgs.python3 ];
+        additionalNativeInputs = targetSystem: pkgs: [ pkgs.p7zip pkgs.curl pkgs.cacert pkgs.python3 pkgs.pkgsCross.mingwW64.gendef ];
         additionalInputs = targetSystem: pkgs:
-          if targetSystem == "x86_64-windows" then [ ]
-          else [ pkgs.libxcb pkgs.libxau pkgs.libxdmcp ];
+          if jni-utils.lib.isLinux targetSystem
+          then [ pkgs.libxcb pkgs.libxau pkgs.libxdmcp ]
+          else [ ];
         sources = targetSystem:
           let
             mpv = import ./nix/mpv-config.nix { inherit pkgs; };
@@ -34,7 +35,7 @@
               ./subprojects.tpl
             ];
           in
-          (if targetSystem == "x86_64-windows" then
+          (if (jni-utils.lib.isWindows targetSystem) then
             [
               (builtins.fetchurl {
                 url = mpv.${targetSystem}.source_url;
@@ -94,7 +95,7 @@
                 ;;
               *.zip)
                 dirName="''${srcName%.zip}"
-                echo "Extracting tar archive into: $dirName"
+                echo "Extracting zip archive into: $dirName"
                 mkdir -p "$dirName"
                 7z x -o"$dirName" "$src"
 
