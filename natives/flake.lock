@@ -43,14 +43,17 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1773865204,
-        "narHash": "sha256-uhXuJOSGToYdqJUsnzZ0eFu7a3IhNW4R2JhEFsRJZgY=",
-        "path": "/home/silenium-dev/IdeaProjects/compose/jni-utils",
-        "type": "path"
+        "lastModified": 1773865729,
+        "narHash": "sha256-QPupiYEyDsiNl+0xAVj3ILzwjOdHUAGx2Ps2lQHnaAo=",
+        "owner": "silenium-dev",
+        "repo": "jni-utils",
+        "rev": "7fc0bc386d40760f8a090147eacdde10c8c6a82b",
+        "type": "github"
       },
       "original": {
-        "path": "/home/silenium-dev/IdeaProjects/compose/jni-utils",
-        "type": "path"
+        "owner": "silenium-dev",
+        "repo": "jni-utils",
+        "type": "github"
       }
     },
     "nixpkgs": {

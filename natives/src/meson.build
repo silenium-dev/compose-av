@@ -2,6 +2,7 @@ mpv_dep = mpv.get_variable('libmpv_dep')
 jni = dependency('jni')
 
 deps = [jni, mpv_dep]
+link_args = []
 
 sources = [
   'compose-av',
@@ -24,13 +25,15 @@ if os == 'linux'
 elif os == 'windows'
   sources += ['mpv/mpv_windows.cpp']
   cc = meson.get_compiler('cpp')
-  gl = cc.find_library('opengl32')
-  deps += [gl]
+#  gl = cc.find_library('opengl32')
+#  deps += [gl]
+  link_args += ['opengl32.lib']
   add_project_arguments('-DTARGET_WINDOWS', language: 'cpp')
 endif
 
 shared_library(
   sources,
   dependencies : deps,
+  link_args: link_args,
   cpp_args : ['-Wimplicit-fallthrough'],
 )
