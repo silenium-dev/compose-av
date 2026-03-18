@@ -62,6 +62,9 @@ object BuildRelease : BuildType({
             vcsRootId = "${DslContext.settingsRoot.id}"
             labelingPattern = "%release.version%"
             successfulOnly = true
+            branchFilter = """
+                |+:*
+            """.trimMargin()
         }
     }
 
