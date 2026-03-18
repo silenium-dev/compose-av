@@ -49,6 +49,9 @@ object BuildRelease : BuildType({
 
     vcs {
         root(DslContext.settingsRoot)
+        branchFilter = """
+            |+:<default>
+        """.trimMargin()
     }
 
     features {
@@ -109,7 +112,6 @@ object BuildRelease : BuildType({
                 |--scan
                 |--info
             """.trimMargin().replace("\n", " ")
-            incremental = true
         }
     }
 })
@@ -119,17 +121,12 @@ object BuildSnapshot : BuildType({
 
     vcs {
         root(DslContext.settingsRoot)
-        branchFilter = """
-            |+:<default>
-            |+:refs/heads/*
-        """.trimMargin()
     }
 
     triggers {
         vcs {
             branchFilter = """
-                |+:<default>
-                |+:refs/heads/*
+                |+:*
             """.trimMargin()
         }
     }
@@ -186,7 +183,6 @@ object BuildSnapshot : BuildType({
                 |--scan
                 |--info
             """.trimMargin().replace("\n", " ")
-            incremental = true
         }
     }
 })
@@ -233,7 +229,6 @@ object BuildPR : BuildType({
                 |--scan
                 |--info
             """.trimMargin().replace("\n", " ")
-            incremental = true
         }
     }
 })
