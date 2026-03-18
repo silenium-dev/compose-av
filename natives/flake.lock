@@ -5,11 +5,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1773869247,
-        "narHash": "sha256-f2LJke8llNa6UA08x8YRGYiZgK8WOgehntVPwMnfWQE=",
+        "lastModified": 1773869426,
+        "narHash": "sha256-s8X+JNPidhi4PqdRSGd8+cSuoodoAQ+UXB8QX43OlXk=",
         "ref": "refs/heads/main",
-        "rev": "a468780595f3035dc65b1db877190fb2314a505b",
-        "revCount": 5,
+        "rev": "c8e2fbf738a717b269aad933ad1152c9cc4f1950",
+        "revCount": 6,
         "type": "git",
         "url": "https://codeberg.org/silenium-dev/clang-msvc-cross.git"
       },
@@ -43,11 +43,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1773869284,
-        "narHash": "sha256-kUSrZ50Nl8/us2Ni6lrfnXjvVx7ryuUuNfxskwrcGs8=",
+        "lastModified": 1773869437,
+        "narHash": "sha256-M/A6myThyRsq5a92rYbFFAicF4rCC+XNrAjH2cNhsN8=",
         "owner": "silenium-dev",
         "repo": "jni-utils",
-        "rev": "dc6a3d7cd2ae79669025901285c5981a528a28bc",
+        "rev": "9667c0fd9cb43c7b27e31c5985455294ad4e510d",
         "type": "github"
       },
       "original": {
