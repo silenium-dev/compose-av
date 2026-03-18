@@ -7,8 +7,12 @@ project('compose-av',
         meson_version : '>=1.2.0',
 )
 
-add_global_arguments('-fPIC', language : 'c')
-add_global_arguments('-fPIC', language : 'cpp')
+
+os = host_machine.system()
+if os == 'linux'
+  add_global_arguments('-fPIC', language : 'c')
+  add_global_arguments('-fPIC', language : 'cpp')
+endif
 add_global_link_arguments(
   language : 'cpp',
 )
