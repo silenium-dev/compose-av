@@ -201,10 +201,10 @@
         postInstallPhase = targetSystem: ''
           case "${targetSystem}" in
             *-linux)
-              cp -d subprojects/ffmpeg/lib/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libswresample,libswscale}.so* $out/lib
+              cp -d subprojects/ffmpeg/lib/{libavcodec,libavdevice,libavfilter,libavformat,libavutil,libswresample,libswscale}.so* $out
               ;;
             *-windows)
-              cp subprojects/mpv/libmpv-2.dll $out/lib
+              cp subprojects/mpv/libmpv-2.dll $out
               ;;
           esac
         '';

@@ -7,7 +7,7 @@ kotlinx-datetime = "0.7.1"
 
 compose = "1.11.0-alpha03"
 compose-gl = "0.10.0"
-jni-utils = "0.3.0"
+jni-utils = "0.4.1"
 jna = "5.18.1"
 
 slf4j = "2.0.17"
@@ -65,6 +65,7 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 idea-ext = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "idea-ext" }
+nixNatives = { id = "dev.silenium.libs.jni.nix-natives", version.ref = "jni-utils" }
 
 [bundles]
 kotlinx = [

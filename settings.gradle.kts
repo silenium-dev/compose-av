@@ -6,6 +6,7 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
+        mavenLocal()
     }
 }
 
@@ -25,4 +26,3 @@ develocity {
 rootProject.name = "compose-av"
 
 include(":natives")
-includeBuild("build-logic")

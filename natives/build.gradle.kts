@@ -1,8 +1,8 @@
 plugins {
-    id("av-natives")
+    alias(libs.plugins.nixNatives)
 }
 
-natives {
+nixNatives {
     libName = rootProject.name
     libVersion = "0.1.0"
     nixFlake = file("flake.nix")
