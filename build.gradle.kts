@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose)
     alias(libs.plugins.idea.ext)
     `maven-publish`
@@ -19,11 +18,9 @@ dependencies {
     implementation(libs.compose.material.icons.extended)
     implementation(libs.androidx.annotation)
     implementation(libs.compose.gl)
-    implementation(libs.compose.gl.natives)
     implementation(libs.jni.utils)
-    implementation(libs.jna)
     implementation(libs.bundles.kotlinx)
-    implementation(libs.slf4j.api)  // for logging
+    implementation(libs.slf4j.api)
     implementation(project(":natives"))
     implementation(kotlin("reflect"))
 
@@ -80,7 +77,6 @@ java {
     targetCompatibility = sourceCompatibility
 
     withSourcesJar()
-    withJavadocJar()
 }
 
 allprojects {
