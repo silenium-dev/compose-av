@@ -1,7 +1,7 @@
 mpv_dep = mpv.get_variable('libmpv_dep')
-jni = dependency('jni')
+jni_headers_dep = jni_headers.get_variable('jni_headers_dep')
 
-deps = [jni, mpv_dep]
+deps = [jni_headers_dep, mpv_dep]
 link_args = []
 
 sources = [
@@ -25,8 +25,6 @@ if os == 'linux'
 elif os == 'windows'
   sources += ['mpv/mpv_windows.cpp']
   cc = meson.get_compiler('cpp')
-#  gl = cc.find_library('opengl32')
-#  deps += [gl]
   link_args += ['opengl32.lib']
   add_project_arguments('-DTARGET_WINDOWS', language: 'cpp')
 endif

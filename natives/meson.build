@@ -27,4 +27,9 @@ mpv = subproject('mpv',
                    'prefer_static' : true,
                  }
 )
+jni_headers = subproject('jni-headers',
+                         default_options : {
+                             'wrap_mode' : 'forcefallback',
+                         }
+)
 subdir('src')

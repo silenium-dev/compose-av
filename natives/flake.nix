@@ -51,6 +51,13 @@
               name = "ffmpeg.tar.xz";
             })
           ]) ++ [
+            (pkgs.fetchgit {
+              url = "https://github.com/Casterlabs/jni-headers.git";
+              rev = "68b16cb0252c32b66b28f7260439970cec24ba04";
+              deepClone = false;
+              hash = "sha256-1R92P5IGTcdg0xYu+VW395bl9Z8K/LoVTumxbZL0xX4=";
+              name = "jni-headers";
+            })
             (builtins.path {
               path = fs.toSource {
                 root = ./.;
@@ -153,6 +160,12 @@
         '';
         postUnpackPhase = targetSystem: ''
           shopt -s globstar
+
+          mkdir -p compose-av/subprojects/jni-headers
+          tar xf jni-headers.tar -C compose-av/subprojects/jni-headers
+          cp -rf compose-av/subprojects.tpl/jni-headers/* compose-av/subprojects/jni-headers
+          rm jni-headers.tar
+
           case "${targetSystem}" in
             *-windows)
               mkdir -p compose-av/subprojects/mpv
