@@ -34,7 +34,7 @@ data class DoubleProperty(override val name: String, override val value: Double?
 data class FlagProperty(override val name: String, override val value: Boolean?) : Property<Boolean?>()
 
 class MPV : NativeCleanable, MPVAsyncListener {
-    private var callback: Long? = null
+    private var callback: Long = 0L
     private val initialized = AtomicBoolean(false)
     private val listener = MPVListenerWrapper(this)
     private val subscriptionId = AtomicLong(0)
@@ -400,8 +400,14 @@ class MPV : NativeCleanable, MPVAsyncListener {
     }
 
     override fun close() {
-        callback?.let(::unsetCallbackN)
-        initialized.set(false)
+        if (!initialized.compareAndSet(true, false)) {
+            logger.warn("MPV is already closed")
+            return
+        }
+        if (callback != 0L) {
+            unsetCallbackN(callback)
+            callback = 0L
+        }
         super.close()
     }
 
