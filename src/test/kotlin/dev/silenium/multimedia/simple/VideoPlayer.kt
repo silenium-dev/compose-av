@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.lwjgl.opengl.GL30.*
 import java.nio.file.Path
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun VideoPlayer(file: Path, suspend: Boolean = false, modifier: Modifier = Modifier) {
@@ -30,7 +31,7 @@ fun VideoPlayer(file: Path, suspend: Boolean = false, modifier: Modifier = Modif
     LaunchedEffect(ready, file) {
         withContext(Dispatchers.Default) {
             while (!ready) {
-                delay(10)
+                delay(10.milliseconds)
             }
             println("Loading file")
             mpv.commandAsync("loadfile", file.toAbsolutePath().toString()).getOrThrow()
