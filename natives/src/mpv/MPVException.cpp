@@ -1,7 +1,3 @@
-//
-// Created by silenium-dev on 23.03.26.
-//
-
 #include "MPVException.hpp"
 
 #include <format>

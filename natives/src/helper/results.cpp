@@ -1,7 +1,3 @@
-//
-// Created by silenium-dev on 7/21/24.
-//
-
 #include "results.hpp"
 
 #ifdef TARGET_WINDOWS

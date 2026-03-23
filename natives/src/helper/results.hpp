@@ -1,7 +1,3 @@
-//
-// Created by silenium-dev on 7/21/24.
-//
-
 #ifndef ERRORS_H
 #define ERRORS_H
 

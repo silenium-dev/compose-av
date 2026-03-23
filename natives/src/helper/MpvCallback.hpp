@@ -1,7 +1,3 @@
-//
-// Created by silenium-dev on 23.03.26.
-//
-
 #ifndef NATIVES_MPVCALLBACK_HPP
 #define NATIVES_MPVCALLBACK_HPP
 

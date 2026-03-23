@@ -1,7 +1,3 @@
-//
-// Created by silenium-dev on 23.03.26.
-//
-
 #ifndef NATIVES_MPVEXCEPTION_HPP
 #define NATIVES_MPVEXCEPTION_HPP
 #include <jni.h>

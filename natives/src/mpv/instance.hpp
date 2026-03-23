@@ -1,7 +1,6 @@
 #ifndef NATIVES_INSTANCE_HPP
 #define NATIVES_INSTANCE_HPP
 
-#include <atomic>
 #include <memory>
 #include <shared_mutex>
 #include <mpv/client.h>
