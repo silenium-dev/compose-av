@@ -1,8 +1,14 @@
-mpv_dep = mpv.get_variable('libmpv_dep')
 jni_headers_dep = jni_headers.get_variable('jni_headers_dep')
-
-deps = [jni_headers_dep, mpv_dep]
+deps = [jni_headers_dep]
 link_args = []
+
+if get_option('mpv_subproject')
+  mpv_dep = mpv.get_variable('libmpv_dep')
+  deps += [mpv_dep]
+else
+  mpv = dependency('mpv')
+  deps += [mpv]
+endif
 
 sources = [
   'compose-av',

@@ -17,16 +17,18 @@ add_global_link_arguments(
   language : 'cpp',
 )
 
-mpv = subproject('mpv',
-                 default_options : {
-                   'libmpv' : true,
-                   'drm' : 'enabled',
-                   'openal' : 'enabled',
-                   'wrap_mode' : 'forcefallback',
-                   'default_library' : 'static',
-                   'prefer_static' : true,
-                 }
-)
+if get_option('mpv_subproject')
+  mpv = subproject('mpv',
+                   default_options : {
+                     'libmpv' : true,
+                     'drm' : 'enabled',
+                     'openal' : 'enabled',
+                     'wrap_mode' : 'forcefallback',
+                     'default_library' : 'static',
+                     'prefer_static' : true,
+                   }
+  )
+endif
 jni_headers = subproject('jni-headers',
                          default_options : {
                              'wrap_mode' : 'forcefallback',

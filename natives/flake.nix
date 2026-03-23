@@ -12,6 +12,30 @@
       fs = nixpkgs.lib.fileset;
     in
     {
+      devShells."x86_64-linux" = {
+        default = pkgs.mkShell {
+          nativeBuildInputs = with pkgs; [
+            p7zip
+            curl
+            cacert
+            python3
+            meson
+            cmake
+            ninja
+            pkg-config
+          ];
+          buildInputs = with pkgs; [
+            gcc
+            libxcb
+            libX11
+            libGL
+            eglexternalplatform
+            egl-wayland
+            mpv
+          ];
+        };
+      };
+
       packages."x86_64-linux" = jni-utils.lib.buildJNILib {
         name = "compose-av";
         version = "0.1.0";
@@ -32,6 +56,8 @@
             sourceFiles = fs.unions [
               ./src
               ./meson.build
+              ./meson.options
+              ./subprojects
               ./subprojects.tpl
             ];
           in
@@ -163,7 +189,7 @@
 
           mkdir -p compose-av/subprojects/jni-headers
           tar xf jni-headers.tar -C compose-av/subprojects/jni-headers
-          cp -rf compose-av/subprojects.tpl/jni-headers/* compose-av/subprojects/jni-headers
+          cp -rf compose-av/subprojects/packagefiles/jni-headers/* compose-av/subprojects/jni-headers
           rm jni-headers.tar
 
           case "${targetSystem}" in
