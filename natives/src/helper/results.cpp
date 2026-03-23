@@ -2,7 +2,7 @@
 // Created by silenium-dev on 7/21/24.
 //
 
-#include "errors.hpp"
+#include "results.hpp"
 
 #ifdef TARGET_WINDOWS
 #define WIN32_LEAN_AND_MEAN

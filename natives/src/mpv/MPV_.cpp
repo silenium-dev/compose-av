@@ -7,7 +7,7 @@
 #include <Windows.h>
 #endif
 
-#include "helper/errors.hpp"
+#include "helper/results.hpp"
 #include "mpv_platform.hpp"
 
 #include <GL/gl.h>

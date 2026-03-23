@@ -13,10 +13,24 @@ endif
 sources = [
   'compose-av',
   'util/Errors.cpp',
-  'helper/errors.hpp',
-  'helper/errors.cpp',
-  'mpv/MPV.cpp',
+  'helper/JniCallRef.hpp',
+  'helper/JniMpvCallback.cpp',
+  'helper/JniMpvCallback.hpp',
+  'helper/MpvCallback.hpp',
+  'helper/results.cpp',
+  'helper/results.hpp',
+  'mpv/commands.cpp',
+  'mpv/instance.cpp',
+  'mpv/instance.hpp',
+  'mpv/lifecycle.cpp',
   'mpv/mpv_platform.hpp',
+  'mpv/MPVException.cpp',
+  'mpv/MPVException.hpp',
+  'mpv/observe.cpp',
+  'mpv/properties_async.cpp',
+  'mpv/properties_sync.cpp',
+  'mpv/render.cpp',
+  'mpv/renderer.hpp',
 ]
 
 os = host_machine.system()
