@@ -1,38 +1,43 @@
 #include "instance.hpp"
-#include <jni.h>
 
-extern "C" {
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePropertyStringN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+#include <clocale>
+#include <format>
+#include <mutex>
+
+#include "util/MPVException.hpp"
+#include "helper/JniMpvCallback.hpp"
+
+void MPVInstance::observePropertyString(const std::string &name, int64_t subscriptionId) const {
+    const auto ret = mpv_observe_property(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_STRING);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_observe_property");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePropertyLongN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::observePropertyLong(const std::string &name, int64_t subscriptionId) const {
+    const auto ret = mpv_observe_property(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_INT64);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_observe_property");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePropertyDoubleN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::observePropertyDouble(const std::string &name, int64_t subscriptionId) const {
+    const auto ret = mpv_observe_property(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_DOUBLE);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_observe_property");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_observePropertyFlagN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::observePropertyFlag(const std::string &name, int64_t subscriptionId) const {
+    const auto ret = mpv_observe_property(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_FLAG);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_observe_property");
+    }
 }
 
-JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_unobservePropertyN(
-    JNIEnv *env, jobject thiz, jlong handle, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-}
+void MPVInstance::unobserveProperty(int64_t subscriptionId) const {
+    const auto ret = mpv_unobserve_property(m_handle, subscriptionId);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_unobserve_property");
+    }
 }

@@ -1,60 +1,62 @@
 #include "instance.hpp"
-#include <jni.h>
 
-extern "C" {
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyStringAsyncN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+#include <format>
+
+#include "util/MPVException.hpp"
+
+void MPVInstance::getPropertyStringAsync(const std::string &name, const int64_t subscriptionId) const {
+    const auto ret = mpv_get_property_async(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_STRING);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_get_property_async");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyLongAsyncN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::getPropertyLongAsync(const std::string &name, const int64_t subscriptionId) const {
+    const auto ret = mpv_get_property_async(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_INT64);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_get_property_async");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyDoubleAsyncN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::getPropertyDoubleAsync(const std::string &name, const int64_t subscriptionId) const {
+    const auto ret = mpv_get_property_async(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_DOUBLE);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_get_property_async");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyFlagAsyncN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::getPropertyFlagAsync(const std::string &name, const int64_t subscriptionId) const {
+    const auto ret = mpv_get_property_async(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_FLAG);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_get_property_async");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyStringAsyncN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jstring value, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::setPropertyAsync(const std::string &name, const std::string &value, const int64_t subscriptionId) const {
+    auto valuePtr = value.c_str();
+    const auto ret = mpv_set_property_async(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_STRING, &valuePtr);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_set_property_string");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyLongAsyncN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jlong value, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::setPropertyAsync(const std::string &name, int64_t value, const int64_t subscriptionId) const {
+    const auto ret = mpv_set_property_async(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_INT64, &value);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_set_property");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyDoubleAsyncN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jdouble value, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::setPropertyAsync(const std::string &name, double value, const int64_t subscriptionId) const {
+    const auto ret = mpv_set_property_async(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_DOUBLE, &value);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_set_property");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyFlagAsyncN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jboolean value, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
-}
+void MPVInstance::setPropertyAsync(const std::string &name, bool value, const int64_t subscriptionId) const {
+    const auto ret = mpv_set_property_async(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_FLAG, &value);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_set_property");
+    }
 }

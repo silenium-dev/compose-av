@@ -1,60 +1,71 @@
 #include "instance.hpp"
-#include <jni.h>
 
-extern "C" {
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyStringN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+#include <format>
+
+#include "util/MPVException.hpp"
+
+std::string MPVInstance::getPropertyString(const std::string &name) const {
+    char *value{nullptr};
+    const auto ret = mpv_get_property(m_handle, name.c_str(), MPV_FORMAT_STRING, &value);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_get_property");
+    }
+    const auto result = std::string{value};
+    mpv_free(value);
+    return result;
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyLongN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+int64_t MPVInstance::getPropertyLong(const std::string &name) const {
+    int64_t value{0};
+    const auto ret = mpv_get_property(m_handle, name.c_str(), MPV_FORMAT_INT64, &value);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_get_property");
+    }
+    return value;
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyDoubleN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+double MPVInstance::getPropertyDouble(const std::string &name) const {
+    double value{0};
+    const auto ret = mpv_get_property(m_handle, name.c_str(), MPV_FORMAT_DOUBLE, &value);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_get_property");
+    }
+    return value;
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyFlagN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+bool MPVInstance::getPropertyFlag(const std::string &name) const {
+    bool value{false};
+    const auto ret = mpv_get_property(m_handle, name.c_str(), MPV_FORMAT_FLAG, &value);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_get_property");
+    }
+    return value;
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyStringN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jstring value) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::setProperty(const std::string &name, const std::string &value) const {
+    const auto ret = mpv_set_property_string(m_handle, name.c_str(), value.c_str());
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_set_property_string");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyLongN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jlong value) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::setProperty(const std::string &name, int64_t value) const {
+    const auto ret = mpv_set_property(m_handle, name.c_str(), MPV_FORMAT_INT64, &value);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_set_property");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyDoubleN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jdouble value) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::setProperty(const std::string &name, double value) const {
+    const auto ret = mpv_set_property(m_handle, name.c_str(), MPV_FORMAT_DOUBLE, &value);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_set_property");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyFlagN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jboolean value) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
-}
+void MPVInstance::setProperty(const std::string &name, bool value) const {
+    const auto ret = mpv_set_property(m_handle, name.c_str(), MPV_FORMAT_FLAG, &value);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_set_property");
+    }
 }

@@ -1,10 +1,9 @@
-#include "instance.hpp"
+#include "mpv/instance.hpp"
+#include "../util/MPVException.hpp"
+#include "helper/JniMpvCallback.hpp"
 #include "helper/results.hpp"
 
 #include <jni.h>
-
-#include "MPVException.hpp"
-#include "helper/JniMpvCallback.hpp"
 
 
 extern "C" {
@@ -23,7 +22,7 @@ JNIEXPORT void JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_destroyN(
 }
 
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setOptionStringN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring name, jstring value) {
+    JNIEnv *env, jobject thiz, const jlong handle, const jstring name, const jstring value) {
     INSTANCE(handle);
     const auto nameChars = env->GetStringUTFChars(name, nullptr);
     const auto valueChars = env->GetStringUTFChars(value, nullptr);
@@ -38,7 +37,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setOptionS
 }
 
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_initializeN(
-    JNIEnv *env, jobject thiz, jlong handle) {
+    JNIEnv *env, jobject thiz, const jlong handle) {
     INSTANCE(handle);
     CATCHING(
         instance->initialize();
@@ -47,7 +46,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_initialize
 }
 
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setCallbackN(
-    JNIEnv *env, jobject thiz, jlong handle, jobject listener) {
+    JNIEnv *env, jobject thiz, const jlong handle, jobject listener) {
     INSTANCE(handle);
     CATCHING(
         instance->setCallback(std::make_unique<JniMpvCallback>(env, listener));
@@ -56,7 +55,7 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setCallbac
 }
 
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_unsetCallbackN(
-    JNIEnv *env, jobject thiz, jlong handle) {
+    JNIEnv *env, jobject thiz, const jlong handle) {
     INSTANCE(handle);
     CATCHING(
         instance->unsetCallback();

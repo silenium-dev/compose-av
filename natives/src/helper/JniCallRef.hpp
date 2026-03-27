@@ -36,7 +36,7 @@ namespace detail {
     template<>
     struct JniCallTraits<void> {
         template<typename... Args>
-        static void call(JNIEnv *env, jobject obj, jmethodID method, Args... args) {
+        static void call(JNIEnv *env, const jobject obj, const jmethodID method, Args... args) {
             env->CallVoidMethod(obj, method, args...);
         }
     };
@@ -44,7 +44,7 @@ namespace detail {
     template<>
     struct JniCallTraits<jboolean> {
         template<typename... Args>
-        static jboolean call(JNIEnv *env, jobject obj, jmethodID method, Args... args) {
+        static jboolean call(JNIEnv *env, const jobject obj, const jmethodID method, Args... args) {
             return env->CallBooleanMethod(obj, method, args...);
         }
     };
@@ -52,7 +52,7 @@ namespace detail {
     template<>
     struct JniCallTraits<jbyte> {
         template<typename... Args>
-        static jbyte call(JNIEnv *env, jobject obj, jmethodID method, Args... args) {
+        static jbyte call(JNIEnv *env, const jobject obj, const jmethodID method, Args... args) {
             return env->CallByteMethod(obj, method, args...);
         }
     };
@@ -60,7 +60,7 @@ namespace detail {
     template<>
     struct JniCallTraits<jchar> {
         template<typename... Args>
-        static jchar call(JNIEnv *env, jobject obj, jmethodID method, Args... args) {
+        static jchar call(JNIEnv *env, const jobject obj, const jmethodID method, Args... args) {
             return env->CallCharMethod(obj, method, args...);
         }
     };
@@ -68,7 +68,7 @@ namespace detail {
     template<>
     struct JniCallTraits<jshort> {
         template<typename... Args>
-        static jshort call(JNIEnv *env, jobject obj, jmethodID method, Args... args) {
+        static jshort call(JNIEnv *env, const jobject obj, const jmethodID method, Args... args) {
             return env->CallShortMethod(obj, method, args...);
         }
     };
@@ -76,7 +76,7 @@ namespace detail {
     template<>
     struct JniCallTraits<jint> {
         template<typename... Args>
-        static jint call(JNIEnv *env, jobject obj, jmethodID method, Args... args) {
+        static jint call(JNIEnv *env, const jobject obj, const jmethodID method, Args... args) {
             return env->CallIntMethod(obj, method, args...);
         }
     };
@@ -84,7 +84,7 @@ namespace detail {
     template<>
     struct JniCallTraits<jlong> {
         template<typename... Args>
-        static jlong call(JNIEnv *env, jobject obj, jmethodID method, Args... args) {
+        static jlong call(JNIEnv *env, const jobject obj, const jmethodID method, Args... args) {
             return env->CallLongMethod(obj, method, args...);
         }
     };
@@ -92,7 +92,7 @@ namespace detail {
     template<>
     struct JniCallTraits<jfloat> {
         template<typename... Args>
-        static jfloat call(JNIEnv *env, jobject obj, jmethodID method, Args... args) {
+        static jfloat call(JNIEnv *env, const jobject obj, const jmethodID method, Args... args) {
             return env->CallFloatMethod(obj, method, args...);
         }
     };
@@ -100,7 +100,7 @@ namespace detail {
     template<>
     struct JniCallTraits<jdouble> {
         template<typename... Args>
-        static jdouble call(JNIEnv *env, jobject obj, jmethodID method, Args... args) {
+        static jdouble call(JNIEnv *env, const jobject obj, const jmethodID method, Args... args) {
             return env->CallDoubleMethod(obj, method, args...);
         }
     };
@@ -108,7 +108,7 @@ namespace detail {
     template<>
     struct JniCallTraits<jobject> {
         template<typename... Args>
-        static jobject call(JNIEnv *env, jobject obj, jmethodID method, Args... args) {
+        static jobject call(JNIEnv *env, const jobject obj, const jmethodID method, Args... args) {
             return env->CallObjectMethod(obj, method, args...);
         }
     };
@@ -117,7 +117,7 @@ namespace detail {
 template<typename Return, typename... Args>
 class JniCallRef {
 public:
-    JniCallRef(JNIEnv *env, jobject obj, jmethodID method)
+    JniCallRef(JNIEnv *env, const jobject obj, const jmethodID method)
         : m_jvm(nullptr), m_obj(nullptr), m_method(method) {
         if (env->GetJavaVM(&m_jvm) != JNI_OK) {
             throw std::runtime_error("Failed to get JavaVM");
@@ -126,18 +126,19 @@ public:
     }
 
     ~JniCallRef() {
-        detail::AttachedEnv attached(m_jvm);
+        const detail::AttachedEnv attached(m_jvm);
         JNIEnv *env = attached.get();
         env->DeleteGlobalRef(m_obj);
         m_jvm = nullptr;
     }
 
     Return operator()(Args... args) {
-        detail::AttachedEnv attached(m_jvm);
+        const detail::AttachedEnv attached(m_jvm);
         JNIEnv *env = attached.get();
 
         if constexpr (std::is_void_v<Return>) {
             detail::JniCallTraits<void>::call(env, m_obj, m_method, args...);
+            return;
         } else {
             return detail::JniCallTraits<Return>::call(env, m_obj, m_method, args...);
         }

@@ -31,7 +31,7 @@ jobject boxedInt(JNIEnv *env, const jint value) {
     return env->NewObject(boxedClass, constructor, value);
 }
 
-jobject pair(JNIEnv *env, jobject first, jobject second) {
+jobject pair(JNIEnv *env, const jobject first, const jobject second) {
     const auto pairClass = env->FindClass("kotlin/Pair");
     const auto constructor = env->GetMethodID(pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
     return env->NewObject(pairClass, constructor, first, second);

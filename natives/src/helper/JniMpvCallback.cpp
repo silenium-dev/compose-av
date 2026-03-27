@@ -36,21 +36,21 @@ JniMpvCallback::JniMpvCallback(JNIEnv *env, const jobject thiz)
       } {
 }
 
-void JniMpvCallback::onPropertyChanged(const std::string &name, jobject result) {
+void JniMpvCallback::onPropertyChanged(const std::string &name, const jobject result) {
     const auto attached = propertyChanged.attach();
     const auto jni = attached.get()->get();
     const auto nameStr = jni->NewStringUTF(name.c_str());
     propertyChanged(nameStr, result);
 }
 
-void JniMpvCallback::onCommandReply(long subscriptionId, jobject result) {
+void JniMpvCallback::onCommandReply(const long subscriptionId, const jobject result) {
     commandReply(subscriptionId, result);
 }
 
-void JniMpvCallback::onPropertyGet(long subscriptionId, jobject result) {
+void JniMpvCallback::onPropertyGet(const long subscriptionId, const jobject result) {
     propertyGet(subscriptionId, result);
 }
 
-void JniMpvCallback::onPropertySet(long subscriptionId, jobject result) {
+void JniMpvCallback::onPropertySet(const long subscriptionId, const jobject result) {
     propertySet(subscriptionId, result);
 }

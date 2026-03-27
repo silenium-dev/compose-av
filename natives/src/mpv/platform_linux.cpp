@@ -1,4 +1,4 @@
-#include "mpv_platform.hpp"
+#include "platform.hpp"
 
 #include <GL/glx.h>
 #include <EGL/egl.h>

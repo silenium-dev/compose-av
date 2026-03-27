@@ -11,26 +11,30 @@ else
 endif
 
 sources = [
-  'compose-av',
-  'util/Errors.cpp',
   'helper/JniCallRef.hpp',
   'helper/JniMpvCallback.cpp',
   'helper/JniMpvCallback.hpp',
   'helper/MpvCallback.hpp',
   'helper/results.cpp',
   'helper/results.hpp',
+  'jni/commands.cpp',
+  'jni/lifecycle.cpp',
+  'jni/observe.cpp',
+  'jni/properties_async.cpp',
+  'jni/properties_sync.cpp',
+  'jni/render.cpp',
   'mpv/commands.cpp',
+  'mpv/events.cpp',
   'mpv/instance.cpp',
   'mpv/instance.hpp',
-  'mpv/lifecycle.cpp',
-  'mpv/mpv_platform.hpp',
-  'mpv/MPVException.cpp',
-  'mpv/MPVException.hpp',
   'mpv/observe.cpp',
+  'mpv/platform.hpp',
   'mpv/properties_async.cpp',
   'mpv/properties_sync.cpp',
-  'mpv/render.cpp',
   'mpv/renderer.hpp',
+  'util/Errors.cpp',
+  'util/MPVException.cpp',
+  'util/MPVException.hpp',
 ]
 
 os = host_machine.system()
@@ -38,20 +42,20 @@ if os == 'linux'
   egl = dependency('egl')
   glx = dependency('glx')
   x11 = dependency('x11')
-  va = dependency('libva')
-  deps += [egl, glx, x11, va]
-  sources += ['mpv/mpv_linux.cpp']
-  add_project_arguments('-DTARGET_LINUX', language: 'cpp')
+  deps += [egl, glx, x11]
+  sources += ['mpv/platform_linux.cpp']
+  add_project_arguments('-DTARGET_LINUX', language : 'cpp')
 elif os == 'windows'
-  sources += ['mpv/mpv_windows.cpp']
+  sources += ['mpv/platform_windows.cpp']
   cc = meson.get_compiler('cpp')
   link_args += ['opengl32.lib']
-  add_project_arguments('-DTARGET_WINDOWS', language: 'cpp')
+  add_project_arguments('-DTARGET_WINDOWS', language : 'cpp')
 endif
 
 shared_library(
+  'compose-av',
   sources,
   dependencies : deps,
-  link_args: link_args,
+  link_args : link_args,
   cpp_args : ['-Wimplicit-fallthrough'],
 )

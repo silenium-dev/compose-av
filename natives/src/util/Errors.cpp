@@ -8,7 +8,6 @@
 
 #ifdef TARGET_LINUX
 #include <EGL/egl.h>
-#include <va/va.h>
 #define CASE_STR(value) case value: return #value;
 
 const char *eglGetErrorString(const long error) {
@@ -82,12 +81,5 @@ JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_util_ErrorsKt_eglErrorStr
     return env->NewStringUTF(eglGetErrorString(error));
 }
 
-JNIEXPORT jstring JNICALL Java_dev_silenium_multimedia_util_ErrorsKt_vaErrorStringN(
-    JNIEnv *env,
-    jobject thiz,
-    jint error
-) {
-    return env->NewStringUTF(vaErrorStr(error));
-}
 #endif
 }

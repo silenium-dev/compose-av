@@ -1,25 +1,37 @@
 #include "instance.hpp"
-#include <jni.h>
 
-extern "C" {
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandN(
-    JNIEnv *env, jobject thiz, jlong handle, jobjectArray command) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+#include <format>
+
+#include "util/MPVException.hpp"
+#include "helper/JniMpvCallback.hpp"
+
+std::shared_ptr<mpv_node> MPVInstance::command(const std::vector<std::string> &argv) const {
+    std::vector<const char *> argv_c(argv.size());
+    for (const auto &arg: argv) {
+        argv_c.push_back(arg.c_str());
+    }
+    auto result = std::make_shared<mpv_node>();
+    const auto ret = mpv_command_ret(m_handle, argv_c.data(), result.get());
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_command_ret");
+    }
+    return result;
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandStringN(
-    JNIEnv *env, jobject thiz, jlong handle, jstring command) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
+void MPVInstance::command(const std::string &argv) const {
+    const auto ret = mpv_command_string(m_handle, argv.data());
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_command_ret");
+    }
 }
 
-JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandAsyncN(
-    JNIEnv *env, jobject thiz, jlong handle, jobjectArray command, jlong subscriptionId) {
-    INSTANCE(handle);
-    (void) instance;
-    return nullptr;
-}
+void MPVInstance::commandAsync(const std::vector<std::string> &argv, const int64_t subscriptionId) const {
+    std::vector<const char *> argv_c(argv.size());
+    for (const auto &arg: argv) {
+        argv_c.push_back(arg.c_str());
+    }
+    const auto ret = mpv_command_async(m_handle, subscriptionId, argv_c.data());
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_command_async");
+    }
 }

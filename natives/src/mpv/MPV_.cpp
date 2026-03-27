@@ -4,7 +4,7 @@
 #endif
 
 #include "helper/results.hpp"
-#include "mpv_platform.hpp"
+#include "platform.hpp"
 
 #include <GL/gl.h>
 #include <iostream>
@@ -57,7 +57,7 @@ struct MpvContext {
     std::atomic<bool> running{true};
 };
 
-jobject eventDataToJava(JNIEnv *env, mpv_event_property *prop) {
+jobject eventDataToJava(JNIEnv *env, const mpv_event_property *prop) {
     jobject value = nullptr;
     switch (prop->format) {
         case MPV_FORMAT_INT64: {

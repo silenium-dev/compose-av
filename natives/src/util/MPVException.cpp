@@ -2,7 +2,7 @@
 
 #include <format>
 
-#include "mpv_platform.hpp"
+#include "../mpv/platform.hpp"
 #include "helper/results.hpp"
 
 MPVException::MPVException(const int code, const std::string &operation) : m_code(code), m_operation(operation) {

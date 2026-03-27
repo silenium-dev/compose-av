@@ -1,4 +1,4 @@
-#include "mpv_platform.hpp"
+#include "platform.hpp"
 
 class WindowsMpvPlatformContext : public MpvPlatformContext {
 public:
