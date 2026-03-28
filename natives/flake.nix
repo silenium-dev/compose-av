@@ -59,7 +59,9 @@
               ./src
               ./meson.build
               ./meson.options
-              ./subprojects
+              ./subprojects/jni-headers.wrap
+              ./subprojects/packagefiles/jni-headers/meson.build
+              ./subprojects/packagefiles/jni-headers/meson.options
               ./subprojects.tpl
             ];
           in
