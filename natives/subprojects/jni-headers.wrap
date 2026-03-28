@@ -1,6 +1,6 @@
-[wrap-git]
-directory = jni-headers
-url = https://github.com/Casterlabs/jni-headers.git
-revision = 68b16cb0252c32b66b28f7260439970cec24ba04
-depth = 1
+[wrap-file]
+directory = jni-headers-68b16cb0252c32b66b28f7260439970cec24ba04
+source_url = https://github.com/Casterlabs/jni-headers/archive/68b16cb0252c32b66b28f7260439970cec24ba04.tar.gz
+source_filename = jni-headers.tar.gz
+source_hash = 637752795d62ec029c18f00a4cb7bd2d0ee6fc8ef6c29b970f2552c79beea565
 patch_directory = jni-headers
