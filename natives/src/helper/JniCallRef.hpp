@@ -132,10 +132,7 @@ public:
         m_jvm = nullptr;
     }
 
-    Return operator()(Args... args) {
-        const detail::AttachedEnv attached(m_jvm);
-        JNIEnv *env = attached.get();
-
+    Return operator()(JNIEnv *env, Args... args) {
         if constexpr (std::is_void_v<Return>) {
             detail::JniCallTraits<void>::call(env, m_obj, m_method, args...);
             return;

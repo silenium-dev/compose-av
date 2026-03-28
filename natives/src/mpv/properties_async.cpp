@@ -32,6 +32,13 @@ void MPVInstance::getPropertyFlagAsync(const std::string &name, const int64_t su
     }
 }
 
+void MPVInstance::getPropertyNodeAsync(const std::string &name, const int64_t subscriptionId) const {
+    const auto ret = mpv_get_property_async(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_NODE);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_get_property_async");
+    }
+}
+
 void MPVInstance::setPropertyAsync(const std::string &name, const std::string &value, const int64_t subscriptionId) const {
     auto valuePtr = value.c_str();
     const auto ret = mpv_set_property_async(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_STRING, &valuePtr);
@@ -56,6 +63,13 @@ void MPVInstance::setPropertyAsync(const std::string &name, double value, const 
 
 void MPVInstance::setPropertyAsync(const std::string &name, bool value, const int64_t subscriptionId) const {
     const auto ret = mpv_set_property_async(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_FLAG, &value);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_set_property");
+    }
+}
+
+void MPVInstance::setPropertyAsync(const std::string &name, mpv_node value, const int64_t subscriptionId) const {
+    const auto ret = mpv_set_property_async(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_NODE, &value);
     if (ret < MPV_ERROR_SUCCESS) {
         throw MPVException(ret, "mpv_set_property");
     }

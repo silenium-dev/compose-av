@@ -26,14 +26,12 @@ object Natives {
     @Synchronized
     fun ensureLoaded() {
         if (!loaded) {
-//            val deps = platformDeps[NativeLoader.nativePlatform.os]
-//                ?: error("Unsupported platform: ${NativeLoader.nativePlatform}")
-//            deps.forEach {
-//                NativeLoader.loadLibraryFromClasspath(it).getOrThrow()
-//            }
-//            NativeLoader.loadLibraryFromClasspath(BuildConstants.LIBRARY_NAME).getOrThrow()
-            System.load("/nix/store/q2ca1157v5641ll2ghq926yq83sqvfkl-mpv-0.41.0/lib/libmpv.so")
-            System.load("natives/buildDir/src/libcompose-av.so")
+            val deps = platformDeps[NativeLoader.nativePlatform.os]
+                ?: error("Unsupported platform: ${NativeLoader.nativePlatform}")
+            deps.forEach {
+                NativeLoader.loadLibraryFromClasspath(it).getOrThrow()
+            }
+            NativeLoader.loadLibraryFromClasspath(BuildConstants.LIBRARY_NAME).getOrThrow()
             loaded = true
         }
     }

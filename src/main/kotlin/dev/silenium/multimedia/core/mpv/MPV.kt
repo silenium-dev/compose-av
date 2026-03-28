@@ -21,6 +21,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
+import kotlin.reflect.full.isSubclassOf
 import kotlin.time.Duration.Companion.milliseconds
 
 sealed class Property<T> {
@@ -32,6 +33,7 @@ data class StringProperty(override val name: String, override val value: String?
 data class LongProperty(override val name: String, override val value: Long?) : Property<Long?>()
 data class DoubleProperty(override val name: String, override val value: Double?) : Property<Double?>()
 data class FlagProperty(override val name: String, override val value: Boolean?) : Property<Boolean?>()
+data class NodeProperty(override val name: String, override val value: Node?) : Property<Node?>()
 
 class MPV : NativeCleanable, MPVAsyncListener {
     private var callback: Long = 0L
@@ -43,13 +45,13 @@ class MPV : NativeCleanable, MPVAsyncListener {
     private val propertyGetCallbackId = AtomicLong(0)
     private val propertySetCallbacks = ConcurrentHashMap<Long, (Result<Unit>) -> Unit>()
     private val propertySetCallbackId = AtomicLong(0)
-    private val commandReplyCallbacks = ConcurrentHashMap<Long, (Result<Unit>) -> Unit>()
+    private val commandReplyCallbacks = ConcurrentHashMap<Long, (Result<Node>) -> Unit>()
     private val commandReplyCallbackId = AtomicLong(0)
 
     private val propertyUpdates = MutableSharedFlow<Property<*>>()
 
     @OptIn(ExperimentalContracts::class)
-    private inline fun <R : Any> guard(other: R? = null, block: () -> Result<R>): Result<R> {
+    private inline fun <R> guard(other: R? = null, block: () -> Result<R>): Result<R> {
         contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
         if (!initialized.get()) {
             if (other != null) {
@@ -77,23 +79,23 @@ class MPV : NativeCleanable, MPVAsyncListener {
         destroyN(it)
     }
 
-    fun setOption(name: String, value: String) {
+    fun setOption(name: String, value: String): Result<Unit> {
         if (nativePointer.closed) {
             error("MPV is closed")
         }
         if (initialized.get()) {
             logger.warn("Cannot set option after initialization, ignoring")
-            return
+            return Result.success(Unit)
         }
         logger.debug("Setting option $name=$value")
-        setOptionStringN(nativePointer.address, name, value)
+        return setOptionStringN(nativePointer.address, name, value)
     }
 
     fun initialize(): Result<Unit> {
         if (initialized.compareAndSet(false, true)) {
             logger.info("Initializing MPV")
             return initializeN(nativePointer.address).mapCatching {
-                callback = setCallbackN(nativePointer.address, listener).getOrThrow()
+                setCallbackN(nativePointer.address, listener).getOrThrow()
             }
         }
 
@@ -123,11 +125,13 @@ class MPV : NativeCleanable, MPVAsyncListener {
     suspend fun setPropertyAsync(name: String, value: Long) = setProperty(name, value, ::setPropertyLongAsyncN)
     suspend fun setPropertyAsync(name: String, value: Double) = setProperty(name, value, ::setPropertyDoubleAsyncN)
     suspend fun setPropertyAsync(name: String, value: Boolean) = setProperty(name, value, ::setPropertyFlagAsyncN)
+    suspend fun setPropertyAsync(name: String, value: Node) = setProperty(name, value, ::setPropertyNodeAsyncN)
 
     fun setProperty(name: String, value: String) = setPropertyStringN(nativePointer.address, name, value)
     fun setProperty(name: String, value: Long) = setPropertyLongN(nativePointer.address, name, value)
     fun setProperty(name: String, value: Double) = setPropertyDoubleN(nativePointer.address, name, value)
     fun setProperty(name: String, value: Boolean) = setPropertyFlagN(nativePointer.address, name, value)
+    fun setProperty(name: String, value: Node) = setPropertyNodeN(nativePointer.address, name, value)
 
     private suspend fun <T : Any> getProperty(
         name: String,
@@ -154,11 +158,13 @@ class MPV : NativeCleanable, MPVAsyncListener {
     suspend fun getPropertyLongAsync(name: String) = getProperty(name, Long::class, ::getPropertyLongAsyncN)
     suspend fun getPropertyDoubleAsync(name: String) = getProperty(name, Double::class, ::getPropertyDoubleAsyncN)
     suspend fun getPropertyFlagAsync(name: String) = getProperty(name, Boolean::class, ::getPropertyFlagAsyncN)
+    suspend fun getPropertyNodeAsync(name: String) = getProperty(name, Node::class, ::getPropertyNodeAsyncN)
 
     fun getPropertyString(name: String) = getPropertyStringN(nativePointer.address, name)
     fun getPropertyLong(name: String) = getPropertyLongN(nativePointer.address, name)
     fun getPropertyDouble(name: String) = getPropertyDoubleN(nativePointer.address, name)
     fun getPropertyFlag(name: String) = getPropertyFlagN(nativePointer.address, name)
+    fun getPropertyNode(name: String) = getPropertyNodeN(nativePointer.address, name)
 
     private fun subscribe(name: String, type: KClass<*>, fn: (Long, String, Long) -> Result<Unit>): Result<Unit> =
         guard(Unit) {
@@ -176,6 +182,7 @@ class MPV : NativeCleanable, MPVAsyncListener {
     fun observePropertyLong(name: String) = subscribe(name, Long::class, ::observePropertyLongN)
     fun observePropertyDouble(name: String) = subscribe(name, Double::class, ::observePropertyDoubleN)
     fun observePropertyFlag(name: String) = subscribe(name, Boolean::class, ::observePropertyFlagN)
+    fun observePropertyNode(name: String) = subscribe(name, Node::class, ::observePropertyNodeN)
 
     fun unobserveProperty(name: String): Result<Unit> = guard(Unit) {
         propertySubscriptions.remove(name)?.let { (id, _) ->
@@ -264,29 +271,45 @@ class MPV : NativeCleanable, MPVAsyncListener {
         )
     }
 
-    suspend inline fun <reified E : Any> propertyFlow(name: String) = when (E::class) {
-        String::class -> propertyFlowString(name).mapState { it as E? }
-        Long::class -> propertyFlowLong(name).mapState { it as E? }
-        Double::class -> propertyFlowDouble(name).mapState { it as E? }
-        Boolean::class -> propertyFlowFlag(name).mapState { it as E? }
+    suspend fun propertyFlowNode(name: String): StateFlow<Node?> {
+        val initialValue = getPropertyNodeAsync(name).getOrElse {
+            logger.error("Failed to get initial value for property $name", it)
+            null
+        }
+        val flow = propertyUpdates.filter { it.name == name }.filterIsInstance<NodeProperty>().map { it.value }
+        return flow.stateIn(
+            CoroutineScope(EmptyCoroutineContext),
+            Sharing(name, ::observePropertyNode, ::unobserveProperty, SharingStarted.WhileSubscribed()),
+            initialValue,
+        )
+    }
+
+    suspend inline fun <reified E : Any> propertyFlow(name: String) = when {
+        E::class == String::class -> propertyFlowString(name).mapState { it as E? }
+        E::class == Long::class -> propertyFlowLong(name).mapState { it as E? }
+        E::class == Double::class -> propertyFlowDouble(name).mapState { it as E? }
+        E::class == Boolean::class -> propertyFlowFlag(name).mapState { it as E? }
+        E::class.isSubclassOf(Node::class) -> propertyFlowNode(name).mapState { it as E? }
         else -> error("Unsupported property type: ${E::class}")
     }
 
     @Suppress("UNCHECKED_CAST")
-    suspend inline fun <reified T : Any> getPropertyAsync(name: String): Result<T?> = when (T::class) {
-        String::class -> getPropertyStringAsync(name)
-        Long::class -> getPropertyLongAsync(name)
-        Double::class -> getPropertyDoubleAsync(name)
-        Boolean::class -> getPropertyFlagAsync(name)
+    suspend inline fun <reified T : Any> getPropertyAsync(name: String): Result<T?> = when {
+        T::class == String::class -> getPropertyStringAsync(name)
+        T::class == Long::class -> getPropertyLongAsync(name)
+        T::class == Double::class -> getPropertyDoubleAsync(name)
+        T::class == Boolean::class -> getPropertyFlagAsync(name)
+        T::class.isSubclassOf(Node::class) -> getPropertyNodeAsync(name)
         else -> error("Unsupported property type: ${T::class}")
     } as Result<T?>
 
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T : Any> getProperty(name: String): Result<T?> = when (T::class) {
-        String::class -> getPropertyString(name)
-        Long::class -> getPropertyLong(name)
-        Double::class -> getPropertyDouble(name)
-        Boolean::class -> getPropertyFlag(name)
+    inline fun <reified T : Any> getProperty(name: String): Result<T?> = when {
+        T::class == String::class -> getPropertyString(name)
+        T::class == Long::class -> getPropertyLong(name)
+        T::class == Double::class -> getPropertyDouble(name)
+        T::class == Boolean::class -> getPropertyFlag(name)
+        T::class.isSubclassOf(Node::class) -> getPropertyNode(name)
         else -> error("Unsupported property type: ${T::class}")
     } as Result<T?>
 
@@ -295,6 +318,7 @@ class MPV : NativeCleanable, MPVAsyncListener {
         is Long -> setPropertyAsync(name, value)
         is Double -> setPropertyAsync(name, value)
         is Boolean -> setPropertyAsync(name, value)
+        is Node -> setPropertyAsync(name, value)
         else -> error("Unsupported property type: ${value::class}")
     }
 
@@ -303,20 +327,23 @@ class MPV : NativeCleanable, MPVAsyncListener {
         is Long -> setProperty(name, value)
         is Double -> setProperty(name, value)
         is Boolean -> setProperty(name, value)
+        is Node -> setProperty(name, value)
         else -> error("Unsupported property type: ${value::class}")
     }
 
-    fun command(command: Array<String>) = guard(Unit) {
+    @JvmName("commandVararg")
+    fun command(vararg command: String) = command(command.toList().toTypedArray())
+    fun command(command: Array<String>) = guard(null) {
         commandN(nativePointer.address, command)
     }
 
-    fun command(command: String) = guard(Unit) {
+    fun command(command: String) = guard(null) {
         commandStringN(nativePointer.address, command)
     }
 
     @JvmName("commandAsyncVararg")
     suspend fun commandAsync(vararg command: String) = commandAsync(command.toList().toTypedArray())
-    suspend fun commandAsync(command: Array<String>): Result<Unit> = guard(Unit) {
+    suspend fun commandAsync(command: Array<String>): Result<Node?> = guard<Node?>(null) {
         suspendCancellableCoroutine { continuation ->
             val subscriptionId = commandReplyCallbackId.getAndIncrement()
             commandReplyCallbacks[subscriptionId] = { result ->
@@ -332,11 +359,12 @@ class MPV : NativeCleanable, MPVAsyncListener {
 
     override suspend fun onPropertyChanged(name: String, value: Any?) {
         val type = value?.javaClass?.kotlin ?: propertySubscriptions[name]?.second
-        val property = when (type) {
-            String::class -> StringProperty(name, value as String?)
-            Long::class -> LongProperty(name, value as Long?)
-            Double::class -> DoubleProperty(name, value as Double?)
-            Boolean::class -> FlagProperty(name, value as Boolean?)
+        val property = when {
+            type == String::class -> StringProperty(name, value as String?)
+            type == Long::class -> LongProperty(name, value as Long?)
+            type == Double::class -> DoubleProperty(name, value as Double?)
+            type == Boolean::class -> FlagProperty(name, value as Boolean?)
+            type?.isSubclassOf(Node::class) == true -> NodeProperty(name, value as Node?)
             else -> {
                 logger.warn("Unknown property type for $name: $value")
                 return
@@ -353,7 +381,7 @@ class MPV : NativeCleanable, MPVAsyncListener {
         propertySetCallbacks.remove(subscriptionId)?.invoke(result)
     }
 
-    override suspend fun onCommandReply(subscriptionId: Long, result: Result<Unit>) {
+    override suspend fun onCommandReply(subscriptionId: Long, result: Result<Node>) {
         commandReplyCallbacks.remove(subscriptionId)?.invoke(result)
     }
 
@@ -424,14 +452,14 @@ interface MPVAsyncListener {
     suspend fun onPropertyChanged(name: String, value: Any?)
     suspend fun onPropertyGet(subscriptionId: Long, result: Result<Any?>)
     suspend fun onPropertySet(subscriptionId: Long, result: Result<Unit>)
-    suspend fun onCommandReply(subscriptionId: Long, result: Result<Unit>)
+    suspend fun onCommandReply(subscriptionId: Long, result: Result<Node>)
 }
 
 private interface MPVListener {
     fun onPropertyChanged(name: String, value: Any?)
     fun onPropertyGet(subscriptionId: Long, result: Result<Any?>)
     fun onPropertySet(subscriptionId: Long, result: Result<Unit>)
-    fun onCommandReply(subscriptionId: Long, result: Result<Unit>)
+    fun onCommandReply(subscriptionId: Long, result: Result<Node>)
 }
 
 private class MPVListenerWrapper(private val wrapped: MPVAsyncListener) : MPVListener, AutoCloseable {
@@ -457,7 +485,7 @@ private class MPVListenerWrapper(private val wrapped: MPVAsyncListener) : MPVLis
         }
     }
 
-    private data class CommandReply(val subscriptionId: Long, val result: Result<Unit>) : Event {
+    private data class CommandReply(val subscriptionId: Long, val result: Result<Node>) : Event {
         override suspend fun call(listener: MPVAsyncListener) {
             listener.onCommandReply(subscriptionId, result)
         }
@@ -487,7 +515,7 @@ private class MPVListenerWrapper(private val wrapped: MPVAsyncListener) : MPVLis
         events.add(PropertySet(subscriptionId, result))
     }
 
-    override fun onCommandReply(subscriptionId: Long, result: Result<Unit>) {
+    override fun onCommandReply(subscriptionId: Long, result: Result<Node>) {
         events.add(CommandReply(subscriptionId, result))
     }
 
@@ -501,10 +529,10 @@ private external fun destroyN(handle: Long)
 private external fun setOptionStringN(handle: Long, name: String, value: String): Result<Unit>
 private external fun initializeN(handle: Long): Result<Unit>
 
-private external fun setCallbackN(handle: Long, listener: MPVListener): Result<Long>
+private external fun setCallbackN(handle: Long, listener: MPVListener): Result<Unit>
 private external fun unsetCallbackN(callbackHandle: Long): Result<Unit>
 
-private external fun commandN(handle: Long, command: Array<String>): Result<Unit>
+private external fun commandN(handle: Long, command: Array<String>): Result<Node?>
 private external fun commandStringN(handle: Long, command: String): Result<Unit>
 private external fun commandAsyncN(handle: Long, command: Array<String>, subscriptionId: Long): Result<Unit>
 
@@ -512,10 +540,12 @@ private external fun getPropertyStringAsyncN(handle: Long, name: String, subscri
 private external fun getPropertyLongAsyncN(handle: Long, name: String, subscriptionId: Long): Result<Unit>
 private external fun getPropertyDoubleAsyncN(handle: Long, name: String, subscriptionId: Long): Result<Unit>
 private external fun getPropertyFlagAsyncN(handle: Long, name: String, subscriptionId: Long): Result<Unit>
+private external fun getPropertyNodeAsyncN(handle: Long, name: String, subscriptionId: Long): Result<Unit>
 private external fun getPropertyStringN(handle: Long, name: String): Result<String?>
 private external fun getPropertyLongN(handle: Long, name: String): Result<Long?>
 private external fun getPropertyDoubleN(handle: Long, name: String): Result<Double?>
 private external fun getPropertyFlagN(handle: Long, name: String): Result<Boolean?>
+private external fun getPropertyNodeN(handle: Long, name: String): Result<Node?>
 
 private external fun setPropertyStringAsyncN(
     handle: Long,
@@ -538,18 +568,26 @@ private external fun setPropertyFlagAsyncN(
     value: Boolean,
     subscriptionId: Long,
 ): Result<Unit>
+private external fun setPropertyNodeAsyncN(
+    handle: Long,
+    name: String,
+    value: Node?,
+    subscriptionId: Long,
+): Result<Unit>
 
 private external fun setPropertyStringN(handle: Long, name: String, value: String): Result<Unit>
 private external fun setPropertyLongN(handle: Long, name: String, value: Long): Result<Unit>
 private external fun setPropertyDoubleN(handle: Long, name: String, value: Double): Result<Unit>
 private external fun setPropertyFlagN(handle: Long, name: String, value: Boolean): Result<Unit>
+private external fun setPropertyNodeN(handle: Long, name: String, value: Node?): Result<Unit>
 
 private external fun observePropertyStringN(handle: Long, name: String, subscriptionId: Long): Result<Unit>
 private external fun observePropertyLongN(handle: Long, name: String, subscriptionId: Long): Result<Unit>
 private external fun observePropertyDoubleN(handle: Long, name: String, subscriptionId: Long): Result<Unit>
 private external fun observePropertyFlagN(handle: Long, name: String, subscriptionId: Long): Result<Unit>
+private external fun observePropertyNodeN(handle: Long, name: String, subscriptionId: Long): Result<Unit>
 private external fun unobservePropertyN(handle: Long, subscriptionId: Long): Result<Unit>
 
 private external fun createRenderN(handle: Long, self: MPV.Render, advancedControl: Boolean): Result<Long>
-private external fun destroyRenderN(handle: Long)
-private external fun renderN(handle: Long, fbo: Int, width: Int, height: Int, glInternalFormat: Int): Result<Unit>
+private external fun destroyRenderN(renderHandle: Long)
+private external fun renderN(renderHandle: Long, fbo: Int, width: Int, height: Int, glInternalFormat: Int): Result<Unit>

@@ -5,3 +5,4 @@ cmake-build-*/
 !subprojects/packagefiles/jni-headers/
 subprojects/*
 buildDir/
+result

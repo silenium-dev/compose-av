@@ -3,7 +3,6 @@
 
 #include <condition_variable>
 #include <memory>
-#include <queue>
 #include <shared_mutex>
 #include <mpv/client.h>
 #include <string>
@@ -50,6 +49,8 @@ public:
 
     void setProperty(const std::string &name, bool value) const;
 
+    void setProperty(const std::string &name, mpv_node value) const;
+
     std::string getPropertyString(const std::string &name) const;
 
     int64_t getPropertyLong(const std::string &name) const;
@@ -57,6 +58,8 @@ public:
     double getPropertyDouble(const std::string &name) const;
 
     bool getPropertyFlag(const std::string &name) const;
+
+    mpv_node getPropertyNode(const std::string &name) const;
 
     void setPropertyAsync(const std::string &name, const std::string &value, int64_t subscriptionId) const;
 
@@ -66,6 +69,8 @@ public:
 
     void setPropertyAsync(const std::string &name, bool value, int64_t subscriptionId) const;
 
+    void setPropertyAsync(const std::string &name, mpv_node value, int64_t subscriptionId) const;
+
     void getPropertyStringAsync(const std::string &name, int64_t subscriptionId) const;
 
     void getPropertyLongAsync(const std::string &name, int64_t subscriptionId) const;
@@ -73,6 +78,8 @@ public:
     void getPropertyDoubleAsync(const std::string &name, int64_t subscriptionId) const;
 
     void getPropertyFlagAsync(const std::string &name, int64_t subscriptionId) const;
+
+    void getPropertyNodeAsync(const std::string &name, int64_t subscriptionId) const;
 
     void observePropertyString(const std::string &name, int64_t subscriptionId) const;
 
@@ -82,13 +89,18 @@ public:
 
     void observePropertyFlag(const std::string &name, int64_t subscriptionId) const;
 
+    void observePropertyNode(const std::string &name, int64_t subscriptionId) const;
+
     void unobserveProperty(int64_t subscriptionId) const;
 
 private:
     static void wakeupCallback(void *);
+
     void onWakeup();
+
     void eventLoop();
-    void dispatchEvents(JNIEnv *env) const;
+
+    void dispatchEvents(JNIEnv *env);
 
     mpv_handle *m_handle;
     std::shared_mutex m_callbackMutex;

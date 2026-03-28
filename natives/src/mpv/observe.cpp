@@ -35,6 +35,13 @@ void MPVInstance::observePropertyFlag(const std::string &name, int64_t subscript
     }
 }
 
+void MPVInstance::observePropertyNode(const std::string &name, int64_t subscriptionId) const {
+    const auto ret = mpv_observe_property(m_handle, subscriptionId, name.c_str(), MPV_FORMAT_NODE);
+    if (ret < MPV_ERROR_SUCCESS) {
+        throw MPVException(ret, "mpv_observe_property");
+    }
+}
+
 void MPVInstance::unobserveProperty(int64_t subscriptionId) const {
     const auto ret = mpv_unobserve_property(m_handle, subscriptionId);
     if (ret < MPV_ERROR_SUCCESS) {

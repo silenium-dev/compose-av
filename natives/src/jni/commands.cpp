@@ -5,6 +5,8 @@
 #include <jni.h>
 #include <vector>
 
+#include "mpv/nodes.hpp"
+
 extern "C" {
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandN(
     JNIEnv *env, jobject thiz, const jlong handle, const jobjectArray command) {
@@ -18,8 +20,8 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_commandN(
         env->ReleaseStringUTFChars(static_cast<jstring>(arg), str);
     }
     CATCHING(
-        auto result = instance->command(argv);
-        return resultSuccess(env);
+        const auto result = instance->command(argv);
+        return mapNode(env, *result);
     );
 }
 

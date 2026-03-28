@@ -3,6 +3,7 @@
 
 #include "helper/results.hpp"
 #include "../util/MPVException.hpp"
+#include "mpv/nodes.hpp"
 
 extern "C" {
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyStringN(
@@ -50,6 +51,20 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropert
     CATCHING(
         const auto value = instance->getPropertyFlag(nameStr);
         return boxedBool(env, value);
+    )
+}
+
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyNodeN(
+    JNIEnv *env, jobject thiz, const jlong handle, const jstring name) {
+    INSTANCE(handle);
+    const auto nameChars = env->GetStringUTFChars(name, nullptr);
+    const std::string nameStr{nameChars};
+    env->ReleaseStringUTFChars(name, nameChars);
+    CATCHING(
+        auto value = instance->getPropertyNode(nameStr);
+        const auto result = mapNode(env, value);
+        mpv_free_node_contents(&value);
+        return result;
     )
 }
 
@@ -102,5 +117,13 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropert
         instance->setProperty(nameStr, static_cast<bool>(value));
         return resultSuccess(env);
     )
+}
+
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyNodeN(
+    JNIEnv *env, jobject thiz, const jlong handle, const jstring name, const jobject value) {
+    INSTANCE(handle);
+    (void) instance;
+    return resultSuccess(env);
+    // TODO: Map java node -> mpv_node
 }
 }

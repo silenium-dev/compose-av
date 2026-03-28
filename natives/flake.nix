@@ -27,6 +27,7 @@
           ];
           buildInputs = with pkgs; [
             gcc
+            gdb
             libxcb
             libX11
             libGL

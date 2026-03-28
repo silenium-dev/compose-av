@@ -9,8 +9,12 @@
 extern "C" {
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_createN(
     JNIEnv *env, jobject thiz) {
+    JavaVM *jvm;
+    if (env->GetJavaVM(&jvm) != JNI_OK) {
+        return mpvResultFailure(env, "GetJavaVM", MPV_ERROR_GENERIC);
+    }
     CATCHING(
-        const auto handle = mpv_create();
+        const auto handle = new MPVInstance(jvm);
         return resultSuccess(env, reinterpret_cast<jlong>(handle));
     )
 }

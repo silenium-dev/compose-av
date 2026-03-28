@@ -53,6 +53,18 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropert
     )
 }
 
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_getPropertyNodeAsyncN(
+    JNIEnv *env, jobject thiz, const jlong handle, const jstring name, const jlong subscriptionId) {
+    INSTANCE(handle);
+    const auto nameChars = env->GetStringUTFChars(name, nullptr);
+    const std::string nameStr{nameChars};
+    env->ReleaseStringUTFChars(name, nameChars);
+    CATCHING(
+        instance->getPropertyNodeAsync(nameStr, subscriptionId);
+        return resultSuccess(env);
+    )
+}
+
 JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyStringAsyncN(
     JNIEnv *env, jobject thiz, const jlong handle, const jstring name, const jstring value,
     const jlong subscriptionId) {
@@ -105,5 +117,14 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropert
         instance->setPropertyAsync(nameStr, static_cast<bool>(value), subscriptionId);
         return resultSuccess(env);
     )
+}
+
+JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropertyNodeAsyncN(
+    JNIEnv *env, jobject thiz, const jlong handle, const jstring name, const jobject value,
+    const jlong subscriptionId) {
+    INSTANCE(handle);
+    (void) instance;
+    return resultSuccess(env);
+    // TODO: Map java node -> mpv_node
 }
 }

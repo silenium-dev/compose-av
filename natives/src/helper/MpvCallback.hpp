@@ -9,13 +9,13 @@ class MpvCallback {
 public:
     virtual ~MpvCallback() = default;
 
-    virtual void onPropertyChanged(const std::string &name, jobject result) = 0;
+    virtual void onPropertyChanged(JNIEnv *env, const std::string &name, jobject result) = 0;
 
-    virtual void onPropertyGet(long subscriptionId, jobject result) = 0;
+    virtual void onPropertyGet(JNIEnv *env, long subscriptionId, jobject result) = 0;
 
-    virtual void onPropertySet(long subscriptionId, jobject result) = 0;
+    virtual void onPropertySet(JNIEnv *env, long subscriptionId, jobject result) = 0;
 
-    virtual void onCommandReply(long subscriptionId, jobject result) = 0;
+    virtual void onCommandReply(JNIEnv *env, long subscriptionId, jobject result) = 0;
 };
 
 

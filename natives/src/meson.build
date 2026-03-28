@@ -27,6 +27,8 @@ sources = [
   'mpv/events.cpp',
   'mpv/instance.cpp',
   'mpv/instance.hpp',
+  'mpv/nodes.hpp',
+  'mpv/nodes.cpp',
   'mpv/observe.cpp',
   'mpv/platform.hpp',
   'mpv/properties_async.cpp',

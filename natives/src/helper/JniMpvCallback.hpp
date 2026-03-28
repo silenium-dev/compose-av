@@ -12,13 +12,13 @@ class JniMpvCallback : public MpvCallback {
 public:
     explicit JniMpvCallback(JNIEnv *env, jobject thiz);
 
-    void onPropertyChanged(const std::string &name, jobject result) override;
+    void onPropertyChanged(JNIEnv *env, const std::string &name, jobject result) override;
 
-    void onPropertyGet(long subscriptionId, jobject result) override;
+    void onPropertyGet(JNIEnv *env, long subscriptionId, jobject result) override;
 
-    void onPropertySet(long subscriptionId, jobject result) override;
+    void onPropertySet(JNIEnv *env, long subscriptionId, jobject result) override;
 
-    void onCommandReply(long subscriptionId, jobject result) override;
+    void onCommandReply(JNIEnv *env, long subscriptionId, jobject result) override;
 
 private:
     JniCallRef<void, jstring, jobject> propertyChanged;
