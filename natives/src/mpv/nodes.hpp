@@ -37,6 +37,8 @@ public:
 
     jobject newInstance(JNIEnv *env, ...) const;
 
+    static mpv_format getFormat(JNIEnv *env, jobject instance);
+
     jclass clazz() const;
 
 private:
@@ -80,6 +82,7 @@ static ClassConstructorRef NODE_MAP_CLASS{
 };
 
 jobject mapNode(JNIEnv *env, mpv_node node);
+mpv_node mapNode(JNIEnv *env, jobject node);
 
 jclass nodeClass(JNIEnv *env, const std::string &name);
 

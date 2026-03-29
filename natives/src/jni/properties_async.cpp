@@ -2,6 +2,7 @@
 #include <jni.h>
 
 #include "helper/results.hpp"
+#include "mpv/nodes.hpp"
 #include "util/MPVException.hpp"
 
 extern "C" {
@@ -123,8 +124,13 @@ JNIEXPORT jobject JNICALL Java_dev_silenium_multimedia_core_mpv_MPVKt_setPropert
     JNIEnv *env, jobject thiz, const jlong handle, const jstring name, const jobject value,
     const jlong subscriptionId) {
     INSTANCE(handle);
-    (void) instance;
-    return resultSuccess(env);
-    // TODO: Map java node -> mpv_node
+    const auto nameChars = env->GetStringUTFChars(name, nullptr);
+    const std::string nameStr{nameChars};
+    env->ReleaseStringUTFChars(name, nameChars);
+    const auto node = mapNode(env, value);
+    CATCHING(
+        instance->setPropertyAsync(nameStr, node, subscriptionId);
+        return resultSuccess(env);
+    )
 }
 }
