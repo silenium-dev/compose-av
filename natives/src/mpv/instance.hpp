@@ -112,6 +112,8 @@ private:
     std::condition_variable m_cv;
     std::mutex m_mtx;
     bool m_wakeup{false};
+
+    friend class MPVRenderer;
 };
 
 #endif //NATIVES_INSTANCE_HPP

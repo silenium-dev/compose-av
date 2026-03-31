@@ -69,7 +69,7 @@ class VideoPlayer(hwdec: Boolean = false) : AutoCloseable {
 
     private fun initialize(state: GLCanvasState, onInitialized: () -> Unit) {
         if (initialized) return
-        render = mpv.createRender(advancedControl = true, state::requestUpdate)
+        render = mpv.createRender(state::requestUpdate)
         initialized = true
         onInitialized()
     }

@@ -45,7 +45,7 @@ fun VideoPlayer(file: Path, suspend: Boolean = false, modifier: Modifier = Modif
     val state = rememberGLCanvasState()
     GLCanvas(state, modifier = modifier) {
         if (!ready) {
-            render = mpv.createRender(advancedControl = true, state::requestUpdate)
+            render = mpv.createRender(state::requestUpdate)
             ready = true
         }
         glClearColor(0f, 0f, 0f, 0f)

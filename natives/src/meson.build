@@ -34,6 +34,7 @@ sources = [
   'mpv/properties_async.cpp',
   'mpv/properties_sync.cpp',
   'mpv/renderer.hpp',
+  'mpv/renderer.cpp',
   'util/Errors.cpp',
   'util/MPVException.cpp',
   'util/MPVException.hpp',

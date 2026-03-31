@@ -62,19 +62,6 @@ class MPV : NativeCleanable, MPVAsyncListener {
         return block()
     }
 
-    @OptIn(ExperimentalContracts::class)
-    @JvmName("guardNonNull")
-    private inline fun <R> guardNonNull(other: R? = null, block: () -> Result<R?>): Result<R?> {
-        contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
-        if (!initialized.get()) {
-            if (other != null) {
-                return Result.success(other)
-            }
-            return Result.failure(IllegalStateException("MPV is not initialized"))
-        }
-        return block()
-    }
-
     override val nativePointer = NativePointer(createN().getOrThrow()) {
         destroyN(it)
     }
@@ -137,7 +124,7 @@ class MPV : NativeCleanable, MPVAsyncListener {
         name: String,
         type: KClass<T>,
         fn: (Long, String, Long) -> Result<Unit>,
-    ): Result<T?> = guardNonNull<T>(null) {
+    ): Result<T?> = guard<T?>(null) {
         suspendCancellableCoroutine { continuation ->
             val subscriptionId = propertyGetCallbackId.getAndIncrement()
             propertyGetCallbacks[subscriptionId] = { result ->
@@ -385,14 +372,21 @@ class MPV : NativeCleanable, MPVAsyncListener {
         commandReplyCallbacks.remove(subscriptionId)?.invoke(result)
     }
 
-    fun createRender(advancedControl: Boolean = false, updateCallback: () -> Unit) =
-        Render(this, advancedControl, updateCallback)
+    fun createRender(updateCallback: () -> Unit) =
+        Render(this, RenderCallback(updateCallback))
 
-    class Render internal constructor(mpv: MPV, advancedControl: Boolean, private val updateCallback: () -> Unit) :
-        NativeCleanable {
-        override val nativePointer: NativePointer =
-            createRenderN(mpv.nativePointer.address, this, advancedControl).getOrThrow()
-                .asNativePointer(::destroyRenderN)
+    class RenderCallback(val updateCallback: () -> Unit) : MPVRendererCallback {
+        override fun renderUpdateCallback() =
+            updateCallback()
+
+        override fun glGetProcAddress(name: String): Long {
+            return GL.getFunctionProvider()?.getFunctionAddress(name) ?: 0
+        }
+    }
+
+    class Render internal constructor(mpv: MPV, callback: MPVRendererCallback) : NativeCleanable {
+        override val nativePointer: NativePointer = createRenderN(mpv.nativePointer.address, callback).getOrThrow()
+            .asNativePointer(::destroyRenderN)
 
         @OptIn(ExperimentalContracts::class)
         private fun <R> guard(other: R? = null, block: () -> Result<R>): Result<R> {
@@ -416,14 +410,8 @@ class MPV : NativeCleanable, MPVAsyncListener {
             )
         }
 
-        // Used by native code
-        @Suppress("unused")
-        private fun requestUpdate() = updateCallback()
-
-        // Used by native code
-        @Suppress("unused")
-        private fun getGlProc(name: String): Long {
-            return GL.getFunctionProvider()?.getFunctionAddress(name) ?: 0
+        init {
+            startRenderN(nativePointer.address)
         }
     }
 
@@ -460,6 +448,11 @@ private interface MPVListener {
     fun onPropertyGet(subscriptionId: Long, result: Result<Any?>)
     fun onPropertySet(subscriptionId: Long, result: Result<Unit>)
     fun onCommandReply(subscriptionId: Long, result: Result<Node>)
+}
+
+internal interface MPVRendererCallback {
+    fun glGetProcAddress(name: String): Long
+    fun renderUpdateCallback()
 }
 
 private class MPVListenerWrapper(private val wrapped: MPVAsyncListener) : MPVListener, AutoCloseable {
@@ -568,6 +561,7 @@ private external fun setPropertyFlagAsyncN(
     value: Boolean,
     subscriptionId: Long,
 ): Result<Unit>
+
 private external fun setPropertyNodeAsyncN(
     handle: Long,
     name: String,
@@ -588,6 +582,7 @@ private external fun observePropertyFlagN(handle: Long, name: String, subscripti
 private external fun observePropertyNodeN(handle: Long, name: String, subscriptionId: Long): Result<Unit>
 private external fun unobservePropertyN(handle: Long, subscriptionId: Long): Result<Unit>
 
-private external fun createRenderN(handle: Long, self: MPV.Render, advancedControl: Boolean): Result<Long>
+private external fun createRenderN(handle: Long, callback: MPVRendererCallback): Result<Long>
 private external fun destroyRenderN(renderHandle: Long)
+private external fun startRenderN(renderHandle: Long)
 private external fun renderN(renderHandle: Long, fbo: Int, width: Int, height: Int, glInternalFormat: Int): Result<Unit>
