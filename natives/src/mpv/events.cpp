@@ -99,6 +99,7 @@ void MPVInstance::dispatchEvents(JNIEnv *env) {
                 std::string name{prop->name};
                 const auto value = eventPropertyToJava(env, prop);
                 m_callback->onPropertyChanged(env, name, value);
+                env->DeleteLocalRef(value);
                 break;
             }
             case MPV_EVENT_GET_PROPERTY_REPLY: {
@@ -112,6 +113,7 @@ void MPVInstance::dispatchEvents(JNIEnv *env) {
                     value = mpvResultFailure(env, "mpv_get_propery reply", event->error);
                 }
                 m_callback->onPropertyGet(env, event->reply_userdata, value);
+                env->DeleteLocalRef(value);
                 break;
             }
             case MPV_EVENT_SET_PROPERTY_REPLY: {
@@ -122,6 +124,7 @@ void MPVInstance::dispatchEvents(JNIEnv *env) {
                     value = mpvResultFailure(env, "mpv_set_propery reply", event->error);
                 }
                 m_callback->onPropertySet(env, event->reply_userdata, value);
+                env->DeleteLocalRef(value);
                 break;
             }
             case MPV_EVENT_COMMAND_REPLY: {
@@ -133,6 +136,7 @@ void MPVInstance::dispatchEvents(JNIEnv *env) {
                     value = mpvResultFailure(env, "mpv_event_command reply", event->error);
                 }
                 m_callback->onCommandReply(env, event->reply_userdata, value);
+                env->DeleteLocalRef(value);
                 break;
             }
             default:

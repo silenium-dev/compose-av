@@ -1,5 +1,6 @@
 #include "mpv/instance.hpp"
-#include "../util/MPVException.hpp"
+#include "mpv/nodes.hpp"
+#include "util/MPVException.hpp"
 #include "helper/JniMpvCallback.hpp"
 #include "helper/results.hpp"
 

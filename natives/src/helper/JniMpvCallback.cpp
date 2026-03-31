@@ -8,39 +8,30 @@ private interface MPVListener {
     fun onCommandReply(subscriptionId: Long, result: Result<Unit>)
 }
 */
-template<typename R, typename... Args>
-JniCallRef<R, Args...> refTo(JNIEnv *env, const jobject obj, const std::string &method, const std::string &signature) {
-    const auto methodId = env->GetMethodID(env->GetObjectClass(obj), method.c_str(), signature.c_str());
-    if (methodId == nullptr) {
-        throw std::runtime_error("Method not found: " + method);
-    }
-    return {env, obj, methodId};
-}
 
 JniMpvCallback::JniMpvCallback(JNIEnv *env, const jobject thiz)
     : propertyChanged{
-          refTo<void, jstring, jobject>(
+          JniCallRef<void, jstring, jobject>(
               env, thiz, "onPropertyChanged", "(Ljava/lang/String;Ljava/lang/Object;)V")
       },
       propertyGet{
-          refTo<void, jlong, jobject>(
+          JniCallRef<void, jlong, jobject>(
               env, thiz, "onPropertyGet", "(JLjava/lang/Object;)V")
       },
       propertySet{
-          refTo<void, jlong, jobject>(
+          JniCallRef<void, jlong, jobject>(
               env, thiz, "onPropertySet", "(JLjava/lang/Object;)V")
       },
       commandReply{
-          refTo<void, jlong, jobject>(
+          JniCallRef<void, jlong, jobject>(
               env, thiz, "onCommandReply", "(JLjava/lang/Object;)V")
       } {
 }
 
 void JniMpvCallback::onPropertyChanged(JNIEnv *env, const std::string &name, const jobject result) {
-    const auto attached = propertyChanged.attach();
-    const auto jni = attached.get()->get();
-    const auto nameStr = jni->NewStringUTF(name.c_str());
+    const auto nameStr = env->NewStringUTF(name.c_str());
     propertyChanged(env, nameStr, result);
+    env->DeleteLocalRef(nameStr);
 }
 
 void JniMpvCallback::onCommandReply(JNIEnv *env, const long subscriptionId, const jobject result) {

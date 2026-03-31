@@ -4,13 +4,17 @@
 #include <iostream>
 
 #include <jni.h>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 
+static std::mutex classCacheMutex;
 static std::unordered_map<std::string, jclass> classCache;
+static std::mutex nodeClassCacheMutex;
 static std::unordered_map<ClassConstructorRef, NodeClass> nodeClassCache;
 
 jclass nodeClass(JNIEnv *env, const std::string &name) {
+    std::lock_guard lock(classCacheMutex);
     if (classCache.contains(name)) {
         return classCache[name];
     }
@@ -25,6 +29,7 @@ jclass nodeClass(JNIEnv *env, const std::string &name) {
 }
 
 NodeClass nodeClass(JNIEnv *env, const ClassConstructorRef &ref) {
+    std::lock_guard lock(nodeClassCacheMutex);
     if (nodeClassCache.contains(ref)) {
         return nodeClassCache.at(ref);
     }
@@ -152,10 +157,7 @@ jobject mapNode(JNIEnv *env, const mpv_node node) {
             return instance;
         }
         case MPV_FORMAT_NONE: {
-            const auto clazz = env->FindClass(NODE_NONE_CLASS);
-            if (clazz == nullptr) {
-                throw std::runtime_error("Class not found: " + std::string(NODE_NONE_CLASS));
-            }
+            const auto clazz = nodeClass(env, NODE_NONE_CLASS);
             const auto instanceField = env->GetStaticFieldID(clazz, "INSTANCE",
                                                              std::format("L{};", NODE_NONE_CLASS).c_str());
             if (instanceField == nullptr) {

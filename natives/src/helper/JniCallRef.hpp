@@ -1,6 +1,7 @@
 #ifndef NATIVES_JNICALLREF_HPP
 #define NATIVES_JNICALLREF_HPP
 
+#include <iostream>
 #include <jni.h>
 #include <memory>
 #include <stdexcept>
@@ -117,22 +118,96 @@ namespace detail {
 template<typename Return, typename... Args>
 class JniCallRef {
 public:
-    JniCallRef(JNIEnv *env, const jobject obj, const jmethodID method)
-        : m_jvm(nullptr), m_obj(nullptr), m_method(method) {
+    JniCallRef(JNIEnv *env, const jobject obj, const std::string &method, const std::string &signature) {
         if (env->GetJavaVM(&m_jvm) != JNI_OK) {
-            throw std::runtime_error("Failed to get JavaVM");
+            throw std::runtime_error("Failed to get Java VM");
+        }
+        if (m_jvm == nullptr) {
+            throw std::runtime_error("Failed to get Java VM");
+        }
+        m_method = env->GetMethodID(env->GetObjectClass(obj), method.c_str(), signature.c_str());
+        if (m_method == nullptr) {
+            throw std::runtime_error("Method not found: " + method);
         }
         m_obj = env->NewGlobalRef(obj);
+        if (m_obj == nullptr) {
+            throw std::runtime_error("Failed to create global reference for object");
+        }
     }
 
     ~JniCallRef() {
-        const detail::AttachedEnv attached(m_jvm);
-        JNIEnv *env = attached.get();
-        env->DeleteGlobalRef(m_obj);
-        m_jvm = nullptr;
+        if (m_jvm == nullptr && m_obj == nullptr) {
+            return;
+        }
+        if (m_jvm == nullptr && m_obj != nullptr) {
+            std::cerr << "No jvm, failed to destroy global object ref, this is a memory leak!!!" << std::endl;
+            return;
+        }
+        const detail::AttachedEnv env{m_jvm};
+        env.get()->DeleteGlobalRef(m_obj);
     }
 
-    Return operator()(JNIEnv *env, Args... args) {
+    JniCallRef(const JniCallRef &other) {
+        const detail::AttachedEnv env{other.m_jvm};
+        m_jvm = other.m_jvm;
+        m_obj = env.get()->NewGlobalRef(other.m_obj);
+        if (env.get()->ExceptionCheck()) {
+            env.get()->ExceptionDescribe();
+            env.get()->ExceptionClear();
+        }
+        m_method = other.m_method;
+    };
+
+    JniCallRef &operator=(const JniCallRef &other) {
+        if (this == &other) {
+            return *this;
+        }
+        if (m_jvm != nullptr && m_obj != nullptr) {
+            const detail::AttachedEnv env{m_jvm};
+            env.get()->DeleteGlobalRef(m_obj);
+            if (env.get()->ExceptionCheck()) {
+                env.get()->ExceptionDescribe();
+                env.get()->ExceptionClear();
+            }
+        }
+        const detail::AttachedEnv otherEnv{other.m_jvm};
+        m_jvm = other.m_jvm;
+        m_obj = otherEnv.get()->NewGlobalRef(other.m_obj);
+        m_method = other.m_method;
+        return *this;
+    }
+
+    JniCallRef(JniCallRef &&other) noexcept {
+        m_jvm = other.m_jvm;
+        m_obj = other.m_obj;
+        m_method = other.m_method;
+        other.m_jvm = nullptr;
+        other.m_obj = nullptr;
+        other.m_method = nullptr;
+    }
+
+    JniCallRef &operator=(JniCallRef &&other) noexcept {
+        if (this == &other) {
+            return *this;
+        }
+        if (m_jvm != nullptr && m_obj != nullptr) {
+            const detail::AttachedEnv env{m_jvm};
+            env.get()->DeleteGlobalRef(m_obj);
+            if (env.get()->ExceptionCheck()) {
+                env.get()->ExceptionDescribe();
+                env.get()->ExceptionClear();
+            }
+        }
+        m_jvm = other.m_jvm;
+        m_obj = other.m_obj;
+        m_method = other.m_method;
+        other.m_jvm = nullptr;
+        other.m_obj = nullptr;
+        other.m_method = nullptr;
+        return *this;
+    }
+
+    Return operator()(JNIEnv *env, Args... args) const {
         if constexpr (std::is_void_v<Return>) {
             detail::JniCallTraits<void>::call(env, m_obj, m_method, args...);
             return;
@@ -146,9 +221,9 @@ public:
     }
 
 private:
-    JavaVM *m_jvm;
-    jobject m_obj;
-    jmethodID m_method;
+    JavaVM *m_jvm{nullptr};
+    jobject m_obj{nullptr};
+    jmethodID m_method{nullptr};
 };
 
 #endif // NATIVES_JNICALLREF_HPP
