@@ -102,24 +102,22 @@ MPVRenderer::~MPVRenderer() {
 }
 
 void MPVRenderer::render(const int fbo, const int width, const int height, const int internalFormat) const {
-    const auto flags = mpv_render_context_update(m_handle);
-    if (flags & MPV_RENDER_UPDATE_FRAME) {
-        mpv_opengl_fbo mpvFbo{
-            .fbo = fbo,
-            .w = width,
-            .h = height,
-            .internal_format = internalFormat,
-        };
-        int flipY{0};
-        mpv_render_param params[]{
-            {MPV_RENDER_PARAM_OPENGL_FBO, &mpvFbo},
-            {MPV_RENDER_PARAM_FLIP_Y, &flipY},
-            {},
-        };
-        const auto ret = mpv_render_context_render(m_handle, params);
-        if (ret < 0) {
-            throw MPVException(ret, "mpv_render_context_render");
-        }
+    mpv_render_context_update(m_handle);
+    mpv_opengl_fbo mpvFbo{
+        .fbo = fbo,
+        .w = width,
+        .h = height,
+        .internal_format = internalFormat,
+    };
+    int flipY{0};
+    mpv_render_param params[]{
+        {MPV_RENDER_PARAM_OPENGL_FBO, &mpvFbo},
+        {MPV_RENDER_PARAM_FLIP_Y, &flipY},
+        {},
+    };
+    const auto ret = mpv_render_context_render(m_handle, params);
+    if (ret < 0) {
+        throw MPVException(ret, "mpv_render_context_render");
     }
 }
 
