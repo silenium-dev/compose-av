@@ -1,3 +1,5 @@
+# ***Replaced by https://github.com/silenium-dev/mpv-kt***
+
 # compose-av
 
 A kotlin library for audio and video playback in Jetpack Compose.
