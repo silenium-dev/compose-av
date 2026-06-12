@@ -19,7 +19,7 @@ import jetbrains.buildServer.configs.kotlin.triggers.VcsTrigger
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.version
 
-version = "2025.11"
+version = "2026.1"
 
 project {
     buildType(BuildSnapshot)
