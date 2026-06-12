@@ -11,6 +11,11 @@ To apply the patch, change the root project
 accordingly, and delete the patch script.
 */
 changeProject(DslContext.projectId) {
+    check(archived == false) {
+        "Unexpected archived: '$archived'"
+    }
+    archived = true
+
     features {
         remove {
             githubConnection {
