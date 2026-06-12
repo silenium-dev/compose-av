@@ -25,6 +25,8 @@ project {
     buildType(BuildSnapshot)
     buildType(BuildRelease)
 
+    archived = true
+
     features {
         githubConnection {
             id = "PROJECT_EXT_10"
